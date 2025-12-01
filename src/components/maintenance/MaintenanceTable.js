@@ -33,59 +33,104 @@ const MaintenanceTable = () => {
     }, [selectedType, shipId, user]);
 
     const applyFilters = (data) => {
-      if (!Array.isArray(data)) return [];
+  if (!Array.isArray(data)) return [];
+  if (!filters) return data;
 
-      if (!filters) return data;
+  return data.filter(item => {
 
-      return data.filter(item => {
-        const dueDate = new Date(item.ending_date);
-        const startDate = new Date(item.starting_date);
-        const today = new Date();
-        const diffDays = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
+    const dueDate = new Date(item.ending_date);
+    const startDate = new Date(item.starting_date);
+    const today = new Date();
+    const diffDays = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
 
-        if (filters.stato?.attiva && item.status.id !== 1) return false;
-        if (filters.stato?.inPausa && item.status.id !== 2) return false;
+    // ---- FILTRI STATO ----
+    if (filters.stato) {
+      const {
+        scaduta,
+        scadutaDaPoco,
+        inScadenza,
+        attiva,
+        programmata,
+        inPausa
+      } = filters.stato;
 
-        const filterScaduta        = filters.stato?.scaduta;
-        const filterScadutaDaPoco  = filters.stato?.scadutaDaPoco;
-        const filterInScadenza     = filters.stato?.inScadenza;
-        const filterProgrammata    = filters.stato?.programmata;
+      const matchScaduta = diffDays < -15;
+      const matchScadutaDaPoco = diffDays >= -15 && diffDays < 0;
+      const matchInScadenza = diffDays >= 0 && diffDays <= 15;
+      const matchAttiva = diffDays > 15; // 👈 CORRETTO
+      const matchProgrammata = startDate > today;
+      const matchInPausa = item.status_id === 2 || item.execution_state === 2;
 
-        const matchScaduta        = diffDays < -15;
-        const matchScadutaDaPoco  = diffDays >= -15 && diffDays < 0;
-        const matchInScadenza     = diffDays >= 0 && diffDays <= 15;
-        const matchProgrammata    = startDate > today;
+      // Controllo se almeno un filtro STATO è attivo
+      const statoFiltersActive = Object.values(filters.stato).some(Boolean);
 
-        if (filterScaduta || filterScadutaDaPoco || filterInScadenza || filterProgrammata) {
-          const matches = [];
+      if (statoFiltersActive) {
+        const matched = [
+          scaduta && matchScaduta,
+          scadutaDaPoco && matchScadutaDaPoco,
+          inScadenza && matchInScadenza,
+          attiva && matchAttiva,
+          programmata && matchProgrammata,
+          inPausa && matchInPausa
+        ].some(Boolean);
 
-          if (filterScaduta) matches.push(matchScaduta);
-          if (filterScadutaDaPoco) matches.push(matchScadutaDaPoco);
-          if (filterInScadenza) matches.push(matchInScadenza);
-          if (filterProgrammata) matches.push(matchProgrammata);
+        if (!matched) return false;
+      }
+    }
 
-          if (!matches.includes(true)) return false;
+// ---- FILTRO RICORRENZA ----
+if (filters.ricorrenza) {
+  const recurrenceMap = {
+    settimanale: [2],
+    bisettimanale: [7],
+    mensile: [3],
+    bimestrale: [8],
+    trimestrale: [4],
+    semestrale: [30, 40], // Semiannual e 6 mesi
+    annuale: [5],
+    biennale: [9],
+    triennale: [10],
+  };
+
+  const selectedFilters = Object.entries(filters.ricorrenza)
+    .filter(([_, active]) => active)
+    .flatMap(([key]) => recurrenceMap[key] || []);
+
+  // recupera il valore REALE dal dato
+  const recurrency = item.maintenance_list?.recurrency_type?.id;
+
+  // Se filtri attivi → deve matchare
+  if (selectedFilters.length > 0 && !selectedFilters.includes(recurrency)) {
+      return false;
+    }
+  }
+
+    // ---- FILTRO LIVELLO ----
+    if (filters.livello) {
+      const levelMap = {
+        aBordo: ["I"], 
+        inBanchina: ["II"],
+        inBacino: ["IV - BACINO"],
+        fornitoreEsterno: ["III"],
+      };
+
+      const selectedLevels = Object.entries(filters.livello)
+        .filter(([_, active]) => active)
+        .flatMap(([key]) => levelMap[key] || []);
+
+      if (selectedLevels.length > 0) {
+        const levelValue = item.maintenance_list?.maintenance_level?.Level_MMI;
+        if (!selectedLevels.includes(levelValue)) {
+          return false;
         }
+      }
+    }
 
-        // Filtro anniversary
-        if (filters.ricorrenza?.settimanale && item.recurrencyType.id !== 2) return false;
-        if (filters.ricorrenza?.bisettimanale && item.recurrencyType.id !== 7) return false;
-        if (filters.ricorrenza?.mensile && item.recurrencyType.id !== 3) return false;
-        if (filters.ricorrenza?.bimestrale && item.recurrencyType.id !== 4) return false;
-        if (filters.ricorrenza?.trimestrale && item.recurrencyType.id !== 4) return false;
-        if (filters.ricorrenza?.semestrale && item.recurrencyType.id !== 4) return false;
-        if (filters.ricorrenza?.annuale && item.recurrencyType.id !== 5) return false;
-        if (filters.ricorrenza?.biennale && item.recurrencyType.id !== 9) return false;
-        if (filters.ricorrenza?.triennale && item.recurrencyType.id !== 10) return false;
 
-        if (filters.livello?.aBordo && item.job.maintenance_list.maintenance_level.Level_MMI !== "") return false;
-        if (filters.livello?.inBanchina && item.job.maintenance_list.maintenance_level.Level_MMI !== "") return false;
-        if (filters.livello?.inBacino && item.job.maintenance_list.maintenance_level.Level_MMI !== "IV - BACINO") return false;
-        if (filters.livello?.fornitoreEsterno && item.job.maintenance_list.maintenance_level.Level_MMI!== "") return false;
+    return true;
+  });
+};
 
-        return true;
-      });
-    };
 
     const countActiveFilters = () => {
       if (!filters) return 0;
@@ -181,6 +226,7 @@ const MaintenanceTable = () => {
       </div>
 
       {applyFilters(maintenancedata)
+        .sort((a, b) => new Date(b.starting_date) - new Date(a.starting_date)) // 👈 Ordina dal più recente
         .filter(
           (item) =>
             (!selectedType || item.recurrency_type_id === selectedType.id) &&
@@ -189,7 +235,6 @@ const MaintenanceTable = () => {
         .map((item) => (
           <MaintenanceRow key={item.id} data={item} />
       ))}
-
 
       <SelectModal isOpen={isOpen} onClose={() => setIsOpen(false)} onSelect={handleSelectType} shipId={shipId} userId={user?.id} />
 

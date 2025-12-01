@@ -73,7 +73,7 @@ const MaintenanceDetails = ({ details }) => {
         });
       }
 
-      clearNotes(failureId); // Pulizia delle note locali
+      clearNotes(failureId);
     } catch (error) {
       console.error("Errore nel caricamento delle note:", error);
     }
@@ -81,18 +81,15 @@ const MaintenanceDetails = ({ details }) => {
 
   const handleOk = async (status) => {
     setMarkAsOk(true);
-    //await uploadNotesToDb(status);
-    // Conferma visiva gestita da <ConfirmMaintenance />
   };
 
   const handleAnomaly = async (status) => {
-    await uploadNotesToDb(status);
+    //await uploadNotesToDb(status);
     await markAs(details[0]?.id, 2);
     window.location.reload();
   };
 
   const handleNotPerformed = async (status) => {
-    //console.log(status)
     await uploadNotesToDb(status);
     await markAs(details[0]?.id, 3);
     window.location.reload();
@@ -127,7 +124,7 @@ const MaintenanceDetails = ({ details }) => {
           const sortedTexts = [...texts.notes].sort(
             (a, b) => new Date(b.created_at) - new Date(a.created_at)
           );
-          setLatestText(sortedTexts[0]); // <- CORRETTA
+          setLatestText(sortedTexts[0]);
         }
 
 
@@ -221,7 +218,7 @@ const MaintenanceDetails = ({ details }) => {
             }`}
           >
             <Image src="/x.png" alt="X" width={20} height={20} className="sm:mr-2" />
-            <span className="hidden sm:block">{t("Anomaly")}</span>
+            <span className="hidden sm:block">{t("anomaly")}</span>
           </button>
 
           <button

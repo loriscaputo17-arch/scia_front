@@ -83,7 +83,7 @@ export default function FilterSidebar({ isOpen, onClose, onFiltersChange }) {
     onFiltersChange(filters);
   }, [filters]);
 
-  const { t, i18n } = useTranslation("maintenance");
+  const { t, i18n } = useTranslation("filters");
     const [mounted, setMounted] = useState(false);
       
     useEffect(() => {
@@ -102,12 +102,12 @@ export default function FilterSidebar({ isOpen, onClose, onFiltersChange }) {
         <div className="mb-5">
           <h3 className="text-[16px] text-[#789fd6] mb-3">{t("state")}</h3>
           {[
-            { key: "scaduta", label: "Scaduta", color: "bg-red-500" },
-            { key: "scadutaDaPoco", label: "Scaduta da poco", color: "bg-orange-500" },
-            { key: "inScadenza", label: "In scadenza", color: "bg-yellow-500" },
-            { key: "attiva", label: "Attiva", color: "bg-green-500" },
-            { key: "inPausa", label: "In pausa", color: "bg-gray-500" },
-            { key: "programmata", label: "Programmata", color: "bg-blue-500" },
+            { key: "scaduta", label: t("expired"), color: "bg-red-500" },
+            { key: "inScadenza", label: t("expiring"), color: "bg-orange-500" },
+            { key: "scadutaDaPoco", label: t("recently_expired"), color: "bg-yellow-500" },
+            { key: "attiva", label: t("active"), color: "bg-green-500" },
+            { key: "inPausa", label: t("paused"), color: "bg-gray-500" },
+            { key: "programmata", label: t("scheduled"), color: "bg-blue-500" },
           ].map((item) => (
             <label key={item.key} className="flex items-center gap-2 mb-4 cursor-pointer">
               <span className={`w-5 h-5 ${item.color} rounded-sm`}></span>
@@ -126,10 +126,10 @@ export default function FilterSidebar({ isOpen, onClose, onFiltersChange }) {
 
         {/* Ricorrenza */}
         <div className="mb-5">
-          <h3 className="text-[16px] text-[#789fd6] mb-2">{t("anniversary")}</h3>
+          <h3 className="text-[16px] text-[#789fd6] mb-2">{t("frequency")}</h3>
           {Object.keys(filters.ricorrenza).map((key) => (
             <label key={key} className="flex items-center gap-2 mb-4 cursor-pointer">
-              {key.charAt(0).toUpperCase() + key.slice(1)}
+              {t(`recurrence.${key}`)}
 
               <input
                 type="checkbox"
@@ -177,10 +177,12 @@ export default function FilterSidebar({ isOpen, onClose, onFiltersChange }) {
         {/* Squadra */}
         <div className="mb-5">
           <h3 className="text-[16px] text-[#789fd6] mb-2">{t("assignment_team")}</h3>
+
           {Object.keys(filters.squadra).map((key) => (
             <label key={key} className="flex items-center gap-2 mb-4 cursor-pointer">
               
-              {key.charAt(0).toUpperCase() + key.slice(1)}
+              {/* 🚀 Traduzione dinamica */}
+              {t(`teams.${key}`)}
 
               <input
                 type="checkbox"
@@ -192,6 +194,7 @@ export default function FilterSidebar({ isOpen, onClose, onFiltersChange }) {
             </label>
           ))}
         </div>
+
 
         {/* Squadra */}
         <div className="mb-5">
@@ -205,23 +208,26 @@ export default function FilterSidebar({ isOpen, onClose, onFiltersChange }) {
 
         <div>
           <h3 className="text-[16px] text-[#789fd6] mb-2">{t("spare_parts")}</h3>
+
           {Object.keys(filters.ricambi).map((key) => (
             <label key={key} className="flex items-center gap-2 mb-4 cursor-pointer">
 
+              {/* ICONS */}
               {key === "richiesti" && (
-                <Image src="/icons/Shape-9.png" alt="A Bordo" width={18} height={18} />
+                <Image src="/icons/Shape-9.png" alt="" width={18} height={18} />
               )}
               {key === "richiestiDisponibili" && (
-                <Image src="/icons/Shape-7.png" alt="In Banchina" width={18} height={18} />
+                <Image src="/icons/Shape-7.png" alt="" width={18} height={18} />
               )}
               {key === "richiestiNonDisponibili" && (
-                <Image src="/icons/Shape-8.png" alt="In Bacino" width={18} height={18} />
+                <Image src="/icons/Shape-8.png" alt="" width={18} height={18} />
               )}
               {key === "richiestiInEsaurimento" && (
-                <Image src="/icons/Shape-6.png" alt="Fornitore Esterno" width={18} height={18} />
+                <Image src="/icons/Shape-6.png" alt="" width={18} height={18} />
               )}
 
-              {key.replace(/([A-Z])/g, " $1")}
+              {/* Traduzione dinamica */}
+              {t(`spares.${key}`)}
 
               <input
                 type="checkbox"
@@ -233,6 +239,7 @@ export default function FilterSidebar({ isOpen, onClose, onFiltersChange }) {
             </label>
           ))}
         </div>
+
 
         <button
           className="w-full bg-[#789fd6] p-3 mt-8 text-white font-semibold cursor-pointer rounded-md"

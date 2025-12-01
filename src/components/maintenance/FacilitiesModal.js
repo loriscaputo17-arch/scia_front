@@ -4,13 +4,11 @@ import { useState, useEffect } from "react";
 import FacilitiesList from "@/components/facilities/FacilitiesList";
 import { useTranslation } from "@/app/i18n";
 
-export default function NotesModal({ isOpen, onClose2, eswbs }) {
+export default function FacilitiesModal({ isOpen, onClose2, eswbs }) {
   const [search, setSearch] = useState("");
 
   const { t, i18n } = useTranslation("facilities");
   const [mounted, setMounted] = useState(false);
-
-  console.log(eswbs)
       
   useEffect(() => {
     setMounted(true);

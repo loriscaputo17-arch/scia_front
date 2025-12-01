@@ -1,136 +1,163 @@
 "use client";
 
-import { useState } from "react";
-import { addSpareToMaintenanceList } from "@/api/spare";
-import { useTranslation } from "@/app/i18n";
+import { useState, useEffect } from "react";
 import SpareSelector from "./SpareSelector";
+import { useTranslation } from "@/app/i18n";
 import { useUser } from "@/context/UserContext";
 import { markAsOk } from "@/api/maintenance";
+import { useRouter } from "next/navigation";
+import { getMaintenanceLevels } from "@/api/admin/maintenanceLevel";
+import { getSpares } from "@/api/admin/spares";
 
-export default function SpareModal({ onClose, maintenanceListId, onClick }) {
-  const [time, setTime] = useState("");
-  const [location, setLocation] = useState("");
-  const [userType, setUserType] = useState("");
+export default function ConfirmMaintenance({ onClose, maintenanceListId, onClick }) {
+  const [selectedTime, setSelectedTime] = useState(null);
+  const [level, setLevel] = useState("");
+  const [levels, setLevels] = useState([]);
+  const [spares, setSpares] = useState([]);
+  const [selectedSpareIDs, setSelectedSpareIDs] = useState([]);
 
-  const { t, i18n } = useTranslation("maintenance");
-  const [selectedSpare, setSelectedSpare] = useState([]);
   const { user } = useUser();
+  const router = useRouter();
+  const shipId = user?.teamInfo?.assignedShip?.id;
+
+  const { t } = useTranslation("maintenance");
+
+  const timeOptions = [5, 10, 15, 30, 45, 60, 90, 120];
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [levelData, spareData] = await Promise.all([
+          getMaintenanceLevels(),
+          getSpares(shipId)
+        ]);
+
+        setLevels(levelData);
+        setSpares(spareData);
+      } catch (e) {
+        console.error("Errore nel caricamento:", e);
+      }
+    }
+
+    fetchData();
+  }, [shipId]);
+
+  const userType = "User logged in";
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  const spareData = {
-    time,
-    location,
-    userType,
-    userId: user?.id,
-    maintenanceList_id: maintenanceListId,
-    spares: selectedSpare, 
-  };
+    if (!selectedTime || !level) {
+      return alert("⚠ Please select time and level.");
+    }
 
-  //console.log(spareData)
+    const spareData = {
+      time: selectedTime,
+      level,
+      userType,
+      userId: user?.id,
+      maintenanceList_id: maintenanceListId,
+      spares: selectedSpareIDs,
+    };
 
-  const result = await markAsOk(maintenanceListId, spareData, selectedSpare);
+    const result = await markAsOk(maintenanceListId, spareData, selectedSpareIDs);
 
-  if (result) {
-    onClick("ok")
-    onClose();
-  } else {
-    alert(t("spare_not_added"));
-  }
+    if (result) {
+      onClick("ok");
+      onClose();
+
+      // Mini feedback
+      const successToast = document.createElement("div");
+      successToast.style.position = "fixed";
+      successToast.style.bottom = "30px";
+      successToast.style.left = "50%";
+      successToast.style.transform = "translateX(-50%)";
+      successToast.style.padding = "15px 25px";
+      successToast.style.background = "#2db647";
+      successToast.style.color = "white";
+      successToast.style.fontWeight = "bold";
+      successToast.style.borderRadius = "10px";
+      successToast.style.fontSize = "18px";
+      successToast.innerText = t("maintenance_completed_successfully");
+
+      document.body.appendChild(successToast);
+
+      setTimeout(() => {
+        successToast.style.opacity = 0;
+        setTimeout(() => {
+          successToast.remove();
+          router.push("/dashboard/maintenance");
+        }, 400);
+      }, 2000);
+    }
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-[#000000ab] bg-opacity-50 z-2">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-[#022a52] sm:w-[70%] w-full p-5 rounded-md shadow-lg text-white"
-      >
+    <div className="fixed inset-0 flex items-center justify-center bg-[#000000ab] z-50">
+      <form onSubmit={handleSubmit} className="bg-[#022a52] sm:w-[70%] w-full p-5 rounded-md text-white">
+
+        {/* Header */}
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-[26px] font-semibold">{t("confirm_mark")}</h2>
-          <button type="button" className="text-white text-xl cursor-pointer" onClick={onClose}>
-            <svg
-              width="24px"
-              height="24px"
-              fill="white"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 384 512"
-            >
-              <path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z" />
-            </svg>
-          </button>
+          <button type="button" className="text-white text-xl cursor-pointer" onClick={onClose}>✕</button>
         </div>
 
-        <div>
-          <p className="text-[26px] font-semibold mb-4">{t("confirm_maintenance_text")}</p>
+        <p className="text-[18px] font-semibold mb-4">{t("please_confirm")}</p>
 
-          <label className="text-[#789FD6] text-sm">{t("spare_parts")}</label>
+        {/* Spare Parts Selection */}
+        <label className="text-[#789FD6] text-sm">{t("please_select_spare_parts_used")}</label>
+        <SpareSelector spares={spares} onSelectChange={setSelectedSpareIDs} />
 
-            <SpareSelector
-              images={['/motor.jpg', '/motor.jpg', '/motor.jpg', '/motor.jpg','/motor.jpg', '/motor.jpg', '/motor.jpg', '/motor.jpg','/motor.jpg', '/motor.jpg', '/motor.jpg', '/motor.jpg']}
-              onSelectChange={(selected) => setSelectedSpare(selected)}
-            />
-        </div>
-
-        <div className="block sm:grid grid-cols-2 gap-4 mb-4">
-          <div>
-            <label className="text-[#789FD6] text-sm">{t("time_taken")}</label>
-            <input
-              type="text"
-              placeholder={t("write_here")}
-              value={time}
-              onChange={(e) => setTime(e.target.value)}
-              className="w-full px-4 py-2 bg-[#ffffff10] text-white focus:outline-none mt-2 rounded-md"
-              required
-            />
-          </div>
-           <div>
-            <label className="text-[#789FD6] text-sm">{t("location")} </label>
-            <input
-              type="text"
-              placeholder={t("write_here")}
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              className="w-full px-4 py-2 bg-[#ffffff10] text-white focus:outline-none mt-2 rounded-md"
-              required
-            />
+        {/* Time Selection */}
+        <div className="mt-6">
+          <label className="text-[#789FD6] text-sm">{t("time_taken")}</label>
+          <div className="flex flex-wrap gap-2 mt-2">
+            {timeOptions.map((min) => (
+              <button
+                key={min}
+                type="button"
+                onClick={() => setSelectedTime(min)}
+                className={`px-4 py-2 rounded-md cursor-pointer ${
+                  selectedTime === min ? "bg-[#789fd6]" : "bg-[#ffffff10]"
+                }`}
+              >
+                {min} min
+              </button>
+            ))}
           </div>
         </div>
 
-        <div className="block sm:grid grid-cols-2 gap-4 mb-4">
-          <div>
-            <label className="text-[#789FD6] text-sm">{t("user_type_executor")}</label>
-            <div className="mt-2">
-
-            <select
-                      value={userType}
-                      onChange={(e) => setUserType(e.target.value)}
-                      className="w-full px-4 py-2 bg-[#ffffff10] text-white focus:outline-none rounded-md"
-                    >
-                      <option value="">{t("failure_modal2")}</option>
-                      <option value="connected_user">{t("failure_modal3")}</option>
-                    </select>
-            </div>
-          </div>
-
-          <div>
-            <label className="text-[#789FD6] text-sm">{t("user_executor")}</label>
-
-            <div className="relative mt-2">
-                    <input
-                      type="text"
-                      value={user?.firstName + ' ' + user?.lastName}
-                      readOnly
-                      className="w-full px-4 py-2 bg-[#ffffff10] text-[#ffffff20] focus:outline-none rounded-md"
-                    />
-                  </div>
-          </div>
+        {/* Maintenance Level */}
+        <div className="mt-4">
+          <label className="text-[#789FD6] text-sm">{t("level")}</label>
+          <select
+            value={level}
+            onChange={(e) => setLevel(e.target.value)}
+            className="w-full px-4 py-2 mt-2 bg-[#ffffff10] rounded-md"
+            required
+          >
+            <option value="">{t("select_level")}</option>
+            {levels.map((lvl) => (
+              <option key={lvl.id} value={lvl.id}>
+                {lvl.Level_MMI} — {lvl.Description}
+              </option>
+            ))}
+          </select>
         </div>
 
-        <button
-          type="submit"
-          className="w-full bg-[#789fd6] px-3 py-4 rounded-md mt-4 text-white font-semibold cursor-pointer"
-        >
+        {/* User */}
+        <div className="mt-6">
+          <label className="text-[#789FD6] text-sm">{t("user_executor")}</label>
+          <input
+            type="text"
+            value={`${user?.firstName} ${user?.lastName}`}
+            readOnly
+            className="mt-2 w-full px-4 py-2 bg-[#ffffff10] opacity-40 rounded-md"
+          />
+        </div>
+
+        {/* Submit */}
+        <button type="submit" className="w-full bg-[#789fd6] py-3 rounded-md text-white mt-6">
           {t("save")}
         </button>
       </form>

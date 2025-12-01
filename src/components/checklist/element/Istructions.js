@@ -3,16 +3,14 @@
 import { useState, useEffect } from "react";
 import Image from 'next/image';
 import { useTranslation } from "@/app/i18n";
-
-export default function Istructions({ istructions, onClose }) {
+ 
+export default function Instructions({ istructions, onClose }) {
     const [selectedImage, setSelectedImage] = useState(null);
     
     const images = [
         '/motor.jpg', '/motor.jpg', '/motor.jpg', 
         '/motor.jpg', '/motor.jpg', '/motor.jpg'
     ];
-
-    console.log(istructions)
 
     const { t, i18n } = useTranslation("maintenance");
         const [mounted, setMounted] = useState(false);

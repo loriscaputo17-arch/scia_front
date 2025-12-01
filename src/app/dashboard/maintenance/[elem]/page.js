@@ -32,8 +32,6 @@ export default function ElementPage({ params }) {
   useEffect(() => {
     fetchMaintenanceJob(jobId).then((data) => {
       setMaintenanceData(data || []);
-
-      console.log(data[0].id)
     });
   }, [jobId]);
 

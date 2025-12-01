@@ -6,12 +6,14 @@ import SpareModal from "./SpareModal";
 import FacilitiesModal from "@/components/maintenance/FacilitiesModal";
 import { useTranslation } from "@/app/i18n";
 import SpareSelector from "./SpareSelector";
+import InstructionModal from "./InstructionModal";
 
 const MaintenanceInfo = ({ details }) => {
   const [showFull, setShowFull] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [facilitiesOpen, setFacilitiesOpen] = useState(false);
   const [selectedSpare, setSelectedSpare] = useState([]);
+  const [showInstructions, setShowInstructions] = useState(false);
 
   const { t, i18n } = useTranslation("maintenance");
     const [mounted, setMounted] = useState(false);
@@ -42,7 +44,7 @@ const MaintenanceInfo = ({ details }) => {
         {details[0]?.maintenance_list.Maintenance_under_condition_description}
       </p>
 
-      <button
+      {/*<button
           className="mt-2 text-sm text-[#fff] w-fit cursor-pointer bg-[#ffffff1a] py-1 px-4 rounded mt-2"
           onClick={() => {
                 if (details[0].documentFileUrl) {
@@ -54,6 +56,13 @@ const MaintenanceInfo = ({ details }) => {
               }}
         >
           {t("see_instructions")}
+      </button> */}
+
+      <button
+        className="mt-2 text-sm text-[#fff] w-fit cursor-pointer bg-[#ffffff1a] py-1 px-4 rounded"
+        onClick={() => setShowInstructions(true)}
+      >
+        {t("see_instructions")}
       </button>
 
       <div className="mb-6">
@@ -156,13 +165,19 @@ const MaintenanceInfo = ({ details }) => {
             })}
         </p>
 
-  
         </div>
 
       </div>
 
       <FacilitiesModal isOpen={facilitiesOpen} onClose2={() => setFacilitiesOpen(false)} eswbs={details[0]?.Element?.element_model?.ESWBS_code} />
       
+      {showInstructions && (
+        <InstructionModal
+          text={details[0]?.maintenance_list?.Maintenance_under_condition_description}
+          onClose={() => setShowInstructions(false)}
+        />
+      )}
+
     </div>
   );
 };

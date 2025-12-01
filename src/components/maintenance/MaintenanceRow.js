@@ -130,7 +130,8 @@ export default function MaintenanceRow({ data }) {
   const recurrency = data.maintenance_list?.recurrency_type?.name; 
   const expiryDate = computeExpiryDate({
     executionDate: data.execution_date,       
-    endingDate: data.ending_date,             
+    endingDate: data.ending_date, 
+    startingDate: data.starting_date,             
     recurrency,
     maintenanceList: data.job?.maintenance_list,
   });

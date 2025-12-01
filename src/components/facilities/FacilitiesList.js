@@ -104,8 +104,6 @@ export default function ImpiantiList({ search, modal, eswbsCode }) {
       const firstDigit = node.code?.charAt(0);
       const icon = iconMap[firstDigit] || null;
 
-      console.log(node)
-
       return (
         <div key={node.id} className="flex flex-col">
           <div
@@ -139,7 +137,7 @@ export default function ImpiantiList({ search, modal, eswbsCode }) {
               )}
 
               <span>
-                {node.code}&nbsp; - &nbsp;{node.name}
+                {node.eswbs_code}&nbsp; - &nbsp;{node.name}
               </span>
             </div>
 

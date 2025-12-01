@@ -1,180 +1,159 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { fetchMaintenanceTypes } from "@/api/maintenance";
 import Image from 'next/image';
 import AudioPlayer from "@/components/element/audioPlayer";
-import { getTextsGeneral, getPhotosGeneral, getAudiosGeneral } from "@/api/shipFiles";
 import { useTranslation } from "@/app/i18n";
+import { getTextsGeneral, getPhotosGeneral, getAudiosGeneral } from "@/api/shipFiles";
 
 export default function NotesModal({ isOpen, onClose, data }) {
 
-    const [latestPhoto, setLatestPhoto] = useState(null);
-    const [latestAudio, setLatestAudio] = useState(null);
-    const [latestText, setLatestText] = useState(null);
+  const [latestPhoto, setLatestPhoto] = useState(null);
+  const [latestAudio, setLatestAudio] = useState(null);
+  const [latestText, setLatestText] = useState(null);
 
-    const { t, i18n } = useTranslation("maintenance");
+  const { t, i18n } = useTranslation("maintenance");
 
-  
-    useEffect(() => {
-      if (!data?.id) return;
-  
-      const fetchLatestNotes = async () => {
-        try {
-          const [photos, audios, texts] = await Promise.all([
-            getPhotosGeneral(data?.id, "maintenance"),
-            getAudiosGeneral(data?.id, "maintenance"),
-            getTextsGeneral(data?.id, "maintenance"),
-          ]);
-  
-          setLatestPhoto(photos.notes[0]);
-          setLatestAudio(audios.notes[0]);
-          setLatestText(texts.notes[0]);
-  
-          if (photos?.length) {
-            const sortedPhotos = [...photos].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-            setLatestPhoto(sortedPhotos[0]);
-          }
-  
-          if (audios?.length) {
-            //console.log(audios.notes[0])
-            setLatestAudio(audios.notes[0]);
-          }
-  
-          if (texts?.length) {
-            const sortedTexts = [...texts].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-            setLatestText(sortedTexts[0]);
-          }
-  
-        } catch (error) {
-          console.error("Errore nel recupero delle note:", error);
+  // Fetch dati SOLO quando la modale è aperta
+  useEffect(() => {
+    if (!isOpen || !data?.id) return;
+
+    const fetchLatestNotes = async () => {
+      try {
+        const [photos, audios, texts] = await Promise.all([
+          getPhotosGeneral(data?.id, "maintenance"),
+          getAudiosGeneral(data?.id, "maintenance"),
+          getTextsGeneral(data?.id, "maintenance"),
+        ]);
+
+        if (photos?.notes?.length) {
+          const sorted = photos.notes.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+          setLatestPhoto(sorted[0]);
         }
-      };
-  
-      fetchLatestNotes();
-    }, [data?.id]);
 
-    if (!i18n.isInitialized) return null;
+        if (audios?.notes?.length) {
+          const sorted = audios.notes.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+          setLatestAudio(sorted[0]);
+        }
 
-  return isOpen ? (
-    <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-10">
-      <div className="bg-[#022a52] sm:w-[50%] w-full p-6 rounded-md shadow-lg text-white">
+        if (texts?.notes?.length) {
+          const sorted = texts.notes.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+          setLatestText(sorted[0]);
+        }
+
+      } catch (error) {
+        console.error("Errore nel recupero delle note:", error);
+      }
+    };
+
+    fetchLatestNotes();
+  }, [isOpen, data?.id]);
+
+
+  // Reset allo stato originale quando la modale si chiude (clean UX)
+  useEffect(() => {
+    if (!isOpen) {
+      setLatestPhoto(null);
+      setLatestAudio(null);
+      setLatestText(null);
+    }
+  }, [isOpen]);
+
+
+  if (!isOpen || !i18n.isInitialized) return null;
+
+
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+      <div className="bg-[#022a52] sm:w-[50%] w-full p-6 rounded-lg shadow-lg text-white animate-fadeIn">
+
+        {/* HEADER */}
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-[22px] font-semibold">{t("notes")}: {data.job.name}</h2>
-          <button className="text-white text-xl cursor-pointer" onClick={onClose}>
-            <svg width="24px" height="24px" fill="white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg>
+          <h2 className="text-[22px] font-semibold">
+            {t("notes")}: {data?.job?.name}
+          </h2>
+          <button
+            className="text-white text-xl cursor-pointer"
+            onClick={onClose}
+          >
+            ✕
           </button>
         </div>
 
-        <div>
 
-            <div className="items-center flex gap-2 mb-4">
-              <p className="text-[#789fd6]">{t("photographic_notes")}</p>
-              <div
-                className={`
-                  flex items-center rounded-full px-3 py-1
-                  ${
-                    latestPhoto.status === "anomaly"
-                      ? "bg-red-600 text-white"
-                      : latestPhoto.status === "ok"
-                      ? "bg-green-600 text-white"
-                      : latestPhoto.status === "not_perfomed"
-                      ? "bg-yellow-400 text-black"
-                      : ""
-                  }
-                `}
-              >
-                <p className="text-[10px]">{t(latestPhoto.status)}</p>
+        {/* 📷 FOTO */}
+        <div className="mb-6">
+          <h3 className="text-[#789fd6] font-medium mb-2">{t("photographic_notes")}</h3>
+
+          {latestPhoto ? (
+            <div className="flex items-center gap-4">
+              <Image
+                src={latestPhoto.image_url}
+                alt="Latest photo"
+                width={80}
+                height={80}
+                className="rounded-md object-cover"
+                style={{ width: "80px", height: "80px" }}
+              />
+              <div>
+                <p className="text-white text-md">
+                  {latestPhoto?.authorDetails?.first_name} {latestPhoto?.authorDetails?.last_name}
+                </p>
+                <p className="text-white/60 text-sm">
+                  {new Date(latestPhoto.created_at).toLocaleString()}
+                </p>
               </div>
             </div>
-
-            {latestPhoto && (
-              <div className="flex items-center gap-4 cursor-pointer">
-                        <Image 
-                          src={latestPhoto.image_url}
-                          alt="Foto nota"
-                          width={80}
-                          height={80}
-                          className="rounded-lg"
-                          style={{width: "80px", height: "80px", objectFit: "cover"}}
-                        />
-                        <div>
-                          <h2 className="text-md text-[#fff]">{latestPhoto.authorDetails.first_name || "Operatore"} {latestPhoto.authorDetails.last_name}</h2>
-                          <h2 className="text-[14px] text-[#ffffff94]">{new Date(latestPhoto.created_at).toLocaleString()}</h2>
-                        </div>
-              </div>
-            )}
+          ) : (
+            <p className="text-white/40 italic">{t("no_data_available")}</p>
+          )}
         </div>
 
-        <div className="mt-6">
-          <div className="items-center flex gap-2 mb-4">
-            <p className="text-[#789fd6]">{t("vocal_notes")}</p>
-            <div
-              className={`
-                flex items-center rounded-full px-3 py-1
-                ${
-                  latestAudio.status === "anomaly"
-                    ? "bg-red-600 text-white"
-                    : latestAudio.status === "ok"
-                    ? "bg-green-600 text-white"
-                    : latestAudio.status === "not_perfomed"
-                    ? "bg-yellow-400 text-black"
-                    : ""
-                }
-              `}
-            >
-              <p className="text-[10px]">{t(latestAudio.status)}</p>
+
+        {/* 🎤 AUDIO */}
+        <div className="mb-6">
+          <h3 className="text-[#789fd6] font-medium mb-2">{t("vocal_notes")}</h3>
+
+          {latestAudio ? (
+            <AudioPlayer
+              audioSrc={latestAudio.audio_url}
+              username={latestAudio.authorDetails.first_name[0] + latestAudio.authorDetails.last_name[0]}
+              dateTime={latestAudio.created_at}
+            />
+          ) : (
+            <p className="text-white/40 italic">{t("no_data_available")}</p>
+          )}
+        </div>
+
+
+        {/* 📝 TESTO */}
+        <div className="mb-6">
+          <h3 className="text-[#789fd6] font-medium mb-2">{t("text_notes")}</h3>
+
+          {latestText ? (
+            <div className="bg-[#00000038] p-4 rounded-md">
+              <p className="text-white/60 text-sm">
+                {latestText.authorDetails.first_name} {latestText.authorDetails.last_name}
+              </p>
+              <p className="text-white text-[16px] mt-2 mb-2">{latestText.text_field}</p>
+              <p className="text-white/60 text-xs">
+                {new Date(latestText.created_at).toLocaleString()}
+              </p>
             </div>
-          </div>
-
-            {latestAudio && (
-              <div className="flex items-center gap-4 cursor-pointer">
-                <div className="w-full">
-                  <AudioPlayer audioSrc={latestAudio.audio_url} username={latestAudio.authorDetails.first_name[0]+latestAudio.authorDetails.last_name[0]} dateTime={latestAudio.created_at} />
-                </div>
-              </div>
-            )}
+          ) : (
+            <p className="text-white/40 italic">{t("no_data_available")}</p>
+          )}
         </div>
 
-        <div className="mt-6">
 
-            <div className="items-center flex gap-2 mb-4">
-              <p className="text-[#789fd6]">{t("text_notes")}</p>
-              <div
-                className={`
-                  flex items-center rounded-full px-3 py-1
-                  ${
-                    latestText.status === "anomaly"
-                      ? "bg-red-600 text-white"
-                      : latestText.status === "ok"
-                      ? "bg-green-600 text-white"
-                      : latestText.status === "not_perfomed"
-                      ? "bg-yellow-400 text-black"
-                      : ""
-                  }
-                `}
-              >
-                <p className="text-[10px]">{t(latestText.status)}</p>
-              </div>
-            </div>
-
-            {latestText && (
-              <div className="flex items-center gap-4 cursor-pointer">
-                <div className="w-full bg-[#00000038] p-4 rounded-md">
-                  <p className="text-white text-[12px] opacity-60">{latestText.authorDetails.first_name || "Operatore"} {latestText.authorDetails.last_name}</p>
-                  <p className="text-white text-[16px] mt-2 mb-2">{latestText.text_field}</p>
-                  <p className="text-white opacity-60 text-sm ml-auto w-fit">{new Date(latestText.created_at).toLocaleString()}</p>
-                </div>
-              </div>
-        )}
-        </div>
+        {/* CLOSE BUTTON */}
         <button
-          className="w-full bg-[#789fd6] p-3 mt-4 text-white font-semibold mt-6 rounded-md"
+          className="w-full bg-[#789fd6] p-3 mt-4 text-white font-semibold rounded-md cursor-pointer"
           onClick={onClose}
         >
           {t("close_button")}
         </button>
       </div>
     </div>
-  ) : null;
+  );
 }

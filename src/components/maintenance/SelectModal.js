@@ -60,7 +60,7 @@ export default function SelectModal({ isOpen, onClose, onSelect, shipId, userId 
           </button>
         </div>
 
-        <div className="bg-transparent rounded-md overflow-hidden">
+        <div className="bg-transparent rounded-md overflow-hidden" style={{height: "50vh", overflowY: "scroll"}}>
           {/* Tabella desktop (da sm in su) */}
           <table className="w-full text-white border-collapse hidden sm:table">
             <thead className="bg-white text-black">
