@@ -32,6 +32,8 @@ export default function ElementPage({ params }) {
   useEffect(() => {
     fetchMaintenanceJob(jobId).then((data) => {
       setMaintenanceData(data || []);
+
+      console.log(data[0].id)
     });
   }, [jobId]);
 
@@ -72,7 +74,7 @@ export default function ElementPage({ params }) {
             <button
               type="submit"
               onClick={() => setIsOpen(!isOpen)}
-              className="rounded-md flex items-center bg-[#022a52] hover:bg-blue-500 text-white font-bold py-2 px-4 transition duration-200 cursor-pointer"
+              className="rounded-md flex items-center bg-[#022a52] hover:bg-blue-500 text-white font-bold py-1 px-4 transition duration-200 cursor-pointer"
             >
               <svg width="16px" height="16px" fill="#fff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512">
                 <path d="M48 64C21.5 64 0 85.5 0 112L0 400c0 26.5 21.5 48 48 48l32 0c26.5 0 48-21.5 48-48l0-288c0-26.5-21.5-48-48-48L48 64zm192 0c-26.5 0-48 21.5-48 48l0 288c0 26.5 21.5 48 48 48l32 0c26.5 0 48-21.5 48-48l0-288c0-26.5-21.5-48-48-48l-32 0z"/>
@@ -113,7 +115,7 @@ export default function ElementPage({ params }) {
       )}
 
       {noteModal && (
-        <NoteModal onClose={() => setNoteModal(false)} id={maintenancedata[0].id} />
+        <NoteModal onClose={() => setNoteModal(false)} id={maintenancedata[0]?.id} />
       )}
 
       <div className="block sm:flex gap-4">

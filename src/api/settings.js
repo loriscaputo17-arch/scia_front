@@ -42,10 +42,10 @@ export async function updateSettings({
       },
       body: JSON.stringify({
         user_id,
-        isNotificationsEnabledMaintenance,
-        maintenanceFrequency,
-        isNotificationsEnabledChecklist,
-        checklistFrequency,
+        is_notifications_enabled_maintenance: isNotificationsEnabledMaintenance,
+        maintenance_frequency: maintenanceFrequency,
+        is_notifications_enabled_checklist: isNotificationsEnabledChecklist,
+        checklist_frequency: checklistFrequency,
         license,
       }),
     });
@@ -60,3 +60,4 @@ export async function updateSettings({
     return null;
   }
 }
+

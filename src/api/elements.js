@@ -1,20 +1,28 @@
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL_DEV;
 
-export async function fetchElements(shipId, userId) {
+export async function fetchElements(shipId, userId, teamId) {
   try {
-    const res = await fetch(`${BASE_URL}/api/element/getElements/${shipId}/${userId}`);
+    const res = await fetch(`${BASE_URL}/api/element/getElements/${shipId}/${userId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        teamId,
+      }),
+    });
 
     if (!res.ok) {
-      throw new Error(`Errore HTTP ${res.status}: Impossibile recuperare i tipi di manutenzione`);
+      throw new Error(`Errore HTTP ${res.status}: Impossibile recuperare gli elementi`);
     }
 
-    const data = await res.json();
-    return data || [];
+    return await res.json();
   } catch (error) {
-    console.error("Errore nel recupero dei tipi di manutenzione:", error.message);
+    console.error("Errore nel recupero elementi:", error);
     return [];
   }
 }
+
 
 export async function fetchElementData(element, ship_id) {
   try {

@@ -26,13 +26,14 @@ export default function ImpiantiList({ search, modal, eswbsCode }) {
   const router = useRouter();
 
   const shipId = user?.teamInfo?.assignedShip?.id;
+  const teamId = user?.teamInfo?.teamId;
 
   useEffect(() => {
     const fetchData = async () => {
       if (!user?.id) return;
 
       try {
-        const result = await fetchElements(ship_id, user.id);
+        const result = await fetchElements(shipId, user.id, teamId);
         setImpiantiData(result);
 
         if (eswbsCode) {
@@ -52,7 +53,6 @@ export default function ImpiantiList({ search, modal, eswbsCode }) {
     fetchData();
   }, [user]);
 
-  // Ricerca
   const filterNodesAndExpand = (nodes, searchText) => {
     const expanded = {};
 
@@ -103,6 +103,8 @@ export default function ImpiantiList({ search, modal, eswbsCode }) {
     nodes.map((node) => {
       const firstDigit = node.code?.charAt(0);
       const icon = iconMap[firstDigit] || null;
+
+      console.log(node)
 
       return (
         <div key={node.id} className="flex flex-col">

@@ -14,6 +14,7 @@ export function UserProvider({ children }) {
   const pathname = usePathname();
 
   const [failureNotes, setFailureNotes] = useState({});
+
   const addNote = (failureId, type, content) => {
     setFailureNotes((prev) => {
       const prevFailure = prev[failureId] || { text: [], photo: [], vocal: [] };
@@ -26,6 +27,7 @@ export function UserProvider({ children }) {
       };
     });
   };
+  
   const getNotes = (failureId) => failureNotes[failureId] || { text: [], photo: [], vocal: [] };
   const clearNotes = (failureId) => {
     setFailureNotes((prev) => {

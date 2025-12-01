@@ -76,25 +76,37 @@ const ActionsMenu = ({ onPause, onResume, onDetails }) => {
   );
 };
 
-const TitleCell = ({ jobName, elementName, onClick }) => (
-  <div onClick={onClick} className="border border-[#001c38] p-3 flex flex-col justify-center min-h-[60px]" style={{ height: "-webkit-fill-available" }}>
-    <p className="text-white text-[18px] font-semibold">
-      {(() => {
-        if (!jobName) return "";
-        const text = jobName.toLowerCase();
-        const formatted = text.charAt(0).toUpperCase() + text.slice(1);
-        return formatted.length > 45 ? formatted.substring(0, 45) + "..." : formatted;
-      })()}
-    </p>
-    <p className="text-white/60 text-[16px] text-sm truncate">
-      {(() => {
-        if (!elementName) return "";
-        const text = elementName.toLowerCase();
-        return text.charAt(0).toUpperCase() + text.slice(1);
-      })()}
-    </p>
-  </div>
-);
+const TitleCell = ({ jobName, elementName, onClick, eswbsCode }) => {
+  const getFacilityIcon = (code) => {
+    if (!code) return null;
+    const firstDigit = code.trim().charAt(0);
+    if (!/^[0-9]$/.test(firstDigit)) return null;
+    return `/icons/facilities/Ico${firstDigit}.svg`;
+  };
+
+  const icon = getFacilityIcon(eswbsCode);
+
+  return (
+    <div onClick={onClick} className="border border-[#001c38] p-3 flex flex-col justify-center min-h-[60px]" style={{ height: "-webkit-fill-available" }}>
+      <div className="flex items-center gap-2">
+
+        <p className="text-white text-[18px] font-semibold">
+          {jobName
+            ? jobName.charAt(0).toUpperCase() + jobName.slice(1)
+            : ""}
+        </p>
+      </div>
+
+      <p className="text-white/60 text-[16px] text-sm truncate flex items-center gap-2">
+        {icon && (
+          <Image src={icon} alt="facility icon" width={16} height={16} />
+        )}
+
+        {elementName ? elementName.charAt(0).toUpperCase() + elementName.slice(1) : ""}
+      </p>
+    </div>
+  );
+};
 
 const RecurrencyCell = ({ recurrencyLabel, levelMMI, onClick }) => (
   <div onClick={onClick} className="border border-[#001c38] p-3 text-center text-white flex flex-col items-center gap-2" style={{ height: "-webkit-fill-available" }}>
@@ -137,7 +149,13 @@ export default function MaintenanceRow({ data }) {
         className="hidden sm:grid grid-cols-[2fr_1fr_1fr_1fr_1fr_auto] items-center border-b border-[#001c38] bg-[#022a52] cursor-pointer"
         style={{ borderLeft: `8px solid ${barColor}` }}
       >
-        <TitleCell jobName={data.maintenance_list?.name} elementName={data.Element?.element_model?.ESWBS_code + " " +data.Element?.name} onClick={handleRowClick} />
+
+        <TitleCell 
+          jobName={data.maintenance_list?.name}
+          elementName={`${data.Element?.element_model?.ESWBS_code} ${data.Element?.name}`}
+          eswbsCode={data.Element?.element_model?.ESWBS_code}
+          onClick={handleRowClick}
+        />
 
         <RecurrencyCell
           recurrencyLabel={recurrency || t("unknown")}

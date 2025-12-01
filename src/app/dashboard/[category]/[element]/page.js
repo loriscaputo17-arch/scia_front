@@ -17,12 +17,12 @@ export default function ElementPage() {
   const { element } = useParams();
   const [data, setData] = useState(null);
   const { user } = useUser();
-  const ship_id = 1;
+  const shipId = user?.teamInfo?.assignedShip?.id;
 
   useEffect(() => {
     const getData = async () => {
       if (element) {
-        const result = await fetchElementData(element, ship_id);
+        const result = await fetchElementData(element, shipId);
         setData(result);
       }
     };

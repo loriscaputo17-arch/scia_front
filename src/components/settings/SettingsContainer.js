@@ -188,7 +188,7 @@ export default function SettingsContainer() {
               <input
                 type="text"
                 value={license}
-                placeholder={t("license.placeholder")}
+                placeholder={t("license_label")}
                 onChange={(e) => setLicense(e.target.value)}
                 className="w-full px-4 py-2 bg-[#ffffff10] text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
                 required
