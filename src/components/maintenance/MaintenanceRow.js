@@ -6,7 +6,8 @@ import StatusBadge from "./StatusBadge";
 import NotesModal from "./NotesModal";
 import { updateMaintenanceJobStatus } from "@/api/maintenance";
 import { computeExpiryDate, diffInDaysFromToday, getStatusColor } from "@/utils/maintenanceDates";
- 
+import { getDeadlineVisuals } from "@/utils/maintenanceThresholds";
+
 const areaIcons = {
   "IV - BACINO": "/icons/shape.png",
   "In banchina": "/icons/dock.png",
@@ -127,13 +128,26 @@ export default function MaintenanceRow({ data }) {
   useEffect(() => setMounted(true), []);
   if (!mounted || !i18n.isInitialized) return null;
 
-  const recurrency = data.maintenance_list?.recurrency_type?.name; 
+  const recurrency = data.maintenance_list?.recurrency_type?.name;
+  const earlyThreshold = data.maintenance_list?.recurrency_type?.early_threshold;
+  const dueThreshold = data.maintenance_list?.recurrency_type?.due_threshold;
+  const delayThreshold = data.maintenance_list?.recurrency_type?.delay_threshold;
+
+  console.log(data.maintenance_list?.recurrency_type)
+
   const expiryDate = computeExpiryDate({
     executionDate: data.execution_date,       
     endingDate: data.ending_date, 
     startingDate: data.starting_date,             
     recurrency,
     maintenanceList: data.job?.maintenance_list,
+  });
+
+  const { bgColor: rowColor } = getDeadlineVisuals({
+    dueDate: expiryDate,
+    earlyThreshold: data.maintenance_list?.recurrency_type?.early_threshold,
+    dueThreshold: data.maintenance_list?.recurrency_type?.due_threshold,
+    delayThreshold: data.maintenance_list?.recurrency_type?.delay_threshold,
   });
 
   const dueDays = diffInDaysFromToday(expiryDate);
@@ -148,7 +162,7 @@ export default function MaintenanceRow({ data }) {
       {/* DESKTOP */}
       <div
         className="hidden sm:grid grid-cols-[2fr_1fr_1fr_1fr_1fr_auto] items-center border-b border-[#001c38] bg-[#022a52] cursor-pointer"
-        style={{ borderLeft: `8px solid ${barColor}` }}
+        style={{ borderLeft: `8px solid ${rowColor}` }}
       >
 
         <TitleCell 
@@ -177,29 +191,37 @@ export default function MaintenanceRow({ data }) {
         </div> 
 
         <div
-  className="border border-[#001c38] p-3 flex items-center justify-center gap-4"
-  style={{ height: "-webkit-fill-available" }}
->
-  {/* Scadenza */}
-  {expiryDate && (
-    <LegendItem icon="/icons/Shape-2.png" label={t("items.time_deadline")} />
-  )}
+          className="border border-[#001c38] p-3 flex items-center justify-center gap-4"
+          style={{ height: "-webkit-fill-available" }}
+        >
+          {/* Scadenza */}
+          {expiryDate && (
+            <LegendItem icon="/icons/Shape-2.png" label={t("items.time_deadline")} />
+          )}
 
-  {/* Pausa programmata */}
-  {(data.status?.id === 2 || data.execution_state === 2) && (
-    <LegendItem icon="/icons/Path.png" label={t("items.planned_stop")} />
-  )}
+          {/* Pausa programmata */}
+          {(data.status?.id === 2 || data.execution_state === 2) && (
+            <LegendItem icon="/icons/Path.png" label={t("items.planned_stop")} />
+          )}
 
-  {/* 🔥 NUOVO: presenza ricambi */}
-  {Array.isArray(data.spares) && data.spares.length > 0 && (
-    <LegendItem icon="/icons/Shape-9.png" label={t("items.spares_required")} />
-  )}
-</div>
+          {/* 🔥 NUOVO: presenza ricambi */}
+          {Array.isArray(data.spares) && data.spares.length > 0 && (
+            <LegendItem icon="/icons/Shape-9.png" label={t("items.spares_required")} />
+          )}
+        </div>
 
 
         {/* Stato a destra con bg uguale al colore di stato */}
-        <div className="border border-[#001c38]" style={{ height: "-webkit-fill-available", background: barColor }}>
-          <StatusBadge dueDate={expiryDate?.toISOString?.() || expiryDate} dueDays={dueDays ?? undefined} />
+        <div className="border border-[#001c38]" style={{ height: "-webkit-fill-available", background: rowColor }}>
+          
+          <StatusBadge 
+            dueDate={expiryDate?.toISOString?.() || expiryDate}
+            dueDays={dueDays ?? undefined}
+            earlyThreshold={data.maintenance_list?.recurrency_type?.early_threshold}
+            dueThreshold={data.maintenance_list?.recurrency_type?.due_threshold}
+            delayThreshold={data.maintenance_list?.recurrency_type?.delay_threshold}
+          />
+
         </div>
 
         <ActionsMenu
@@ -212,10 +234,16 @@ export default function MaintenanceRow({ data }) {
       {/* MOBILE (semplificato ma stesso calcolo colore) */}
       <div
         className="flex sm:hidden flex-col bg-[#022a52] border-b border-[#001c38] rounded-md px-4 py-3 mb-4"
-        style={{ borderLeft: `8px solid ${barColor}` }}
+        style={{ borderLeft: `8px solid ${rowColor}` }}
       >
         <div className="flex items-start justify-between">
-          <StatusBadge dueDate={expiryDate?.toISOString?.() || expiryDate} dueDays={dueDays ?? undefined} />
+          <StatusBadge 
+            dueDate={expiryDate?.toISOString?.() || expiryDate}
+            dueDays={dueDays ?? undefined}
+            earlyThreshold={data.maintenance_list?.recurrency_type?.early_threshold}
+            dueThreshold={data.maintenance_list?.recurrency_type?.due_threshold}
+            delayThreshold={data.maintenance_list?.recurrency_type?.delay_threshold}
+          />
           <ActionsMenu
             onPause={() => handleOptionClick(2)}
             onResume={() => handleOptionClick(1)}

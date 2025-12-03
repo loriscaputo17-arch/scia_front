@@ -79,32 +79,32 @@ const MaintenanceTable = () => {
           }
         }
 
-    // ---- FILTRO RICORRENZA ----
-    if (filters.ricorrenza) {
-      const recurrenceMap = {
-        settimanale: [2],
-        bisettimanale: [7],
-        mensile: [3],
-        bimestrale: [8],
-        trimestrale: [4],
-        semestrale: [30, 40], // Semiannual e 6 mesi
-        annuale: [5],
-        biennale: [9],
-        triennale: [10],
-      };
+        // ---- FILTRO RICORRENZA ----
+        if (filters.ricorrenza) {
+          const recurrenceMap = {
+            settimanale: [2],
+            bisettimanale: [7],
+            mensile: [3],
+            bimestrale: [8],
+            trimestrale: [4],
+            semestrale: [30, 40], // Semiannual e 6 mesi
+            annuale: [5],
+            biennale: [9],
+            triennale: [10],
+          };
 
-      const selectedFilters = Object.entries(filters.ricorrenza)
-        .filter(([_, active]) => active)
-        .flatMap(([key]) => recurrenceMap[key] || []);
+          const selectedFilters = Object.entries(filters.ricorrenza)
+            .filter(([_, active]) => active)
+            .flatMap(([key]) => recurrenceMap[key] || []);
 
-      // recupera il valore REALE dal dato
-      const recurrency = item.maintenance_list?.recurrency_type?.id;
+          // recupera il valore REALE dal dato
+          const recurrency = item.maintenance_list?.recurrency_type?.id;
 
-      // Se filtri attivi → deve matchare
-      if (selectedFilters.length > 0 && !selectedFilters.includes(recurrency)) {
-          return false;
+          // Se filtri attivi → deve matchare
+          if (selectedFilters.length > 0 && !selectedFilters.includes(recurrency)) {
+              return false;
+            }
         }
-      }
 
         // ---- FILTRO LIVELLO ----
         if (filters.livello) {
@@ -128,49 +128,49 @@ const MaintenanceTable = () => {
         }
 
         // ---- FILTRO PER IMPIANTO / ELEMENT ----
-    if (filters.system?.selectedElement) {
-      const selectedId = Number(filters.system.selectedElement);
+        if (filters.system?.selectedElement) {
+          const selectedId = Number(filters.system.selectedElement);
 
-      const matchesByElement = item.Element?.id === selectedId;
+          const matchesByElement = item.Element?.id === selectedId;
 
-      const matchesBySpare =
-        item.spares?.some(sp => sp.element_model_id === selectedId);
+          const matchesBySpare =
+            item.spares?.some(sp => sp.element_model_id === selectedId);
 
-      if (!matchesByElement && !matchesBySpare) {
-        return false;
-      }
-    }
+          if (!matchesByElement && !matchesBySpare) {
+            return false;
+          }
+        }
 
-    // ---- FILTRO RICAMBI ----
-    if (filters.ricambi) {
-      const {
-        richiesti,
-        richiestiDisponibili,
-        richiestiNonDisponibili,
-        richiestiInEsaurimento,
-      } = filters.ricambi;
+        // ---- FILTRO RICAMBI ----
+        if (filters.ricambi) {
+          const {
+            richiesti,
+            richiestiDisponibili,
+            richiestiNonDisponibili,
+            richiestiInEsaurimento,
+          } = filters.ricambi;
 
-      const hasSpares = Array.isArray(item.spares) && item.spares.length > 0;
+          const hasSpares = Array.isArray(item.spares) && item.spares.length > 0;
 
-      if (richiesti) {
-        if (!hasSpares) return false;
-      }
+          if (richiesti) {
+            if (!hasSpares) return false;
+          }
 
-      /*
-      if (richiestiDisponibili) {
-        if (!hasSpares) return false;
-      }
+          /*
+          if (richiestiDisponibili) {
+            if (!hasSpares) return false;
+          }
 
-      if (richiestiNonDisponibili) {
-        if (!hasSpares) return false;
-      }
+          if (richiestiNonDisponibili) {
+            if (!hasSpares) return false;
+          }
 
-      if (richiestiInEsaurimento) {
-        if (!hasSpares) return false;
-      }*/
-    }
+          if (richiestiInEsaurimento) {
+            if (!hasSpares) return false;
+          }*/
+        }
 
-     return true;
+        return true;
       });
 };
 
