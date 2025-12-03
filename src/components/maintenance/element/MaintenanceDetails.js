@@ -90,7 +90,7 @@ const MaintenanceDetails = ({ details }) => {
   };
 
   const handleNotPerformed = async (status) => {
-    await uploadNotesToDb(status);
+    //await uploadNotesToDb(status);
     await markAs(details[0]?.id, 3);
     window.location.reload();
   };
@@ -201,37 +201,69 @@ const MaintenanceDetails = ({ details }) => {
       {/* BOTTONI */}
       <div className="mb-6">
         <div className="flex gap-4">
-          <button
-            onClick={() => handleOk("ok")}
-            className={`cursor-pointer flex items-center justify-center w-full py-6 text-white rounded-md hover:bg-blue-700 transition duration-300 ${
-              details[0]?.execution_state === "1" ? "bg-[#2db647]" : "bg-[#15375d]"
-            }`}
-          >
-            <Image src="/done.png" alt="Done" width={20} height={20} className="sm:mr-2" />
-            <span className="hidden sm:block">{t("ok")}</span>
-          </button>
 
-          <button
-            onClick={() => handleAnomaly("anomaly")}
-            className={`cursor-pointer flex items-center justify-center w-full py-6 text-white rounded-md hover:bg-blue-700 transition duration-300 ${
-              details[0]?.execution_state === "2" ? "bg-[#d0021b]" : "bg-[#15375d]"
-            }`}
-          >
-            <Image src="/x.png" alt="X" width={20} height={20} className="sm:mr-2" />
-            <span className="hidden sm:block">{t("anomaly")}</span>
-          </button>
+          {(() => {
+            const buttonsDisabled = details[0]?.execution_state !== null;
 
-          <button
-            onClick={() => handleNotPerformed("not_performed")}
-            className={`cursor-pointer flex items-center justify-center w-full py-6 text-white rounded-md hover:bg-blue-700 transition duration-300 ${
-              details[0]?.execution_state === "3" ? "bg-[#ffbf25]" : "bg-[#15375d]"
-            }`}
-          >
-            <Image src="/time.png" alt="Time" width={20} height={20} className="sm:mr-2" />
-            <span className="hidden sm:block">{t("not_perfomed")}</span>
-          </button>
+            return (
+              <>
+                {/* OK */}
+                <button
+                  onClick={() => !buttonsDisabled && handleOk("ok")}
+                  disabled={buttonsDisabled}
+                  className={`cursor-pointer flex items-center justify-center w-full py-6 text-white rounded-md transition duration-300 
+                    ${
+                      buttonsDisabled
+                        ? "bg-gray-600 opacity-40 cursor-not-allowed"
+                        : details[0]?.execution_state === "1"
+                        ? "bg-[#2db647]"
+                        : "bg-[#15375d] hover:bg-blue-700"
+                    }`}
+                >
+                  <Image src="/done.png" alt="Done" width={20} height={20} className="sm:mr-2" />
+                  <span className="hidden sm:block">{t("ok")}</span>
+                </button>
+
+                {/* ANOMALY */}
+                <button
+                  onClick={() => !buttonsDisabled && handleAnomaly("anomaly")}
+                  disabled={buttonsDisabled}
+                  className={`cursor-pointer flex items-center justify-center w-full py-6 text-white rounded-md transition duration-300 
+                    ${
+                      buttonsDisabled
+                        ? "bg-gray-600 opacity-40 cursor-not-allowed"
+                        : details[0]?.execution_state === "2"
+                        ? "bg-[#d0021b]"
+                        : "bg-[#15375d] hover:bg-blue-700"
+                    }`}
+                >
+                  <Image src="/x.png" alt="X" width={20} height={20} className="sm:mr-2" />
+                  <span className="hidden sm:block">{t("anomaly")}</span>
+                </button>
+
+                {/* NOT PERFORMED */}
+                <button
+                  onClick={() => !buttonsDisabled && handleNotPerformed("not_performed")}
+                  disabled={buttonsDisabled}
+                  className={`cursor-pointer flex items-center justify-center w-full py-6 text-white rounded-md transition duration-300 
+                    ${
+                      buttonsDisabled
+                        ? "bg-gray-600 opacity-40 cursor-not-allowed"
+                        : details[0]?.execution_state === "3"
+                        ? "bg-[#ffbf25]"
+                        : "bg-[#15375d] hover:bg-blue-700"
+                    }`}
+                >
+                  <Image src="/time.png" alt="Time" width={20} height={20} className="sm:mr-2" />
+                  <span className="hidden sm:block">{t("not_perfomed")}</span>
+                </button>
+              </>
+            );
+          })()}
+
         </div>
       </div>
+
 
       {noteHistoryModal && <NoteHistoryModal onClose={() => setNoteHistoryModal(false)} failureId={details[0].id} />}
       {photoHistoryModal && <PhotoHistoryModal onClose={() => setPhotoHistoryModal(false)} failureId={details[0].id} />}
