@@ -44,6 +44,9 @@ export default function FilterSidebar({ isOpen, onClose, onFiltersChange }) {
       richiestiNonDisponibili: false,
       richiestiInEsaurimento: false,
     },
+    system: {
+      selectedElement: null,
+    },
   });
 
   const toggleFilter = (category, key) => {
@@ -249,7 +252,17 @@ export default function FilterSidebar({ isOpen, onClose, onFiltersChange }) {
         </button>
       </div>
 
-      <FacilitiesModal isOpen={facilitiesOpen} onClose2={() => setFacilitiesOpen(false)} />
+<FacilitiesModal 
+    isOpen={facilitiesOpen}
+    onClose2={() => setFacilitiesOpen(false)}
+    onSelectSystem={(element) => {
+        setFilters(prev => ({
+            ...prev,
+            system: { selectedElement: element?.id || null }
+        }));
+    }}
+/>
+
 
       </div>
     ) : null;

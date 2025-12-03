@@ -71,9 +71,12 @@ const MaintenanceInfo = ({ details }) => {
 
         <div className="flex flex-col gap-4">
 
-        <div className="flex overflow-x-auto gap-4 py-2 custom-carousel" style={{display: 'flex !important', flexFlow: 'nowrap !important'}}>
+       <div
+          className="flex overflow-x-auto gap-4 py-2 custom-carousel"
+          style={{ display: "flex !important", flexFlow: "nowrap !important" }}
+        >
           <SpareSelector
-            images={['/motor.jpg', '/motor.jpg', '/motor.jpg', '/motor.jpg']}
+            spares={details[0]?.spares || []}
             onSelectChange={(selected) => setSelectedSpare(selected)}
           />
         </div>

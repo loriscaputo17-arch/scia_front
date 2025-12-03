@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import FacilitiesList from "@/components/facilities/FacilitiesList";
 import { useTranslation } from "@/app/i18n";
 
-export default function FacilitiesModal({ isOpen, onClose2, eswbs }) {
+export default function FacilitiesModal({ isOpen, onClose2, eswbs, onSelectSystem }) {
   const [search, setSearch] = useState("");
 
   const { t, i18n } = useTranslation("facilities");
@@ -36,7 +36,13 @@ export default function FacilitiesModal({ isOpen, onClose2, eswbs }) {
           onChange={(e) => setSearch(e.target.value)}
         />
 
-            <FacilitiesList search={search} modal={"yes"} eswbsCode={eswbs} />
+            <FacilitiesList
+                search={search}
+                modal="yes"
+                eswbsCode={eswbs}
+                onSelect={onSelectSystem}
+            />
+
 
         </div>
         <button

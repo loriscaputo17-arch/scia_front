@@ -8,6 +8,7 @@ import LegendModal from "./LegendModal";
 import FilterModal from "./FilterModal";
 import { useTranslation } from "@/app/i18n";
 import { useUser } from "@/context/UserContext";
+import { computeExpiryDate } from "@/utils/maintenanceDates";
 
 const MaintenanceTable = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -33,104 +34,145 @@ const MaintenanceTable = () => {
     }, [selectedType, shipId, user]);
 
     const applyFilters = (data) => {
-  if (!Array.isArray(data)) return [];
-  if (!filters) return data;
+      if (!Array.isArray(data)) return [];
+      if (!filters) return data;
 
-  return data.filter(item => {
+      return data.filter(item => {
 
-    const dueDate = new Date(item.ending_date);
-    const startDate = new Date(item.starting_date);
-    const today = new Date();
-    const diffDays = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
+        const dueDate = new Date(item.ending_date);
+        const startDate = new Date(item.starting_date);
+        const today = new Date();
+        const diffDays = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
 
-    // ---- FILTRI STATO ----
-    if (filters.stato) {
-      const {
-        scaduta,
-        scadutaDaPoco,
-        inScadenza,
-        attiva,
-        programmata,
-        inPausa
-      } = filters.stato;
+        // ---- FILTRI STATO ----
+        if (filters.stato) {
+          const {
+            scaduta,
+            scadutaDaPoco,
+            inScadenza,
+            attiva,
+            programmata,
+            inPausa
+          } = filters.stato;
 
-      const matchScaduta = diffDays < -15;
-      const matchScadutaDaPoco = diffDays >= -15 && diffDays < 0;
-      const matchInScadenza = diffDays >= 0 && diffDays <= 15;
-      const matchAttiva = diffDays > 15; // 👈 CORRETTO
-      const matchProgrammata = startDate > today;
-      const matchInPausa = item.status_id === 2 || item.execution_state === 2;
+          const matchScaduta = diffDays < -15;
+          const matchScadutaDaPoco = diffDays >= -15 && diffDays < 0;
+          const matchInScadenza = diffDays >= 0 && diffDays <= 15;
+          const matchAttiva = diffDays > 15; // 👈 CORRETTO
+          const matchProgrammata = startDate > today;
+          const matchInPausa = item.status_id === 2 || item.execution_state === 2;
 
-      // Controllo se almeno un filtro STATO è attivo
-      const statoFiltersActive = Object.values(filters.stato).some(Boolean);
+          // Controllo se almeno un filtro STATO è attivo
+          const statoFiltersActive = Object.values(filters.stato).some(Boolean);
 
-      if (statoFiltersActive) {
-        const matched = [
-          scaduta && matchScaduta,
-          scadutaDaPoco && matchScadutaDaPoco,
-          inScadenza && matchInScadenza,
-          attiva && matchAttiva,
-          programmata && matchProgrammata,
-          inPausa && matchInPausa
-        ].some(Boolean);
+          if (statoFiltersActive) {
+            const matched = [
+              scaduta && matchScaduta,
+              scadutaDaPoco && matchScadutaDaPoco,
+              inScadenza && matchInScadenza,
+              attiva && matchAttiva,
+              programmata && matchProgrammata,
+              inPausa && matchInPausa
+            ].some(Boolean);
 
-        if (!matched) return false;
-      }
-    }
+            if (!matched) return false;
+          }
+        }
 
-// ---- FILTRO RICORRENZA ----
-if (filters.ricorrenza) {
-  const recurrenceMap = {
-    settimanale: [2],
-    bisettimanale: [7],
-    mensile: [3],
-    bimestrale: [8],
-    trimestrale: [4],
-    semestrale: [30, 40], // Semiannual e 6 mesi
-    annuale: [5],
-    biennale: [9],
-    triennale: [10],
-  };
-
-  const selectedFilters = Object.entries(filters.ricorrenza)
-    .filter(([_, active]) => active)
-    .flatMap(([key]) => recurrenceMap[key] || []);
-
-  // recupera il valore REALE dal dato
-  const recurrency = item.maintenance_list?.recurrency_type?.id;
-
-  // Se filtri attivi → deve matchare
-  if (selectedFilters.length > 0 && !selectedFilters.includes(recurrency)) {
-      return false;
-    }
-  }
-
-    // ---- FILTRO LIVELLO ----
-    if (filters.livello) {
-      const levelMap = {
-        aBordo: ["I"], 
-        inBanchina: ["II"],
-        inBacino: ["IV - BACINO"],
-        fornitoreEsterno: ["III"],
+    // ---- FILTRO RICORRENZA ----
+    if (filters.ricorrenza) {
+      const recurrenceMap = {
+        settimanale: [2],
+        bisettimanale: [7],
+        mensile: [3],
+        bimestrale: [8],
+        trimestrale: [4],
+        semestrale: [30, 40], // Semiannual e 6 mesi
+        annuale: [5],
+        biennale: [9],
+        triennale: [10],
       };
 
-      const selectedLevels = Object.entries(filters.livello)
+      const selectedFilters = Object.entries(filters.ricorrenza)
         .filter(([_, active]) => active)
-        .flatMap(([key]) => levelMap[key] || []);
+        .flatMap(([key]) => recurrenceMap[key] || []);
 
-      if (selectedLevels.length > 0) {
-        const levelValue = item.maintenance_list?.maintenance_level?.Level_MMI;
-        if (!selectedLevels.includes(levelValue)) {
+      // recupera il valore REALE dal dato
+      const recurrency = item.maintenance_list?.recurrency_type?.id;
+
+      // Se filtri attivi → deve matchare
+      if (selectedFilters.length > 0 && !selectedFilters.includes(recurrency)) {
           return false;
         }
       }
+
+        // ---- FILTRO LIVELLO ----
+        if (filters.livello) {
+          const levelMap = {
+            aBordo: ["I"], 
+            inBanchina: ["II"],
+            inBacino: ["IV - BACINO"],
+            fornitoreEsterno: ["III"],
+          };
+
+          const selectedLevels = Object.entries(filters.livello)
+            .filter(([_, active]) => active)
+            .flatMap(([key]) => levelMap[key] || []);
+
+          if (selectedLevels.length > 0) {
+            const levelValue = item.maintenance_list?.maintenance_level?.Level_MMI;
+            if (!selectedLevels.includes(levelValue)) {
+              return false;
+            }
+          }
+        }
+
+        // ---- FILTRO PER IMPIANTO / ELEMENT ----
+    if (filters.system?.selectedElement) {
+      const selectedId = Number(filters.system.selectedElement);
+
+      const matchesByElement = item.Element?.id === selectedId;
+
+      const matchesBySpare =
+        item.spares?.some(sp => sp.element_model_id === selectedId);
+
+      if (!matchesByElement && !matchesBySpare) {
+        return false;
+      }
     }
 
+    // ---- FILTRO RICAMBI ----
+    if (filters.ricambi) {
+      const {
+        richiesti,
+        richiestiDisponibili,
+        richiestiNonDisponibili,
+        richiestiInEsaurimento,
+      } = filters.ricambi;
 
-    return true;
-  });
+      const hasSpares = Array.isArray(item.spares) && item.spares.length > 0;
+
+      if (richiesti) {
+        if (!hasSpares) return false;
+      }
+
+      /*
+      if (richiestiDisponibili) {
+        if (!hasSpares) return false;
+      }
+
+      if (richiestiNonDisponibili) {
+        if (!hasSpares) return false;
+      }
+
+      if (richiestiInEsaurimento) {
+        if (!hasSpares) return false;
+      }*/
+    }
+
+     return true;
+      });
 };
-
 
     const countActiveFilters = () => {
       if (!filters) return 0;
@@ -226,7 +268,30 @@ if (filters.ricorrenza) {
       </div>
 
       {applyFilters(maintenancedata)
-        .sort((a, b) => new Date(b.starting_date) - new Date(a.starting_date)) // 👈 Ordina dal più recente
+        .sort((a, b) => {
+          const expA = computeExpiryDate({
+            executionDate: a.execution_date,
+            endingDate: a.ending_date,
+            startingDate: a.starting_date,
+            recurrency: a.maintenance_list?.recurrency_type?.name,
+            maintenanceList: a.job?.maintenance_list,
+          });
+
+          const expB = computeExpiryDate({
+            executionDate: b.execution_date,
+            endingDate: b.ending_date,
+            startingDate: b.starting_date,
+            recurrency: b.maintenance_list?.recurrency_type?.name,
+            maintenanceList: b.job?.maintenance_list,
+          });
+
+          // fallback se per qualche motivo non c’è expiry
+          const dateA = expA ? new Date(expA) : new Date(a.ending_date || a.starting_date);
+          const dateB = expB ? new Date(expB) : new Date(b.ending_date || b.starting_date);
+
+          // ASC: prima la più vicina (29/09/2025), poi 01/12, 02/12, 09/12, 2026, ecc.
+          return dateA - dateB;
+        })
         .filter(
           (item) =>
             (!selectedType || item.recurrency_type_id === selectedType.id) &&
@@ -235,6 +300,7 @@ if (filters.ricorrenza) {
         .map((item) => (
           <MaintenanceRow key={item.id} data={item} />
       ))}
+
 
       <SelectModal isOpen={isOpen} onClose={() => setIsOpen(false)} onSelect={handleSelectType} shipId={shipId} userId={user?.id} />
 

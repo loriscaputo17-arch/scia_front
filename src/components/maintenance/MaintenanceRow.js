@@ -174,12 +174,28 @@ export default function MaintenanceRow({ data }) {
             hasText={(data.textNotes || []).length > 0}
             onOpen={hasNotes ? () => setIsOpen(true) : undefined}
           />
-        </div>
+        </div> 
 
-        <div className="border border-[#001c38] p-3 flex items-center justify-center gap-4" style={{ height: "-webkit-fill-available" }}>
-          {expiryDate && <LegendItem icon="/icons/Shape-2.png" label={t("items.time_deadline")} />}
-          {(data.status?.id === 2 || data.execution_state === 2) && <LegendItem icon="/icons/Path.png" label={t("items.planned_stop")} />}
-        </div>
+        <div
+  className="border border-[#001c38] p-3 flex items-center justify-center gap-4"
+  style={{ height: "-webkit-fill-available" }}
+>
+  {/* Scadenza */}
+  {expiryDate && (
+    <LegendItem icon="/icons/Shape-2.png" label={t("items.time_deadline")} />
+  )}
+
+  {/* Pausa programmata */}
+  {(data.status?.id === 2 || data.execution_state === 2) && (
+    <LegendItem icon="/icons/Path.png" label={t("items.planned_stop")} />
+  )}
+
+  {/* 🔥 NUOVO: presenza ricambi */}
+  {Array.isArray(data.spares) && data.spares.length > 0 && (
+    <LegendItem icon="/icons/Shape-9.png" label={t("items.spares_required")} />
+  )}
+</div>
+
 
         {/* Stato a destra con bg uguale al colore di stato */}
         <div className="border border-[#001c38]" style={{ height: "-webkit-fill-available", background: barColor }}>
