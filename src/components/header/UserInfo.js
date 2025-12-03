@@ -31,7 +31,7 @@ export default function UserInfo() {
 
     useEffect(() => {
       if (user?.profileImage) {
-        console.log(user.profileImage)
+        
         setProfileImage(user.profileImage);
       }
     }, [user]);

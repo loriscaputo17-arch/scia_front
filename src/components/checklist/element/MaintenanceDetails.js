@@ -12,7 +12,6 @@ import { useRouter } from "next/navigation";
 import { getTextsGeneral, getPhotosGeneral, getAudiosGeneral } from "@/api/shipFiles";
 import { addPhotographicNoteGeneral, addVocalNoteGeneral, addTextNoteGeneral } from "@/api/failures";
 import { useUser } from "@/context/UserContext";
-import ConfirmMaintenance from "@/components/maintenance/element/ConfirmMaintenance";
 
 const MaintenanceDetails = ({ details }) => {
 
@@ -24,7 +23,6 @@ const MaintenanceDetails = ({ details }) => {
   const [latestPhoto, setLatestPhoto] = useState(null);
   const [latestAudio, setLatestAudio] = useState(null);
   const [latestText, setLatestText] = useState(null);
-  const [markAsOk, setMarkAsOk] = useState(false);
   const { t, i18n } = useTranslation("maintenance");
   const [mounted, setMounted] = useState(false);
 
@@ -78,14 +76,31 @@ const MaintenanceDetails = ({ details }) => {
     }
   };
 
-  const handleOk = async (status) => {
-    setMarkAsOk(true); 
-    //await uploadNotesToDb(status);
-    // Conferma visiva gestita da <ConfirmMaintenance />
+  const handleOk = async () => {
+    try {
+      await uploadNotesToDb("ok");
+
+      await markAsOk(details.id, {
+        maintenanceList_id: details.id,
+        userId: user?.id,
+        userType: "User logged in",
+        time: 0,  
+        level: null,   
+        spares: []     
+      });
+
+      clearNotes(details.id);
+
+      window.location.reload();
+
+    } catch (error) {
+      console.error("Errore in handleOk()", error);
+      alert("❌ Errore durante il completamento della manutenzione");
+    }
   };
 
   const handleAnomaly = async (status) => {
-    await uploadNotesToDb(status);
+    //await uploadNotesToDb(status);
     await markAs(details.id, 2);
     window.location.reload();
   };
@@ -199,35 +214,52 @@ const MaintenanceDetails = ({ details }) => {
         )}
       </div>
 
-      {/* BOTTONI */}
       <div className="mb-6">
         <div className="flex gap-4">
-          <button
-            onClick={() => handleOk("ok")}
-            className={`cursor-pointer flex items-center justify-center w-full py-6 text-white rounded-md hover:bg-blue-700 transition duration-300 ${
-              details.execution_state === "1" ? "bg-[#2db647]" : "bg-[#15375d]"
-            }`}
-          >
-            <Image src="/done.png" alt="Done" width={20} height={20} className="sm:mr-2" />
-            <span className="hidden sm:block">{t("ok")}</span>
-          </button>
+          {(() => {
+            const buttonsDisabled = details?.execution_state !== null;
+            return (
+              <>
+                <button
+                                  onClick={() => !buttonsDisabled && handleOk("ok")}
+                                  disabled={buttonsDisabled}
+                                  className={`cursor-pointer flex items-center justify-center w-full py-6 text-white rounded-md transition duration-300 
+                                    ${
+                                      buttonsDisabled
+                                        ? "bg-gray-600 opacity-40 cursor-not-allowed"
+                                        : details[0]?.execution_state === "1"
+                                        ? "bg-[#2db647]"
+                                        : "bg-[#15375d] hover:bg-blue-700"
+                                    }`}
+                                >
+                                  <Image src="/done.png" alt="Done" width={20} height={20} className="sm:mr-2" />
+                                  <span className="hidden sm:block">{t("ok")}</span>
+                                </button>
 
-          <button
-            onClick={() => handleAnomaly("anomaly")}
-            className={`cursor-pointer flex items-center justify-center w-full py-6 text-white rounded-md hover:bg-blue-700 transition duration-300 ${
-              details.execution_state === "2" ? "bg-[#FFBF25]" : "bg-[#15375d]"
-            }`}
-          >
-            <Image src="/x.png" alt="X" width={20} height={20} className="sm:mr-2" />
-            <span className="hidden sm:block">{t("Anomaly")}</span>
-          </button>
+                <button
+                                  onClick={() => !buttonsDisabled && handleAnomaly("anomaly")}
+                                  disabled={buttonsDisabled}
+                                  className={`cursor-pointer flex items-center justify-center w-full py-6 text-white rounded-md transition duration-300 
+                                    ${
+                                      buttonsDisabled
+                                        ? "bg-gray-600 opacity-40 cursor-not-allowed"
+                                        : details[0]?.execution_state === "2"
+                                        ? "bg-[#d0021b]"
+                                        : "bg-[#15375d] hover:bg-blue-700"
+                                    }`}
+                                >
+                                  <Image src="/x.png" alt="X" width={20} height={20} className="sm:mr-2" />
+                                  <span className="hidden sm:block">{t("anomaly")}</span>
+                                </button>
+                </>
+              );
+            })()}
         </div>
       </div>
 
       {noteHistoryModal && <NoteHistoryModal onClose={() => setNoteHistoryModal(false)} failureId={details.id} />}
       {photoHistoryModal && <PhotoHistoryModal onClose={() => setPhotoHistoryModal(false)} failureId={details.id} />}
       {textHistoryModal && <TextHistoryModal onClose={() => setTextHistoryModal(false)} failureId={details.id} />}
-      {markAsOk && <ConfirmMaintenance onClose={() => setMarkAsOk(false)} onClick={() => uploadNotesToDb("ok")} maintenanceListId={details.id} />}
             
     </div>
   );

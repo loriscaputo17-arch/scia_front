@@ -95,6 +95,7 @@ const ChecklistTable = () => {
   const allTasks = selectedType ? selectedType.tasks : tasksData;
 
   const tasksToShow = allTasks.filter((task) => {
+    if (task.execution_state !== null) return false;
     const { task: taskFilters, squadraDiAssegnazione, macrogruppoESWBS } = filters;
 
     if (taskFilters.nascondiTaskEseguiti && task.status_id === 3) {
