@@ -2,8 +2,8 @@
   "maintenance": "Maintenance",
   "checklist": "Checklist",
   "readings": "Readings",
-  "spare_parts": "Spare Parts",
-  "manual": "Manual",
+  "spares": "Spare Parts",
+  "files": "Manual",
   "failures": "Failures"
 }
   

@@ -44,7 +44,8 @@ const MaintenanceInfo = ({ details }) => {
         {details[0]?.maintenance_list.Maintenance_under_condition_description}
       </p>
 
-      {/*<button
+      <div className="flex items-center gap-2">
+        <button
           className="mt-2 text-sm text-[#fff] w-fit cursor-pointer bg-[#ffffff1a] py-1 px-4 rounded mt-2"
           onClick={() => {
                 if (details[0].documentFileUrl) {
@@ -55,15 +56,16 @@ const MaintenanceInfo = ({ details }) => {
                 }
               }}
         >
-          {t("see_instructions")}
-      </button> */}
+          {t("see_files")}
+        </button>
 
-      <button
-        className="mt-2 text-sm text-[#fff] w-fit cursor-pointer bg-[#ffffff1a] py-1 px-4 rounded"
-        onClick={() => setShowInstructions(true)}
-      >
-        {t("see_instructions")}
-      </button>
+        <button
+          className="mt-2 text-sm text-[#fff] w-fit cursor-pointer bg-[#ffffff1a] py-1 px-4 rounded"
+          onClick={() => setShowInstructions(true)}
+        >
+          {t("see_instructions")}
+        </button>
+      </div>
 
       <div className="mb-6">
       

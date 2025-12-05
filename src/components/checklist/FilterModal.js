@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Image from 'next/image';
 import FacilitiesModal from "./FacilitiesModal";
 import { useTranslation } from "@/app/i18n";
-
+ 
 export default function FilterSidebar({ isOpen, onClose, filters, toggleFilter }) {
 
   const [facilitiesOpen, setFacilitiesOpen] = useState(false);

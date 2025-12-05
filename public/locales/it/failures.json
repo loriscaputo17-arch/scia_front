@@ -52,7 +52,12 @@
   "enter_text": "Inserisci testo",
   "back": "Indietro",
   "send": "Invia",
-  "close_button": "Chiudi"
-
+  "close_button": "Chiudi",
+  "or_record_now": "Oppure registra ora",
+  "start_recording": "Avvia registrazione",
+  "stop_recording": "Stop registrazione",
+  "preview": "Anteprima",
+  "upload_recording": "Carica registrazione",
+  "mic_error": "Errore: impossibile accedere al microfono."
 }
   

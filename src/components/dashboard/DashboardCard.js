@@ -1,29 +1,44 @@
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
-export default function DashboardCard({ id, title, imageSrc, tasks = [] }) {
+export default function DashboardCard({
+  id,
+  title,
+  imageSrc,
+  counter = 0,
+  lastItems = []
+}) {
   const router = useRouter();
 
-  // Format text extraction
-  const formatTaskName = (task) => {
-    const text = task.title || task.task_name || task.Part_name || task?.maintenance_list?.name;
+  // Format extraction (mantengo lo stile identico)
+  const formatItem = (item) => {
+    const text =
+      item?.title ||
+      item?.task_name ||
+      item?.Part_name ||
+      item?.file_name ||
+      item?.description ||
+      item?.maintenance_list?.name;
+
     if (!text) return null;
 
     const cleaned = text.trim();
     return cleaned.charAt(0).toUpperCase() + cleaned.slice(1).toLowerCase();
   };
 
-  // Create formatted list
-  const formattedTasks = tasks.map(formatTaskName).filter(Boolean);
-
-  const visibleTasks = formattedTasks.slice(0, 2);
-  const remainingCount = formattedTasks.length - 2;
+  // Prepara le ultime due
+  const formatted = lastItems.map(formatItem).filter(Boolean);
+  const visible = formatted.slice(0, 2);
+  const remaining = counter > 2 ? counter - 2 : 0;
 
   return (
     <div
       className="relative bg-[#022a52] p-6 rounded-lg text-white flex flex-col justify-between w-full h-full cursor-pointer hover:bg-[#033366] transition"
-      onClick={() => router.push(`/dashboard/${id.toLowerCase().replace(/\s+/g, "")}`)}
+      onClick={() =>
+        router.push(`/dashboard/${id.toLowerCase().replace(/\s+/g, "")}`)
+      }
     >
+      {/* HEADER ICON + RED BADGE */}
       <div className="flex gap-3">
         <Image
           src={imageSrc}
@@ -31,10 +46,10 @@ export default function DashboardCard({ id, title, imageSrc, tasks = [] }) {
           width="0"
           height="0"
           sizes="100vw"
-          style={{ width: '4rem', height: 'auto' }}
+          style={{ width: "3rem", height: "auto", marginBottom: '1rem' }}
         />
 
-        {tasks.length > 0 && (
+        {counter > 0 && (
           <div className="ml-auto flex items-start">
             <div
               className="
@@ -47,36 +62,35 @@ export default function DashboardCard({ id, title, imageSrc, tasks = [] }) {
                 leading-none
               "
             >
-              {tasks.length > 999 ? "999+" : tasks.length}
+              {counter > 999 ? "999+" : counter}
             </div>
           </div>
         )}
       </div>
 
+      {/* LOWER AREA */}
       <div className="mt-auto">
-
-        {tasks.length > 0 && (
+        {counter > 0 && (
           <p className="text-[14px] text-[#789fd6] font-semibold sm:mt-0 mt-4">
             {title}
           </p>
         )}
 
-        {tasks.length > 0 && (
+        {counter > 0 && (
           <div className="mt-1 text-[#ffffff60] text-[14px]">
-            {visibleTasks.map((t, index) => (
-              <p key={index} className="truncate">{t}</p>
+            {visible.map((t, index) => (
+              <p key={index} className="truncate">
+                {t}
+              </p>
             ))}
 
-            {remainingCount > 0 && (
-              <p className="text-[#ffffffa5] font-medium">
-                + altri {remainingCount}
-              </p>
+            {remaining > 0 && (
+              <p className="text-[#ffffffa5] font-medium">+ altri {remaining}</p>
             )}
           </div>
         )}
 
         <h3 className="text-3xl font-semibold mt-1">{title}</h3>
-
       </div>
     </div>
   );

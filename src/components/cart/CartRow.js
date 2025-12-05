@@ -10,16 +10,16 @@ const SpareRow = ({ data, onRemove }) => {
   const { user } = useUser();
 
   const handleRowClick = () => {
-    router.push(`/dashboard/spare/${data.Spare.ID}`);
+    router.push(`/dashboard/spare/${data.spare.ID}`);
   };
 
   const handleRemoveProduct = async () => {
     setLoading(true);
 
     try {
-      const response = await removeProductFromCart(data.Spare.ID, user.id);
+      const response = await removeProductFromCart(data.spare.ID, user.id);
 
-      onRemove(data.Spare.ID);
+      onRemove(data.spare.ID);
       
     } catch (error) {
       console.error("Errore nel rimuovere il prodotto:", error);
@@ -34,27 +34,27 @@ const SpareRow = ({ data, onRemove }) => {
         className="hidden sm:grid grid-cols-[2fr_1fr_1fr_1fr_1fr] items-center border-b border-[#001c38] bg-[#022a52] cursor-pointer"
       >
         <div onClick={handleRowClick} className="border border-[#001c38] p-3 flex flex-col justify-center min-h-[60px]" style={{ height: "-webkit-fill-available" }}> 
-          <p className="text-white text-[18px] font-semibold truncate">{data?.Spare?.Part_name ?? "Nome non disponibile"}</p>
+          <p className="text-white text-[18px] font-semibold truncate">{data?.spare?.Part_name ?? "Nome non disponibile"}</p>
         </div>
         <div className="border border-[#001c38] p-3 text-center text-white justify-center flex flex-col items-center gap-2" style={{ height: "-webkit-fill-available" }}>
           <p className="text-[18px] text-white">
             
-            {data?.Spare?.part?.Part_Number.length > 15
-                ? data?.Spare?.part?.Part_Number.slice(0, 15) + "..."
-                : data?.Spare?.part?.Part_Number}
+            {data?.spare?.part?.Part_Number.length > 15
+                ? data?.spare?.part?.Part_Number.slice(0, 15) + "..."
+                : data?.spare?.part?.Part_Number}
             
             </p>
         </div>
         <div className="border border-[#001c38] p-3 flex items-center justify-center cursor-pointer" onClick={() => setIsOpen(true)} style={{ height: "-webkit-fill-available" }}>
           <div className="flex gap-4">
-          {data?.Spare?.part?.organizationCompanyNCAGE?.NCAGE_Code ?? "Nome non disponibile"}
+          {data?.spare?.part?.organizationCompanyNCAGE?.NCAGE_Code ?? "Nome non disponibile"}
           </div>
         </div>
         <div
           className={`border border-[#001c38] p-3 flex items-center justify-center`}
           style={{ height: "-webkit-fill-available" }}
         >
-          <QuantityControl quantity={data.quantity} spare_id={data.Spare.ID} />
+          <QuantityControl quantity={data.quantity} spare_id={data.spare.ID} />
         </div>
         <div
           className={`border border-[#001c38] p-3 flex items-center justify-center gap-4`}
@@ -68,13 +68,13 @@ const SpareRow = ({ data, onRemove }) => {
       <div className="flex sm:hidden mb-4 rounded-md bg-[#022a52] cursor-pointer flex-col p-4">
         <div onClick={handleRowClick} className="flex flex-col justify-center">
           <p className="text-white text-[18px] font-semibold truncate">
-            {data?.Spare?.Part_name ?? "Nome non disponibile"}
+            {data?.spare?.Part_name ?? "Nome non disponibile"}
           </p>
         </div>
 
         <div className="text-white mt-2">
           <p className="text-[18px] truncate">
-            {data?.Spare?.Serial_number ?? "Nome non disponibile"}
+            {data?.spare?.Serial_number ?? "Nome non disponibile"}
           </p>
         </div>
 
@@ -83,13 +83,13 @@ const SpareRow = ({ data, onRemove }) => {
           onClick={() => setIsOpen(true)}
         >
           <div className="flex gap-4 text-white truncate">
-            {data?.Spare?.company ?? "Nome non disponibile"}
+            {data?.spare?.company ?? "Nome non disponibile"}
           </div>
         </div>
 
         <div className="flex items-center justify-center w-fit mx-auto mt-4 gap-4">
           <div className="p-3 flex items-center justify-center">
-            <QuantityControl quantity={data.quantity} spare_id={data.Spare.ID} />
+            <QuantityControl quantity={data.quantity} spare_id={data.spare.ID} />
           </div>
 
           <div

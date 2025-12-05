@@ -25,14 +25,7 @@ export async function getSettings(userId) {
   }
 }
 
-export async function updateSettings({
-  user_id,
-  isNotificationsEnabledMaintenance,
-  maintenanceFrequency,
-  isNotificationsEnabledChecklist,
-  checklistFrequency,
-  license,
-}) {
+export async function updateSettings(payload) {
   try {
     const response = await fetch(`${API_URL}/api/settings/updateSettings`, {
       method: "POST",
@@ -40,14 +33,7 @@ export async function updateSettings({
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        user_id,
-        is_notifications_enabled_maintenance: isNotificationsEnabledMaintenance,
-        maintenance_frequency: maintenanceFrequency,
-        is_notifications_enabled_checklist: isNotificationsEnabledChecklist,
-        checklist_frequency: checklistFrequency,
-        license,
-      }),
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
@@ -60,4 +46,5 @@ export async function updateSettings({
     return null;
   }
 }
+
 

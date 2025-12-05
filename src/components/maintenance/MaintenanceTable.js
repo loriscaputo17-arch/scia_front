@@ -285,11 +285,9 @@ const MaintenanceTable = () => {
             maintenanceList: b.job?.maintenance_list,
           });
 
-          // fallback se per qualche motivo non c’è expiry
           const dateA = expA ? new Date(expA) : new Date(a.ending_date || a.starting_date);
           const dateB = expB ? new Date(expB) : new Date(b.ending_date || b.starting_date);
 
-          // ASC: prima la più vicina (29/09/2025), poi 01/12, 02/12, 09/12, 2026, ecc.
           return dateA - dateB;
         })
         .filter(

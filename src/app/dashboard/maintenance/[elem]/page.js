@@ -94,6 +94,19 @@ export default function ElementPage({ params }) {
             </button>
           )}
 
+          {maintenancedata[0]?.status.id === 2 && (
+            <button
+              type="submit"
+              onClick={() => handleOptionClick(1)}
+              className="rounded-md flex items-center bg-[#022a52] hover:bg-blue-500 text-white font-bold py-2 px-4 transition duration-200 cursor-pointer"
+            >
+              <svg width="16px" height="16px" fill="#fff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512">
+                <path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80L0 432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/>
+              </svg>
+              <span className="hidden sm:block">&nbsp;&nbsp; {t("start")}</span>
+            </button>
+          )}
+
           <button
             type="submit"
             onClick={() => setNoteModal(!noteModal)}

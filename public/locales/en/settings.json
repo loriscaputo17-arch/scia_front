@@ -18,6 +18,24 @@
   "monthly": "Monthly",
   "annual": "Annual",
   "settingsSaved": "Settings saved successfully",
-  "settingsSaveFailed": "Error saving settings. Please try again."
-
+  "settingsSaveFailed": "Error saving settings. Please try again.",
+  "daily": "Daily",
+  "upcoming_notifications_title": "Status notifications",
+  "upcoming_maintenance_title": "Executable maintenance",
+  "upcoming_maintenance_desc": "Receive notifications when a maintenance becomes executable (green)",
+  "upcoming_checklist_title": "Updated checklists",
+  "upcoming_checklist_desc": "Receive notifications when a checklist changes state",
+  "upcoming_spare_title": "Spares to order",
+  "upcoming_spare_desc": "Receive notifications when a spare part needs to be ordered",
+  "upcoming_note_impianti_selection": "Notifications always respect the equipment selected in the equipment settings screen.",
+  "planning_notifications_title": "Maintenance planning",
+  "planning_maintenance_title": "Maintenance planning",
+  "planning_maintenance_desc": "Receive the future maintenance plan via email",
+  "planning_checklist_title": "Checklist planning",
+  "planning_checklist_desc": "Receive the future checklist plan via email",
+  "planning_spare_title": "Spares planning",
+  "planning_spare_desc": "Receive via email the list of spares nearing expiration or needing ordering",
+  "planning_frequency_label": "Planning delivery frequency",
+  "planning_note_impianti_selection": "Plannings include only the equipment selected in the equipment configuration screen.",
+  "error.userNotFound": "User not found"
 }

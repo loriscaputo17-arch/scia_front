@@ -1,65 +1,126 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from 'next/image';
+import Image from "next/image";
 import AudioPlayer from "@/components/element/audioPlayer";
 import NoteHistoryModal from "@/components/maintenance/element/NoteHistoryModal";
 import PhotoHistoryModal from "@/components/maintenance/element/PhotoHistoryModal";
 import TextHistoryModal from "@/components/maintenance/element/TextHistoryModal";
-import { useTranslation } from "@/app/i18n";
-import { markAs } from "@/api/maintenance";
-import { useRouter } from "next/navigation"; 
-import { getTextsGeneral, getPhotosGeneral, getAudiosGeneral } from "@/api/shipFiles";
-import { addPhotographicNoteGeneral, addVocalNoteGeneral, addTextNoteGeneral } from "@/api/failures";
 import ConfirmMaintenance from "./ConfirmMaintenance";
+
+import { useTranslation } from "@/app/i18n";
+import { useRouter } from "next/navigation";
 import { useUser } from "@/context/UserContext";
 
-const MaintenanceDetails = ({ details }) => {
-  const [showFull, setShowFull] = useState(false);
-  const [noteHistoryModal, setNoteHistoryModal] = useState(false);
-  const [textHistoryModal, setTextHistoryModal] = useState(false);
-  const [photoHistoryModal, setPhotoHistoryModal] = useState(false);
-  const router = useRouter();
+import {
+  getTextsGeneral,
+  getPhotosGeneral,
+  getAudiosGeneral,
+} from "@/api/shipFiles";
+
+import {
+  addPhotographicNoteGeneral,
+  addVocalNoteGeneral,
+  addTextNoteGeneral,
+} from "@/api/failures";
+
+import { markAs } from "@/api/maintenance";
+
+export default function MaintenanceDetails({ details }) {
   const [latestPhoto, setLatestPhoto] = useState(null);
   const [latestAudio, setLatestAudio] = useState(null);
   const [latestText, setLatestText] = useState(null);
-  const [markAsOk, setMarkAsOk] = useState(false);
-  const { t, i18n } = useTranslation("maintenance");
-  const [mounted, setMounted] = useState(false);
 
+  const [zoomImage, setZoomImage] = useState(null); // ZOOM
+
+  const [modalPhotoHistory, setModalPhotoHistory] = useState(false);
+  const [modalAudioHistory, setModalAudioHistory] = useState(false);
+  const [modalTextHistory, setModalTextHistory] = useState(false);
+
+  const [openConfirmOk, setOpenConfirmOk] = useState(false);
+
+  const { t, i18n } = useTranslation("maintenance");
   const { getNotes, clearNotes, user } = useUser();
 
+  const router = useRouter();
+
+  const mounted = i18n.isInitialized;
+
+  const maintenanceId = details?.[0]?.id || null;
+  const executionState = details?.[0]?.execution_state;
+
+  /* --------------------------------
+   * FETCH ULTIME NOTE
+   -------------------------------- */
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    if (!maintenanceId) return;
+
+    const loadNotes = async () => {
+      try {
+        const [photos, audios, texts] = await Promise.all([
+          getPhotosGeneral(maintenanceId, "maintenance"),
+          getAudiosGeneral(maintenanceId, "maintenance"),
+          getTextsGeneral(maintenanceId, "maintenance"),
+        ]);
+
+        if (photos?.notes?.length) {
+          setLatestPhoto(
+            [...photos.notes].sort(
+              (a, b) => new Date(b.created_at) - new Date(a.created_at)
+            )[0]
+          );
+        }
+
+        if (audios?.notes?.length) {
+          setLatestAudio(
+            [...audios.notes].sort(
+              (a, b) => new Date(b.created_at) - new Date(a.created_at)
+            )[0]
+          );
+        }
+
+        if (texts?.notes?.length) {
+          setLatestText(
+            [...texts.notes].sort(
+              (a, b) => new Date(b.created_at) - new Date(a.created_at)
+            )[0]
+          );
+        }
+      } catch (err) {
+        console.error("Errore caricamento note:", err);
+      }
+    };
+
+    loadNotes();
+  }, [maintenanceId]);
 
   const uploadNotesToDb = async (status) => {
-    const failureId = details[0]?.id;
+    const failureId = maintenanceId;
     const notes = getNotes(failureId);
 
     try {
       // Foto
       for (const photoFile of notes.photo || []) {
-        const formData = new FormData();
-        formData.append("file", photoFile);
-        formData.append("failureId", failureId);
-        formData.append("authorId", user.id);
-        formData.append("type", "maintenance");
-        formData.append("status", status);
-        
-        await addPhotographicNoteGeneral(formData);
+        const fd = new FormData();
+        fd.append("file", photoFile);
+        fd.append("failureId", failureId);
+        fd.append("authorId", user.id);
+        fd.append("type", "maintenance");
+        fd.append("status", status);
+
+        await addPhotographicNoteGeneral(fd);
       }
 
       // Audio
       for (const audioFile of notes.vocal || []) {
-        const formData = new FormData();
-        formData.append("file", audioFile);
-        formData.append("failureId", failureId);
-        formData.append("authorId", user.id);
-        formData.append("type", "maintenance");
-        formData.append("status", status);
+        const fd = new FormData();
+        fd.append("file", audioFile);
+        fd.append("failureId", failureId);
+        fd.append("authorId", user.id);
+        fd.append("type", "maintenance");
+        fd.append("status", status);
 
-        await addVocalNoteGeneral(formData);
+        await addVocalNoteGeneral(fd);
       }
 
       // Testo
@@ -69,208 +130,207 @@ const MaintenanceDetails = ({ details }) => {
           failureId,
           authorId: user.id,
           type: "maintenance",
-          status: status
+          status,
         });
       }
 
       clearNotes(failureId);
-    } catch (error) {
-      console.error("Errore nel caricamento delle note:", error);
+    } catch (err) {
+      console.error("Errore upload note:", err);
     }
   };
 
-  const handleOk = async (status) => {
-    setMarkAsOk(true);
+  const handleOk = () => {
+    setOpenConfirmOk(true);
   };
 
-  const handleAnomaly = async (status) => {
-    //await uploadNotesToDb(status);
-    await markAs(details[0]?.id, 2);
+  const handleAnomaly = async () => {
+    await markAs(maintenanceId, 2);
     window.location.reload();
   };
 
-  const handleNotPerformed = async (status) => {
-    //await uploadNotesToDb(status);
-    await markAs(details[0]?.id, 3);
+  const handleNotPerformed = async () => {
+    await markAs(maintenanceId, 3);
     window.location.reload();
   };
 
-  useEffect(() => {
-    if (!details[0]?.id) return;
+  const disabled = executionState !== null;
 
-    const fetchLatestNotes = async () => {
-      try {
-        const [photos, audios, texts] = await Promise.all([
-          getPhotosGeneral(details[0]?.id, "maintenance"),
-          getAudiosGeneral(details[0]?.id, "maintenance"),
-          getTextsGeneral(details[0]?.id, "maintenance"),
-        ]);
-
-        if (photos?.notes?.length) {
-          const sortedPhotos = [...photos.notes].sort(
-            (a, b) => new Date(b.created_at) - new Date(a.created_at)
-          );
-          setLatestPhoto(sortedPhotos[0]);
-        }
-
-        if (audios?.notes?.length) {
-          const sortedAudios = [...audios.notes].sort(
-            (a, b) => new Date(b.created_at) - new Date(a.created_at)
-          );
-          setLatestAudio(sortedAudios[0]);
-        }
-
-        if (texts?.notes?.length) {
-          const sortedTexts = [...texts.notes].sort(
-            (a, b) => new Date(b.created_at) - new Date(a.created_at)
-          );
-          setLatestText(sortedTexts[0]);
-        }
-
-
-      } catch (error) {
-        console.error("Errore nel recupero delle note:", error);
-      }
-    };
-
-    fetchLatestNotes();
-  }, [details[0]?.id]);
-
-  if (!mounted || !i18n.isInitialized) return null;
+  if (!mounted) return null;
 
   return (
-    <div className="p-2 w-full">
+    <>
+      <div className="p-2 w-full">
 
-      <div className="mb-8">
-        <div className="flex items-center mb-2">
-          <h2 className="text-lg text-[#789fd6]">{t("photographic_notes")}</h2>
-          <button className="text-[14px] text-[#fff] ml-auto cursor-pointer" onClick={() => setPhotoHistoryModal(true)}>{t("see_history")}</button>
-        </div>
-        {latestPhoto && (
-          <div className="flex items-center gap-4 cursor-pointer">
-            <Image 
-              src={latestPhoto.image_url}
-              alt="Foto nota"
-              width={80}
-              height={80}
-              className="rounded-lg"
-              style={{width: "80px", height: "80px", objectFit: "cover"}}
-            />
-            <div>
-              <h2 className="text-md text-[#fff]">{latestPhoto.authorDetails.first_name} {latestPhoto.authorDetails.last_name}</h2>
-              <h2 className="text-[14px] text-[#ffffff94]">{new Date(latestPhoto.created_at).toLocaleString()}</h2>
-            </div>
+        <div className="mb-8">
+          <div className="flex items-center mb-2">
+            <h2 className="text-lg text-[#789fd6]">{t("photographic_notes")}</h2>
+            <button
+              className="text-[14px] text-white ml-auto cursor-pointer"
+              onClick={() => setModalPhotoHistory(true)}
+            >
+              {t("see_history")}
+            </button>
           </div>
-        )}
-      </div>
 
-      <div className="mb-8">
-        <div className="flex items-center mb-2 mt-4">
-          <h2 className="text-lg text-[#789fd6]">{t("vocal_note")}</h2>
-          <button className="text-[14px] text-[#fff] ml-auto cursor-pointer" onClick={() => setNoteHistoryModal(true)}>{t("see_history")}</button>
-        </div>
-        {latestAudio && (
-          <div className="flex items-center gap-4 cursor-pointer">
-            <div className="w-full">
-              <AudioPlayer
-                audioSrc={latestAudio.audio_url}
-                username={latestAudio.authorDetails.first_name[0] + latestAudio.authorDetails.last_name[0]}
-                dateTime={latestAudio.created_at}
+          {latestPhoto ? (
+            <div className="flex items-center gap-4 cursor-pointer">
+              <Image
+                src={latestPhoto.image_url}
+                alt="photo"
+                width={80}
+                height={80}
+                className="rounded-lg object-cover hover:opacity-80 transition"
+                style={{ width: 80, height: 80 }}
+                onClick={() => setZoomImage(latestPhoto.image_url)}
               />
+              <div>
+                <p className="text-white">
+                  {latestPhoto.authorDetails.first_name}{" "}
+                  {latestPhoto.authorDetails.last_name}
+                </p>
+                <p className="text-white/60 text-sm">
+                  {new Date(latestPhoto.created_at).toLocaleString()}
+                </p>
+              </div>
             </div>
-          </div>
-        )}
-      </div>
-
-      <div className="mb-8">
-        <div className="flex items-center mb-2 mt-4">
-          <h2 className="text-lg text-[#789fd6]">{t("text_note")}</h2>
-          <button className="text-[14px] text-[#fff] ml-auto cursor-pointer" onClick={() => setTextHistoryModal(true)}>{t("see_history")}</button>
+          ) : (
+            <p className="text-white/40 italic">{t("no_data_available")}</p>
+          )}
         </div>
-        {latestText && (
-          <div className="flex items-center gap-4 cursor-pointer">
+
+        <div className="mb-8">
+          <div className="flex items-center mb-2 mt-4">
+            <h2 className="text-lg text-[#789fd6]">{t("vocal_note")}</h2>
+            <button
+              className="text-[14px] text-white ml-auto cursor-pointer"
+              onClick={() => setModalAudioHistory(true)}
+            >
+              {t("see_history")}
+            </button>
+          </div>
+
+          {latestAudio ? (
+            <AudioPlayer
+              audioSrc={latestAudio.audio_url}
+              username={
+                latestAudio.authorDetails.first_name[0] +
+                latestAudio.authorDetails.last_name[0]
+              }
+              dateTime={latestAudio.created_at}
+            />
+          ) : (
+            <p className="text-white/40 italic">{t("no_data_available")}</p>
+          )}
+        </div>
+
+        <div className="mb-8">
+          <div className="flex items-center mb-2 mt-4">
+            <h2 className="text-lg text-[#789fd6]">{t("text_note")}</h2>
+            <button
+              className="text-[14px] text-white ml-auto cursor-pointer"
+              onClick={() => setModalTextHistory(true)}
+            >
+              {t("see_history")}
+            </button>
+          </div>
+
+          {latestText ? (
             <div className="w-full bg-[#00000038] p-4 rounded-md">
-              <p className="text-white text-[12px] opacity-60">{latestText.authorDetails.first_name} {latestText.authorDetails.last_name}</p>
-              <p className="text-white text-[16px] mt-2 mb-2">{latestText.text_field}</p>
-              <p className="text-white opacity-60 text-sm ml-auto w-fit">{new Date(latestText.created_at).toLocaleString()}</p>
+              <p className="text-white text-[12px] opacity-60">
+                {latestText.authorDetails.first_name}{" "}
+                {latestText.authorDetails.last_name}
+              </p>
+              <p className="text-white text-[16px] my-2">
+                {latestText.text_field}
+              </p>
+              <p className="text-white/60 text-xs">
+                {new Date(latestText.created_at).toLocaleString()}
+              </p>
             </div>
-          </div>
-        )}
-      </div>
+          ) : (
+            <p className="text-white/40 italic">{t("no_data_available")}</p>
+          )}
+        </div>
 
-      {/* BOTTONI */}
-      <div className="mb-6">
-        <div className="flex gap-4">
+        <div className="flex gap-4 mb-6">
 
-          {(() => {
-            const buttonsDisabled = details[0]?.execution_state !== null;
+          <button
+            onClick={() => !disabled && handleOk()}
+            disabled={disabled}
+            className={`w-full py-6 rounded-md flex justify-center items-center transition 
+            ${disabled ? "bg-gray-600 opacity-40 cursor-not-allowed" : "bg-[#15375d] hover:bg-blue-700"}`}
+          >
+            <Image src="/done.png" width={20} height={20} alt="OK" className="mr-2" />
+            {t("ok")}
+          </button>
 
-            return (
-              <>
-                {/* OK */}
-                <button
-                  onClick={() => !buttonsDisabled && handleOk("ok")}
-                  disabled={buttonsDisabled}
-                  className={`cursor-pointer flex items-center justify-center w-full py-6 text-white rounded-md transition duration-300 
-                    ${
-                      buttonsDisabled
-                        ? "bg-gray-600 opacity-40 cursor-not-allowed"
-                        : details[0]?.execution_state === "1"
-                        ? "bg-[#2db647]"
-                        : "bg-[#15375d] hover:bg-blue-700"
-                    }`}
-                >
-                  <Image src="/done.png" alt="Done" width={20} height={20} className="sm:mr-2" />
-                  <span className="hidden sm:block">{t("ok")}</span>
-                </button>
+          {/* ANOMALIA */}
+          <button
+            onClick={() => !disabled && handleAnomaly()}
+            disabled={disabled}
+            className={`w-full py-6 rounded-md flex justify-center items-center transition 
+            ${disabled ? "bg-gray-600 opacity-40 cursor-not-allowed" : "bg-[#15375d] hover:bg-blue-700"}`}
+          >
+            <Image src="/x.png" width={20} height={20} alt="Anomaly" className="mr-2" />
+            {t("anomaly")}
+          </button>
 
-                {/* ANOMALY */}
-                <button
-                  onClick={() => !buttonsDisabled && handleAnomaly("anomaly")}
-                  disabled={buttonsDisabled}
-                  className={`cursor-pointer flex items-center justify-center w-full py-6 text-white rounded-md transition duration-300 
-                    ${
-                      buttonsDisabled
-                        ? "bg-gray-600 opacity-40 cursor-not-allowed"
-                        : details[0]?.execution_state === "2"
-                        ? "bg-[#d0021b]"
-                        : "bg-[#15375d] hover:bg-blue-700"
-                    }`}
-                >
-                  <Image src="/x.png" alt="X" width={20} height={20} className="sm:mr-2" />
-                  <span className="hidden sm:block">{t("anomaly")}</span>
-                </button>
-
-                {/* NOT PERFORMED */}
-                <button
-                  onClick={() => !buttonsDisabled && handleNotPerformed("not_performed")}
-                  disabled={buttonsDisabled}
-                  className={`cursor-pointer flex items-center justify-center w-full py-6 text-white rounded-md transition duration-300 
-                    ${
-                      buttonsDisabled
-                        ? "bg-gray-600 opacity-40 cursor-not-allowed"
-                        : details[0]?.execution_state === "3"
-                        ? "bg-[#ffbf25]"
-                        : "bg-[#15375d] hover:bg-blue-700"
-                    }`}
-                >
-                  <Image src="/time.png" alt="Time" width={20} height={20} className="sm:mr-2" />
-                  <span className="hidden sm:block">{t("not_perfomed")}</span>
-                </button>
-              </>
-            );
-          })()}
-
+          <button
+            onClick={() => !disabled && handleNotPerformed()}
+            disabled={disabled}
+            className={`w-full py-6 rounded-md flex justify-center items-center transition
+            ${disabled ? "bg-gray-600 opacity-40 cursor-not-allowed" : "bg-[#15375d] hover:bg-blue-700"}`}
+          >
+            <Image src="/time.png" width={20} height={20} alt="Not performed" className="mr-2" />
+            {t("not_perfomed")}
+          </button>
         </div>
       </div>
 
+      {modalAudioHistory && (
+        <NoteHistoryModal
+          onClose={() => setModalAudioHistory(false)}
+          failureId={maintenanceId}
+        />
+      )}
 
-      {noteHistoryModal && <NoteHistoryModal onClose={() => setNoteHistoryModal(false)} failureId={details[0].id} />}
-      {photoHistoryModal && <PhotoHistoryModal onClose={() => setPhotoHistoryModal(false)} failureId={details[0].id} />}
-      {textHistoryModal && <TextHistoryModal onClose={() => setTextHistoryModal(false)} failureId={details[0].id} />}
-      {markAsOk && <ConfirmMaintenance onClose={() => setMarkAsOk(false)} onClick={() => uploadNotesToDb("ok")} maintenanceListId={details[0]?.id} />}
-    </div>
+      {modalPhotoHistory && (
+        <PhotoHistoryModal
+          onClose={() => setModalPhotoHistory(false)}
+          failureId={maintenanceId}
+        />
+      )}
+
+      {modalTextHistory && (
+        <TextHistoryModal
+          onClose={() => setModalTextHistory(false)}
+          failureId={maintenanceId}
+        />
+      )}
+
+      {openConfirmOk && (
+        <ConfirmMaintenance
+          onClose={() => setOpenConfirmOk(false)}
+          onClick={() => uploadNotesToDb("ok")}
+          maintenanceListId={maintenanceId}
+        />
+      )}
+
+      {zoomImage && (
+        <div
+          className="fixed inset-0 z-[999] bg-black/80 flex items-center justify-center cursor-pointer"
+          onClick={() => setZoomImage(null)}
+        >
+          <Image
+            src={zoomImage}
+            width={1000}
+            height={1000}
+            alt="Zoom"
+            className="max-w-[90%] max-h-[90%] object-contain rounded-lg shadow-2xl"
+          />
+        </div>
+      )}
+    </>
   );
-};
-
-export default MaintenanceDetails;
+}

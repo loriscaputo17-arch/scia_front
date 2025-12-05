@@ -52,7 +52,13 @@
   "enter_text": "Enter text",
   "back": "Back",
   "send": "Send",
-  "close_button": "Close"
+  "close_button": "Close",
+  "or_record_now": "Or record now",
+  "start_recording": "Start recording",
+  "stop_recording": "Stop recording",
+  "preview": "Preview",
+  "upload_recording": "Upload recording",
+  "mic_error": "Error: unable to access the microphone."
 
 }
   

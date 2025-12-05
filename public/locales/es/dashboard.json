@@ -2,8 +2,8 @@
   "maintenance": "Mantenimiento",
   "checklist": "Lista de verificación",
   "readings": "Lecturas",
-  "spare_parts": "Repuestos",
-  "manual": "Manual",
+  "spares": "Repuestos",
+  "files": "Manual",
   "failures": "Fallas"
 }
 

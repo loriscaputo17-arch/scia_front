@@ -6,7 +6,7 @@ import Image from 'next/image';
 import AudioPlayer from "@/components/element/audioPlayer";
 import FacilitiesList from "@/components/facilities/FacilitiesList";
 import { useTranslation } from "@/app/i18n";
-
+ 
 export default function NotesModal({ isOpen, onClose2, data }) {
     const [search, setSearch] = useState("");
 
