@@ -16,22 +16,25 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "plugins": [
       {
         "name": "next"
       }
     ],
-    "baseUrl": ".",  // Questo è fondamentale per usare gli alias
+    "baseUrl": ".", // Questo è fondamentale per usare gli alias
     "paths": {
-      "@/*": ["./src/*"]  // Questo crea l'alias per la cartella src
+      "@/*": [
+        "./src/*"
+      ] // Questo crea l'alias per la cartella src
     }
   },
   "include": [
     "next-env.d.ts",
     ".next/types/**/*.ts",
     "**/*.ts",
-    "**/*.tsx"
+    "**/*.tsx",
+    ".next/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

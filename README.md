@@ -10,6 +10,10 @@ Questo è un progetto [Next.js](https://nextjs.org) avviato con [`create-next-ap
 
 ```bash
 npm install
+
+Install dependencies with:
+npm install --legacy-peer-deps
+
 ````
 
 2️⃣ **Avvia il server di sviluppo**

@@ -18,12 +18,6 @@ const nextConfig = {
     styledComponents: true,
     removeConsole: false,
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  experimental: {
-    legacyBrowsers: true,
-  },
   async rewrites() {
     return [
       {
