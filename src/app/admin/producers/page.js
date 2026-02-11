@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { getOwners } from "@/api/admin/owners";
-import OwnersTable from "@/components/admin/owners/OwnersTable";
+import OwnersTable from "@/components/admin/producers/ProducersTable";
 import OwnersFilters from "@/components/admin/owners/OwnersFilters";
-import AddOwnerButton from "@/components/admin/owners/AddOwnerButton";
-import AddOwnerModal from "@/components/admin/owners/AddOwnerModal";
+import AddProducersButton from "@/components/admin/producers/AddProducersButton";
+import AddProducersModal from "@/components/admin/producers/AddProducersModal";
 
 export default function ProducersPage() {
   const [owners, setOwners] = useState([]);
@@ -42,22 +42,19 @@ export default function ProducersPage() {
     return matchName && matchEmail && matchStatus;
   });
 
-
   return (
     <div>
-      <h2 className="text-3xl font-semibold mb-6 text-gray-900">Gestione Producers</h2>
+      <h2 className="text-3xl font-semibold mb-6 text-gray-900">Gestione Produttori</h2>
 
-      {/* Tabella */}
       {loading ? (
         <p className="text-gray-500">Caricamento owners...</p>
       ) : (
         <OwnersTable owners={filteredOwners} />
       )}
 
-      {/* Pulsante aggiungi */}
-      <AddOwnerButton onClick={() => setModalOpen(true)} />
+      <AddProducersButton onClick={() => setModalOpen(true)} />
 
-      {modalOpen && <AddOwnerModal onClose={() => setModalOpen(false)} />}
+      {modalOpen && <AddProducersModal onClose={() => setModalOpen(false)} />}
     </div>
   );
 }

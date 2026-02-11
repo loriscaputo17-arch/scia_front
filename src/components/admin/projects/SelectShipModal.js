@@ -1,341 +1,269 @@
 "use client";
-import { useState, useEffect } from "react";
-import { X, ArrowLeft, Save, Plus, MousePointer } from "lucide-react";
-import {
-  getShipModels,
-  getShipsByModel,
-  assignShipToProject,
-  createShipModel,
-  createShip
-} from "@/api/admin/ships";
+import { useEffect, useState } from "react";
+import { X, Plus } from "lucide-react";
+import { getShipyards, getShipModels, createShipModel } from "@/api/admin/shipyards";
 
-export default function SelectShipModal({ projectId, onClose }) {
-  const [step, setStep] = useState(1);
-  const [isNewModel, setIsNewModel] = useState(false);
+export default function SelectShipModal({ onClose, onSelectModel }) {
   const [shipModels, setShipModels] = useState([]);
-  const [ships, setShips] = useState([]);
-  const [selectedModel, setSelectedModel] = useState(null);
-  const [selectedShip, setSelectedShip] = useState(null);
+  const [shipyards, setShipyards] = useState([]);
+  const [isNew, setIsNew] = useState(false);
 
-  const [newModelData, setNewModelData] = useState({
+  const [newModel, setNewModel] = useState({
+    shipyard_id: "",
+    model_name: "",
     model_code: "",
-    name: "",
-    description: "",
-    type: "",
-    internal_notes: ""
+    Overall_length_LOA: "",
+    Breadth_moulded_Bmax: "",
+    Depth_moulded_D: "",
+    Max_Draft: "",
+    Displacement_fully_loaded: "",
+    Maximum_Speed: "",
+    Cruising_speed: "",
+    Range: "",
+    Logistic_range: "",
+    Crew: "",
+    Ship_Logistic_Model_Identification: "",
   });
 
-  const [newShipData, setNewShipData] = useState({
-    unit_name: "",
-    unit_code: "",
-    launch_date: "",
-    delivery_date: "",
-    notes: ""
-  });
-
-  // fetch modelli
   useEffect(() => {
-    const fetchModels = async () => {
-      try {
-        const models = await getShipModels();
-        setShipModels(models);
-      } catch (err) {
-        console.error("Errore fetch modelli nave:", err);
-      }
+    const fetchData = async () => {
+      const [models, yards] = await Promise.all([
+        getShipModels(),
+        getShipyards(),
+      ]);
+      setShipModels(models);
+      setShipyards(yards);
     };
-    fetchModels();
+    fetchData();
   }, []);
 
-  // fetch navi quando seleziono modello
-  useEffect(() => {
-    if (!selectedModel || isNewModel) return;
-    const fetchShips = async () => {
-      try {
-        const shipsData = await getShipsByModel(selectedModel.id);
-        setShips(shipsData);
-      } catch (err) {
-        console.error("Errore fetch navi:", err);
-      }
-    };
-    fetchShips();
-  }, [selectedModel, isNewModel]);
-
-  const handleCreateModel = async () => {
-    try {
-      const model = await createShipModel(newModelData);
-      setSelectedModel(model);
-      setStep(3);
-    } catch (err) {
-      console.error(err);
-      alert("Errore creando modello");
+  const handleCreate = async () => {
+    if (!newModel.model_name) {
+      alert("Nome modello obbligatorio");
+      return;
     }
+
+    const payload = {
+      ...newModel,
+      shipyard_id: newModel.shipyard_id || null,
+    };
+
+    const created = await createShipModel(payload);
+    onSelectModel(created);
   };
 
-    const handleAssignShip = async () => {
-        try {
-            let shipId = selectedShip?.id;
-            if (isNewModel) {
-            const createdShip = await createShip(selectedModel.id, newShipData);
-            shipId = createdShip.id;
-            }
-            if (!shipId) return alert("Seleziona una nave");
-            await assignShipToProject(projectId, shipId);
-
-            // Invece di chiudere subito:
-            // onClose();
-            // Notifica al parent di aprire il nuovo modal
-            if (onShipAssigned) onShipAssigned(shipId); 
-
-        } catch (err) {
-            console.error(err);
-            alert("Errore assegnando nave");
-        }
-    };
-
-
-  // Stile
-  const cardClass = "border rounded-xl p-4 hover:shadow-lg cursor-pointer transition flex flex-col justify-between bg-white";
-
-  const stepIndicator = (
-    <div className="flex items-center gap-4 mb-6 text-gray-600">
-      {[1, 2, 3].map((s) => (
-        <div key={s} className={`px-3 py-1 rounded-full font-medium ${step === s ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-500"}`}>
-          Step {s}
-        </div>
-      ))}
-    </div>
-  );
+  const inputClass =
+    "px-4 py-2 rounded-xl bg-gray-50 text-gray-900 border border-gray-200 placeholder-gray-400 focus:outline-none transition w-full";
+  const selectClass =
+    "px-4 py-2 rounded-xl bg-gray-50 text-gray-900 border border-gray-200 focus:outline-none transition w-full";
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 overflow-auto p-4">
-      <div className="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-6xl relative text-gray-900">
-        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 transition cursor-pointer">
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-4xl relative">
+
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-500 hover:text-gray-800"
+        >
           <X size={24} />
         </button>
-        <h3 className="text-2xl font-semibold mb-4">Seleziona Modello e Nave</h3>
-        {stepIndicator}
 
-        {step > 1 && (
-          <button
-            onClick={() => setStep(step - 1)}
-            className="flex items-center gap-1 text-blue-600 font-medium mb-4"
-          >
-            <ArrowLeft size={18} /> Indietro
-          </button>
-        )}
+        <h3 className="text-xl font-semibold mb-6 text-gray-900">
+          Seleziona o Crea Modello Nave
+        </h3>
 
-        {/* Step 1: Nuovo o Esistente */}
-        {step === 1 && (
-          <div className="flex gap-6 justify-center">
-            <button
-              onClick={() => { setIsNewModel(true); setStep(2); }}
-              className="flex-1 border rounded-2xl p-6 text-center hover:shadow-lg transition bg-green-50 text-green-700 font-semibold cursor-pointer"
-            >
-              <Plus className="mx-auto mb-2" size={24} /> Nuovo Modello
-            </button>
-            <button
-              onClick={() => { setIsNewModel(false); setStep(2); }}
-              className="flex-1 border rounded-2xl p-6 text-center hover:shadow-lg transition bg-blue-50 text-blue-700 font-semibold cursor-pointer"
-            >
-              <MousePointer className="mx-auto mb-2" size={24} /> Modello Esistente
-            </button>
-          </div>
-        )}
-
-        {/* Step 2 */}
-        {step === 2 && !isNewModel && (
-          <div className="grid grid-cols-3 gap-4 max-h-[60vh] overflow-y-auto">
-            {shipModels.map((m) => (
-              <div
-                key={m.id}
-                className={`${cardClass} ${selectedModel?.id === m.id ? "border-blue-500 bg-blue-50" : ""}`}
-                onClick={() => setSelectedModel(m)}
-              >
-                <div className="font-semibold">{m.model_code} - {m.name}</div>
-                <div className="text-sm text-gray-500">{m.description}</div>
-                <div className="mt-2 text-gray-400 text-xs">Navi disponibili: {m.ships_count || 0}</div>
-              </div>
-            ))}
-            {selectedModel && <button onClick={() => setStep(3)} className="col-span-3 bg-blue-600 text-white py-2 rounded-xl mt-2">Avanti</button>}
-          </div>
-        )}
-
-        {step === 2 && isNewModel && (
-  <div className="mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
-    {/* Colonna 1 */}
-    <div className="space-y-4">
-      <input
-        className="w-full px-4 py-2 border rounded-xl"
-        placeholder="Codice Modello"
-        value={newModelData.model_code}
-        onChange={(e) => setNewModelData({...newModelData, model_code: e.target.value})}
-      />
-      <input
-        className="w-full px-4 py-2 border rounded-xl"
-        placeholder="Nome Modello"
-        value={newModelData.name}
-        onChange={(e) => setNewModelData({...newModelData, name: e.target.value})}
-      />
-      <select
-        className="w-full px-4 py-2 border rounded-xl"
-        value={newModelData.type}
-        onChange={(e) => setNewModelData({...newModelData, type: e.target.value})}
-      >
-        <option value="">Seleziona Tipologia Modello</option>
-        <option value="tipo1">Tipo 1</option>
-        <option value="tipo2">Tipo 2</option>
-        <option value="tipo3">Tipo 3</option>
-      </select>
-    </div>
-
-    {/* Colonna 2 */}
-    <div className="space-y-4">
-      <textarea
-        className="w-full px-4 py-2 border rounded-xl"
-        placeholder="Descrizione"
-        value={newModelData.description}
-        onChange={(e) => setNewModelData({...newModelData, description: e.target.value})}
-      />
-      <textarea
-        className="w-full px-4 py-2 border rounded-xl"
-        placeholder="Note interne"
-        value={newModelData.internal_notes}
-        onChange={(e) => setNewModelData({...newModelData, internal_notes: e.target.value})}
-      />
-      <div className="flex justify-end">
-        <button
-              onClick={handleCreateModel}
-              className="flex items-center gap-2 px-6 py-3 bg-green-200/30 hover:bg-green-200 text-green-600 font-semibold rounded-2xl cursor-pointer transition"
-            >
-              Crea Modello e Avanti
-            </button>
-      </div>
-      
-    </div>
-  </div>
-)}
-
-
-        {/* Step 3: Crea/Seleziona nave */}
-        {step === 3 && (
-         <div className="mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
-
-          <div className="space-y-4">
-            <h4 className="font-semibold text-lg mb-2">{isNewModel ? "Crea Nave Specifica" : `Seleziona o crea nave per modello ${selectedModel?.name}`}</h4>
-
-            {!isNewModel && ships.length > 0 && (
-              <div className="grid grid-cols-2 gap-4 max-h-60 overflow-y-auto mb-4">
-                {ships.map(s => (
-                  <div
-                    key={s.id}
-                    className={`${cardClass} ${selectedShip?.id === s.id ? "border-green-500 bg-green-50" : ""}`}
-                    onClick={() => setSelectedShip(s)}
-                  >
-                    <div className="font-semibold">{s.unit_name}</div>
-                    <div className="text-sm text-gray-500">{s.unit_code}</div>
-                    <div className="text-xs text-gray-400">Lancio: {s.launch_date}</div>
-                    <div className="text-xs text-gray-400">Consegna: {s.delivery_date}</div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div className="space-y-3">
-              <input
-                className="w-full px-4 py-2 border rounded-xl"
-                placeholder="Nome Nave"
-                value={newShipData.unit_name}
-                onChange={(e) => setNewShipData({...newShipData, unit_name: e.target.value})}
-              />
-              <input
-                className="w-full px-4 py-2 border rounded-xl"
-                placeholder="Codice Nave"
-                value={newShipData.unit_code}
-                onChange={(e) => setNewShipData({...newShipData, unit_code: e.target.value})}
-              />
-              <input
-                type="date"
-                className="w-full px-4 py-2 border rounded-xl"
-                value={newShipData.launch_date}
-                onChange={(e) => setNewShipData({...newShipData, launch_date: e.target.value})}
-              />
-              <input
-                type="date"
-                className="w-full px-4 py-2 border rounded-xl"
-                value={newShipData.delivery_date}
-                onChange={(e) => setNewShipData({...newShipData, delivery_date: e.target.value})}
-              />
-              <textarea
-                className="w-full px-4 py-2 border rounded-xl"
-                placeholder="Note aggiuntive"
-                value={newShipData.notes}
-                onChange={(e) => setNewShipData({...newShipData, notes: e.target.value})}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <h4 className="font-semibold text-lg mb-2">{isNewModel ? "Crea Nave Specifica" : `Seleziona o crea nave per modello ${selectedModel?.name}`}</h4>
-
-            {!isNewModel && ships.length > 0 && (
-              <div className="grid grid-cols-2 gap-4 max-h-60 overflow-y-auto mb-4">
-                {ships.map(s => (
-                  <div
-                    key={s.id}
-                    className={`${cardClass} ${selectedShip?.id === s.id ? "border-green-500 bg-green-50" : ""}`}
-                    onClick={() => setSelectedShip(s)}
-                  >
-                    <div className="font-semibold">{s.unit_name}</div>
-                    <div className="text-sm text-gray-500">{s.unit_code}</div>
-                    <div className="text-xs text-gray-400">Lancio: {s.launch_date}</div>
-                    <div className="text-xs text-gray-400">Consegna: {s.delivery_date}</div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div className="space-y-3">
-              <input
-                className="w-full px-4 py-2 border rounded-xl"
-                placeholder="Nome Nave"
-                value={newShipData.unit_name}
-                onChange={(e) => setNewShipData({...newShipData, unit_name: e.target.value})}
-              />
-              <input
-                className="w-full px-4 py-2 border rounded-xl"
-                placeholder="Codice Nave"
-                value={newShipData.unit_code}
-                onChange={(e) => setNewShipData({...newShipData, unit_code: e.target.value})}
-              />
-              <input
-                type="date"
-                className="w-full px-4 py-2 border rounded-xl"
-                value={newShipData.launch_date}
-                onChange={(e) => setNewShipData({...newShipData, launch_date: e.target.value})}
-              />
-              <input
-                type="date"
-                className="w-full px-4 py-2 border rounded-xl"
-                value={newShipData.delivery_date}
-                onChange={(e) => setNewShipData({...newShipData, delivery_date: e.target.value})}
-              />
-              <textarea
-                className="w-full px-4 py-2 border rounded-xl"
-                placeholder="Note aggiuntive"
-                value={newShipData.notes}
-                onChange={(e) => setNewShipData({...newShipData, notes: e.target.value})}
-              />
-            </div>
-
-            <div className="flex justify-end">
+        {/* === SELEZIONE MODELLO ESISTENTE === */}
+        {!isNew ? (
+          <>
+            <div className="grid grid-cols-3 gap-4 max-h-[60vh] overflow-y-auto">
+              {shipModels.map((m) => (
                 <button
-                onClick={handleAssignShip}
-              className="flex items-center gap-2 px-6 py-3 bg-green-200/30 hover:bg-green-200 text-green-600 font-semibold rounded-2xl cursor-pointer transition"
+                  key={m.id}
+                  onClick={() => onSelectModel(m)}
+                  className="border rounded-xl p-4 hover:bg-blue-50 text-left"
                 >
-                <Save size={18} /> Salva e Assegna
+                  <div className="font-semibold text-gray-900">
+                    {m.model_name}
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    {m.model_code}
+                  </div>
                 </button>
+              ))}
             </div>
-          </div>
+
+            <div className="flex justify-end mt-6">
+              <button
+                onClick={() => setIsNew(true)}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white"
+              >
+                <Plus size={18} /> Nuovo modello
+              </button>
+            </div>
+          </>
+        ) : (
+          /* === CREAZIONE NUOVO MODELLO === */
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[65vh] overflow-y-auto pr-2">
+
+            {/* COLONNA SX */}
+            <div className="space-y-3">
+              <select
+                className={selectClass}
+                value={newModel.shipyard_id}
+                onChange={(e) =>
+                  setNewModel({ ...newModel, shipyard_id: e.target.value })
+                }
+              >
+                <option value="">Cantiere (opzionale)</option>
+                {shipyards.map((s) => (
+                  <option key={s.ID} value={s.ID}>
+                    {s.companyName}
+                  </option>
+                ))}
+              </select>
+
+              <input
+                className={inputClass}
+                placeholder="Nome modello"
+                value={newModel.model_name}
+                onChange={(e) =>
+                  setNewModel({ ...newModel, model_name: e.target.value })
+                }
+              />
+
+              <input
+                className={inputClass}
+                placeholder="Codice modello"
+                value={newModel.model_code}
+                onChange={(e) =>
+                  setNewModel({ ...newModel, model_code: e.target.value })
+                }
+              />
+
+              <input
+                className={inputClass}
+                placeholder="LOA (m)"
+                value={newModel.Overall_length_LOA}
+                onChange={(e) =>
+                  setNewModel({ ...newModel, Overall_length_LOA: e.target.value })
+                }
+              />
+
+              <input
+                className={inputClass}
+                placeholder="Bmax (m)"
+                value={newModel.Breadth_moulded_Bmax}
+                onChange={(e) =>
+                  setNewModel({ ...newModel, Breadth_moulded_Bmax: e.target.value })
+                }
+              />
+
+              <input
+                className={inputClass}
+                placeholder="Depth (m)"
+                value={newModel.Depth_moulded_D}
+                onChange={(e) =>
+                  setNewModel({ ...newModel, Depth_moulded_D: e.target.value })
+                }
+              />
+
+              <input
+                className={inputClass}
+                placeholder="Logistic Model ID"
+                value={newModel.Ship_Logistic_Model_Identification}
+                onChange={(e) =>
+                  setNewModel({
+                    ...newModel,
+                    Ship_Logistic_Model_Identification: e.target.value,
+                  })
+                }
+              />
+            </div>
+
+            {/* COLONNA DX */}
+            <div className="space-y-3">
+              <input
+                className={inputClass}
+                placeholder="Draft (m)"
+                value={newModel.Max_Draft}
+                onChange={(e) =>
+                  setNewModel({ ...newModel, Max_Draft: e.target.value })
+                }
+              />
+
+              <input
+                className={inputClass}
+                placeholder="Displacement (t)"
+                value={newModel.Displacement_fully_loaded}
+                onChange={(e) =>
+                  setNewModel({
+                    ...newModel,
+                    Displacement_fully_loaded: e.target.value,
+                  })
+                }
+              />
+
+              <input
+                className={inputClass}
+                placeholder="Velocità massima (kn)"
+                value={newModel.Maximum_Speed}
+                onChange={(e) =>
+                  setNewModel({ ...newModel, Maximum_Speed: e.target.value })
+                }
+              />
+
+              <input
+                className={inputClass}
+                placeholder="Velocità crociera (kn)"
+                value={newModel.Cruising_speed}
+                onChange={(e) =>
+                  setNewModel({ ...newModel, Cruising_speed: e.target.value })
+                }
+              />
+
+              <input
+                className={inputClass}
+                placeholder="Range (nm)"
+                value={newModel.Range}
+                onChange={(e) =>
+                  setNewModel({ ...newModel, Range: e.target.value })
+                }
+              />
+
+              <input
+                className={inputClass}
+                placeholder="Logistic range (days)"
+                value={newModel.Logistic_range}
+                onChange={(e) =>
+                  setNewModel({ ...newModel, Logistic_range: e.target.value })
+                }
+              />
+
+              <input
+                className={inputClass}
+                placeholder="Crew"
+                value={newModel.Crew}
+                onChange={(e) =>
+                  setNewModel({ ...newModel, Crew: e.target.value })
+                }
+              />
+            </div>
+
+            {/* ACTIONS */}
+            <div className="col-span-2 flex justify-end gap-2 mt-4">
+              <button
+                onClick={() => setIsNew(false)}
+                className="cursor-pointer px-4 py-2 rounded-lg bg-gray-300 text-gray-900"
+              >
+                Indietro
+              </button>
+              <button
+                onClick={handleCreate}
+                className="px-4 py-2 rounded-lg bg-green-600 text-white"
+              >
+                Crea modello
+              </button>
+            </div>
           </div>
         )}
       </div>

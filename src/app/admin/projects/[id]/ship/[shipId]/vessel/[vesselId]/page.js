@@ -84,7 +84,7 @@ export default function ProjectDetailsPage() {
 
       {/* TAB CONTENUTO */}
       {activeTab === "generali" && <ProjectGeneralTab project={project} />}
-      {activeTab === "elements" && <ProjectElementsTab project={project} />}
+      {activeTab === "elements" && <ProjectElementsTab projectId={shipModelId} />}
       {activeTab === "runtime" && <ProjectRuntimeTab project={project} shipId={shipId} shipModelId={shipModelId} />}
       {activeTab === "report" && <ProjectReportTab project={project} />}
     </div>

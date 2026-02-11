@@ -51,7 +51,7 @@ export default function AdminLogin() {
   if (!i18n.isInitialized || !isClient) return null;
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-[#0A2038]">
+    <div className="flex items-center justify-center min-h-screen bg-[#001c38]">
       <div className="w-full max-w-md p-8 rounded-lg bg-[#102740] shadow-lg">
         <h1 className="text-3xl text-center mb-6">
           <span className="font-bold text-white">Scia</span>{" "}

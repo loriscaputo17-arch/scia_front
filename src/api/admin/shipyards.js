@@ -22,6 +22,53 @@ export async function getShipyards() {
   }
 }
 
+
+export async function createShipModel(newModel) {
+  try {
+    const res = await fetch(
+      `${BASE_URL}/api/admin/shipyards/createShipModel`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newModel),
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error || "Errore durante la creazione del modello nave");
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Errore creazione modello nave:", error.message);
+    throw error;
+  }
+}
+
+export async function getShipModels() {
+  const res = await fetch(
+    `${BASE_URL}/api/admin/shipyards/getAvailableShipModels`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.error || "Errore recupero modelli nave");
+  }
+
+  return data;
+}
+
 export async function createShipyards(newShipyards) {
   try {
     const res = await fetch(`${BASE_URL}/api/admin/shipyards/createShipyards`, {

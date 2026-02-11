@@ -224,7 +224,7 @@ export default function AdminSidebar({ activeModelId = null }) {
                         onClick={() => toggleModel(String(model.id))}
                       >
                         <span className="flex items-center gap-2">
-                          🚢 {model.name || `Modello #${model.id}`}
+                          {model.model_name || `Modello #${model.id}`}
                         </span>
                         {isOpen ? (
                           <ChevronDown size={16} />
@@ -274,7 +274,7 @@ export default function AdminSidebar({ activeModelId = null }) {
                                       : "hover:bg-gray-800 text-gray-300"
                                   }`}
                                 >
-                                  ⚓ {ship.name || `Nave #${ship.id}`}
+                                  {ship.unit_name || `Nave #${ship.id}`}
                                 </Link>
                                 
                               );

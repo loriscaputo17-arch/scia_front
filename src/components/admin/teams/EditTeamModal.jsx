@@ -15,7 +15,7 @@ export default function EditTeamModal({ team, onSave, onCancel }) {
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState([]);
   const [selectedMembers, setSelectedMembers] = useState([]);
-  const [dropdownOpen, setDropdownOpen] = useState(null); // per gestire multiselect aperto
+  const [dropdownOpen, setDropdownOpen] = useState(null); 
 
   useEffect(() => {
     const fetchData = async () => {
@@ -25,15 +25,18 @@ export default function EditTeamModal({ team, onSave, onCancel }) {
           getTeamMembers(team.id),
         ]);
 
+        console.log(teamMembers)
         setUsers(allUsers);
         setSelectedMembers(
           teamMembers.map((m) => ({
             user_id: m.id,
             is_leader: m.is_leader || false,
             role_name: m.role_name || "",
-            elements: m.elements || "",
+            // 👇 tieni OGGETTI
+            elements: Array.isArray(m.elements) ? m.elements : [],
           }))
         );
+
       } catch (err) {
         console.error("Errore caricamento dati team:", err);
       }
@@ -41,7 +44,6 @@ export default function EditTeamModal({ team, onSave, onCancel }) {
     fetchData();
   }, [team.id]);
 
-  /* 🔹 Gestione cambi input (anche nested) */
   const handleChange = (field, value, nested = null) => {
     if (nested) {
       const keys = nested.split(".");
@@ -64,7 +66,6 @@ export default function EditTeamModal({ team, onSave, onCancel }) {
     }
   };
 
-  /* 🔹 Toggle membro selezionato */
   const toggleMember = (userId) => {
     setSelectedMembers((prev) => {
       const exists = prev.find((m) => m.user_id === userId);
@@ -73,13 +74,12 @@ export default function EditTeamModal({ team, onSave, onCancel }) {
       } else {
         return [
           ...prev,
-          { user_id: userId, is_leader: false, role_name: "", elements: "" },
+          { user_id: userId, is_leader: false, role_name: "", elements: [] }
         ];
       }
     });
   };
 
-  /* 🔹 Toggle leader */
   const toggleLeader = (userId) => {
     setSelectedMembers((prev) =>
       prev.map((m) =>
@@ -88,21 +88,25 @@ export default function EditTeamModal({ team, onSave, onCancel }) {
     );
   };
 
-  /* 🔹 Gestione dropdown multiselect elements */
-  const toggleElement = (userId, value) => {
+  const toggleElement = (userId, element) => {
     setSelectedMembers((prev) =>
       prev.map((m) => {
         if (m.user_id !== userId) return m;
-        const current = m.elements ? m.elements.split(",") : [];
-        const newElements = current.includes(value)
-          ? current.filter((v) => v !== value)
-          : [...current, value];
-        return { ...m, elements: newElements.join(",") };
+
+        const exists = m.elements.some(
+          (e) => e.level1 === element.level1
+        );
+
+        return {
+          ...m,
+          elements: exists
+            ? m.elements.filter((e) => e.level1 !== element.level1)
+            : [...m.elements, element],
+        };
       })
     );
   };
 
-  /* 🔹 Salvataggio info generali */
   const handleSaveInfo = async () => {
     try {
       setLoading(true);
@@ -117,14 +121,23 @@ export default function EditTeamModal({ team, onSave, onCancel }) {
     }
   };
 
-  /* 🔹 Salvataggio membri e ruoli */
   const handleSaveMembers = async () => {
     try {
       setLoading(true);
-      await updateTeamMembers(team.id, selectedMembers);
+      await updateTeamMembers(
+        team.id,
+        selectedMembers.map((m) => ({
+          user_id: m.user_id,
+          is_leader: m.is_leader,
+          role_name: m.role_name,
+          elements: Array.isArray(m.elements)
+            ? m.elements.map(e => e.level1).join(",")
+            : null,
+        }))
+      );
       alert("Membri aggiornati con successo!");
       onSave();
-      window.location.reload();
+      //window.location.reload();
     } catch (err) {
       console.error("Errore aggiornamento membri:", err);
       alert("Errore durante l'aggiornamento membri");
@@ -133,7 +146,6 @@ export default function EditTeamModal({ team, onSave, onCancel }) {
     }
   };
 
-  /* 🔹 Tab Button */
   const tabButton = (id, label, Icon) => (
     <button
       onClick={() => setActiveTab(id)}
@@ -148,13 +160,48 @@ export default function EditTeamModal({ team, onSave, onCancel }) {
     </button>
   );
 
-  /* 🔹 Lista elementi disponibili (mock) */
-  const availableElements = ["551", "441", "221", "111", "661", "771", "881", "991"];
+  const availableElements = [
+    {
+        "level1": "500",
+        "name_navsea_S9040IDX": "AUXILIARY SYSTEMS, GENERAL"
+    },
+    {
+        "level1": "400",
+        "name_navsea_S9040IDX": "COMMAND AND SURVEILLANCE, GENERAL"
+    },
+    {
+        "level1": "200",
+        "name_navsea_S9040IDX": "PROPULSION PLANT, GENERAL"
+    },
+    {
+        "level1": "100",
+        "name_navsea_S9040IDX": "HULL STRUCTURE, GENERAL"
+    },
+    {
+        "level1": "301",
+        "name_navsea_S9040IDX": "GENERAL ARRANGEMENT-ELECTRICAL DRAWINGS"
+    },
+    {
+        "level1": "600",
+        "name_navsea_S9040IDX": "OUTFIT AND FURNISHINGS, GENERAL"
+    },
+    {
+        "level1": "800",
+        "name_navsea_S9040IDX": "INTEGRATION/ENGINEERING (SHIPBUILDER RESPONSE)"
+    },
+    {
+        "level1": "700",
+        "name_navsea_S9040IDX": "ARMAMENT, GENERAL"
+    },
+    {
+        "level1": "900",
+        "name_navsea_S9040IDX": "SHIP ASSEMBLY AND SUPPORT SERVICES"
+    }
+]
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl p-6 relative text-gray-900">
-        {/* ❌ Close */}
         <button
           onClick={onCancel}
           className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
@@ -305,9 +352,9 @@ export default function EditTeamModal({ team, onSave, onCancel }) {
                   <tbody>
                     {selectedMembers.map((m) => {
                       const user = users.find((u) => u.id === m.user_id);
-                      const userElements = m.elements
-                        ? m.elements.split(",")
-                        : [];
+                      const userElements = m.elements || [];
+                      const selectedLevels = userElements.map(e => e.level1);
+
                       return (
                         <tr
                           key={m.user_id}
@@ -327,6 +374,7 @@ export default function EditTeamModal({ team, onSave, onCancel }) {
                           <td className="px-4 py-2">
                             <input
                               type="text"
+                              disabled
                               placeholder="Ruolo"
                               value={m.role_name || ""}
                               onChange={(e) =>
@@ -350,11 +398,18 @@ export default function EditTeamModal({ team, onSave, onCancel }) {
                                 )
                               }
                             >
-                              <span className="truncate text-gray-700">
-                                {userElements.length > 0
-                                  ? userElements.join(", ")
-                                  : "Seleziona elementi"}
-                              </span>
+                             <span className="truncate text-gray-700">
+                              {userElements.length > 0
+                                ? userElements
+                                    .map((e) =>
+                                      typeof e === "string"
+                                        ? e
+                                        : e?.level1 ?? ""
+                                    )
+                                    .filter(Boolean)
+                                    .join(", ")
+                                : "Seleziona elementi"}
+                            </span>
                               <span className="text-gray-400 text-xs">
                                 ▼
                               </span>
@@ -363,18 +418,17 @@ export default function EditTeamModal({ team, onSave, onCancel }) {
                               <div className="absolute mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-40 overflow-y-auto w-40 z-20">
                                 {availableElements.map((el) => (
                                   <label
-                                    key={el}
+                                    key={el.level1}
                                     className="flex items-center gap-2 px-3 py-1 hover:bg-gray-100 cursor-pointer text-sm"
                                   >
                                     <input
                                       type="checkbox"
-                                      checked={userElements.includes(el)}
-                                      onChange={() =>
-                                        toggleElement(m.user_id, el)
-                                      }
-                                      className="accent-blue-600"
+                                      checked={selectedLevels.includes(el.level1)}
+                                      onChange={() => toggleElement(m.user_id, el)}
                                     />
-                                    {el}
+                                    <span>
+                                      {el.level1} – {el.name_navsea_S9040IDX}
+                                    </span>
                                   </label>
                                 ))}
                               </div>

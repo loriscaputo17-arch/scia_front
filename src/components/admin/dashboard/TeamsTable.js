@@ -23,9 +23,9 @@ export default function TeamsTable({ teams, onTeamUpdated }) {
         <thead className="bg-gray-100 text-gray-600 uppercase text-sm font-semibold tracking-wide">
           <tr>
             <th className="px-6 py-4 text-left rounded-tl-xl">ID</th>
-            <th className="px-6 py-4 text-left">Nome Squadra</th>
+            <th className="px-6 py-4 text-left">Nome</th>
             <th className="px-6 py-4 text-left">Leader</th>
-            <th className="px-6 py-4 text-left">Email Leader</th>
+            <th className="px-6 py-4 text-left">Email</th>
           </tr>
         </thead>
         <tbody className="text-gray-700 text-sm">

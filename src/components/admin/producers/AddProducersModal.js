@@ -4,7 +4,7 @@ import { useState } from "react";
 import { updateOwner } from "@/api/admin/owners";
 import OwnerCreateForm from "@/components/admin/materials/OwnerCreateForm";
 import NCAGEForm from "@/components/admin/materials/NCAGEForm";
-import OwnersTabs from "@/components/admin/materials/OwnersTabs";
+import ProducersTabs from "@/components/admin/materials/ProducersTabs";
 
 const emptyOwner = {
   companyName: "",
@@ -65,7 +65,7 @@ export default function AddOwnersModal({ onClose, onAdded }) {
         armedForces: o.armedForces,
         hasNCAGE: hasNCAGEMap[idx],
         organizationCompanyNCAGE: hasNCAGEMap[idx]
-          ? { ...o.organizationCompanyNCAGE, Entity: "Owner" }
+          ? { ...o.organizationCompanyNCAGE, Entity: "Producer" }
           : null,
       }));
 
@@ -89,11 +89,11 @@ export default function AddOwnersModal({ onClose, onAdded }) {
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col text-gray-900">
         <div className="p-6">
-          <h3 className="text-xl font-semibold">Aggiungi Owners</h3>
+          <h3 className="text-xl font-semibold">Aggiungi Produttori</h3>
         </div>
 
         <div className="px-6">
-          <OwnersTabs
+          <ProducersTabs
             owners={owners}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
@@ -131,7 +131,7 @@ export default function AddOwnersModal({ onClose, onAdded }) {
             onClick={() => removeOwner(activeTab)}
             className="mt-4 text-red-600 hover:text-red-700"
           >
-            Rimuovi Owner
+            Rimuovi Produttore
           </button>
         </div>
 
@@ -140,7 +140,7 @@ export default function AddOwnersModal({ onClose, onAdded }) {
             onClick={addOwner}
             className="cursor-pointer px-4 py-2 rounded-lg bg-gray-200 text-gray-900 hover:bg-gray-300"
           >
-            Aggiungi Owner
+            Aggiungi Produttore
           </button>
 
           <div className="flex gap-3">

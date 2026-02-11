@@ -45,7 +45,7 @@ export default function OwnersPage() {
 
   return (
     <div>
-      <h2 className="text-3xl font-semibold mb-6 text-gray-900">Gestione Owners</h2>
+      <h2 className="text-3xl font-semibold mb-6 text-gray-900">Gestione Proprietari</h2>
 
       {/* Tabella */}
       {loading ? (

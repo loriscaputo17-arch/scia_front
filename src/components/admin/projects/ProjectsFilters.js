@@ -5,35 +5,18 @@ export default function ProjectsFilters({ filters, setFilters }) {
     "px-3 py-2 rounded-full bg-gray-50 text-gray-900 border border-gray-300 placeholder-gray-400 text-sm transition-all duration-200 hover:bg-gray-100 focus:outline-none";
 
   return (
-    <div className="flex flex-wrap gap-3 mb-6">
+    <div className="flex flex-wrap gap-3 mb-6 w-full">
       {/* 🔍 Nome commessa */}
-      <input
-        type="text"
-        placeholder="Nome commessa"
-        className={inputClass}
-        value={filters.name}
-        onChange={(e) => setFilters({ ...filters, name: e.target.value })}
-      />
-
-      {/* 👤 Responsabile */}
-      <input
-        type="text"
-        placeholder="Responsabile"
-        className={inputClass}
-        value={filters.manager}
-        onChange={(e) => setFilters({ ...filters, manager: e.target.value })}
-      />
-
-      {/* ⚙️ Stato */}
-      <select
-        value={filters.status}
-        onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-        className={inputClass}
-      >
-        <option value="">Tutti gli stati</option>
-        <option value="active">Attiva</option>
-        <option value="inactive">Inattiva</option>
-      </select>
+      
+      <div className="bg-white shadow-md w-full rounded-xl p-4 flex flex-wrap gap-3 items-center border border-gray-100">
+        <input
+          type="text"
+          placeholder="Cerca per nome azienda..."
+          value={filters.name}
+          onChange={(e) => setFilters({ ...filters, name: e.target.value })}
+          className="border border-gray-200 rounded-lg px-4 py-2 text-sm text-gray-900 focus:ring-2 focus:ring-blue-200 focus:outline-none w-full sm:w-64"
+        />
+      </div>
     </div>
   );
 }

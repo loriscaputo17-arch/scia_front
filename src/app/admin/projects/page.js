@@ -9,7 +9,7 @@ import AddProjectsModal from "@/components/admin/projects/AddProjectsModal";
 import SelectShipModal from "@/components/admin/projects/SelectShipModal";
 import ESWBSModal from "@/components/admin/projects/ESWBSModal";
 import ProjectDetailsModal from "@/components/admin/projects/ProjectDetailsModal";
-
+ 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -49,24 +49,22 @@ export default function ProjectsPage() {
     return nameMatch && managerMatch && statusMatch;
   });
 
-  // 🔹 Salvataggio nuove commesse
-  const handleAddProjectSave = async (projectsData) => {
+  const handleAddProjectSave = async (projectData) => {
     try {
-      const savedProjects = [];
-      for (const p of projectsData) {
-        const saved = await createProject(p);
-        savedProjects.push(saved);
-      }
+      const saved = await createProject(projectData);
 
-      setProjects((prev) => [...prev, ...savedProjects]);
+      setProjects((prev) => [...prev, saved]);
       setModalOpen(false);
-      setCurrentProject(savedProjects[0]);
+
+      setCurrentProject(saved);
       setSelectShipModalOpen(true);
+
     } catch (err) {
-      console.error("Errore salvando commesse:", err);
-      alert("Errore durante il salvataggio delle commesse");
+      console.error("Errore salvando commessa:", err);
+      alert("Errore durante il salvataggio della commessa");
     }
   };
+
 
   return (
     <div>

@@ -4,7 +4,7 @@ export default function ProjectGeneralTab({ project }) {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold text-gray-800">
-        Dati Generali del Progetto
+        Dati Generali della Nave
       </h1>
 
       <div className="">

@@ -39,7 +39,7 @@ export default function SitesTable({ sites, onUpdate }) {
         <table className="min-w-full rounded-xl divide-y divide-gray-200">
           <thead className="bg-gray-100 text-gray-600 uppercase text-sm font-semibold tracking-wide">
             <tr>
-              <th className="px-6 py-4 text-left rounded-tl-xl">Nome Azienda</th>
+              <th className="px-6 py-4 text-left rounded-tl-xl">Nome</th>
               <th className="px-6 py-4 text-left">Indirizzo</th>
               <th className="px-6 py-4 text-left">Paese</th>
               <th className="px-6 py-4 text-left rounded-tr-xl">NCAGE</th>
@@ -57,7 +57,7 @@ export default function SitesTable({ sites, onUpdate }) {
                 <tr
                   key={s.ID}
                   onClick={() => handleRowClick(s)}
-                  className={`transition-all duration-300 cursor-pointer hover:scale-[1.01] ${
+                  className={`transition-all duration-300 cursor-pointer hover:bg-blue-50 ${
                     idx % 2 === 0 ? "bg-gray-50" : "bg-white"
                   }`}
                 >

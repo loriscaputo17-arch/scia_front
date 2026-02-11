@@ -8,7 +8,7 @@ export default function ProjectsTable({ projects, onRowClick }) {
       <table className="min-w-full rounded-xl divide-y divide-gray-200">
         <thead className="bg-gray-100 text-gray-600 uppercase text-sm font-semibold tracking-wide">
           <tr>
-            <th className="px-6 py-4 text-left">Nome Commesse</th>
+            <th className="px-6 py-4 text-left">Nome</th>
             <th className="px-6 py-4 text-left">Responsabile</th>
             <th className="px-6 py-4 text-left">Data Inizio</th>
             <th className="px-6 py-4 text-left rounded-tr-lg">Stato</th>
@@ -26,7 +26,7 @@ export default function ProjectsTable({ projects, onRowClick }) {
               <tr
                 key={c.id}
                 onClick={() => onRowClick?.(c)}
-                className={`transition-all duration-300 transform hover:scale-[1.01] hover:shadow-lg cursor-pointer ${
+                className={`transition-all duration-300 transform hover:bg-blue-50 hover:shadow-lg cursor-pointer ${
                   idx % 2 === 0 ? "bg-gray-50" : "bg-white"
                 }`}
               >

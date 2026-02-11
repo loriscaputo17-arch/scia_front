@@ -41,7 +41,7 @@ export default function UsersTable({ users, onUserUpdated }) {
               <tr
                 key={user.id}
                 onClick={() => handleRowClick(user)}
-                className={`transition-all duration-300 transform hover:scale-[1.01] hover:shadow-lg cursor-pointer ${
+                className={`transition-all duration-300 transform hover:bg-blue-50 hover:shadow-lg cursor-pointer ${
                   idx % 2 === 0 ? "bg-gray-50" : "bg-white"
                 }`}
               >

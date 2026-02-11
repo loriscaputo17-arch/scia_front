@@ -138,13 +138,24 @@ export default function LoginPage() {
             {loading ? "Accesso in corso..." : t("log_in")}
           </button>
 
-          <div className="w-full text-center">
+          <div className="flex items-center">
+            <div className="w-full text-center">
             <Link
               href="/login-pin"
               className="text-white text-sm hover:underline"
             >
               {t("rapid_pin")}
             </Link>
+            </div>
+
+            <div className="w-full text-center">
+              <Link
+                href="/adminLogin"
+                className="text-white text-sm hover:underline"
+              >
+                {t("admin_access")}
+              </Link>
+            </div>
           </div>
         </form>
       </div>

@@ -32,6 +32,7 @@ export default function AdminNavbar() {
   const companiesRef = useRef(null);
   const usersRef = useRef(null);
   const configRef = useRef(null);
+  const [selectedProject, setSelectedProject] = useState(null);
 
   // --- Fetch delle commesse ---
   useEffect(() => {
@@ -145,7 +146,7 @@ export default function AdminNavbar() {
                   className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition"
                   onClick={() => setCompaniesOpen(false)}
                 >
-                  Owners
+                  Proprietari
                 </Link>
                 <Link
                   href="/admin/producers"
@@ -217,13 +218,7 @@ export default function AdminNavbar() {
 
             {configOpen && (
               <div className="absolute left-0 mt-2 w-56 bg-gray-800 rounded-lg shadow-lg border border-gray-700 z-50 py-2">
-                <Link
-                  href="/admin/maintenance_groups"
-                  className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition"
-                  onClick={() => setUsersOpen(false)}
-                >
-                  Gruppo Manutenzioni
-                </Link>
+                
                 <Link
                   href="/admin/recurrency_type"
                   className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition"
@@ -245,13 +240,7 @@ export default function AdminNavbar() {
                 >
                   Ranghi
                 </Link>
-                <Link
-                  href="/admin/thresholds"
-                  className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition"
-                  onClick={() => setUsersOpen(false)}
-                >
-                  Soglie
-                </Link>
+                
               </div>
             )}
           </div>
@@ -267,12 +256,10 @@ export default function AdminNavbar() {
               onClick={() => setProjectsOpen(!projectsOpen)}
               className={`${navItemStyle} flex items-center gap-1`}
             >
-              Seleziona commessa
+              {selectedProject?.name || "Seleziona commessa"}
               <ChevronDown
                 size={16}
-                className={`transition-transform ${
-                  projectsOpen ? "rotate-180" : ""
-                }`}
+                className={`transition-transform ${projectsOpen ? "rotate-180" : ""}`}
               />
             </button>
 
@@ -292,7 +279,10 @@ export default function AdminNavbar() {
                       key={proj.id}
                       href={`/admin/projects/${proj.id}`}
                       className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition"
-                      onClick={() => setProjectsOpen(false)}
+                      onClick={() => {
+                        setSelectedProject(proj);
+                        setProjectsOpen(false);
+                      }}
                     >
                       {proj.name || `Commessa ${proj.id}`}
                     </Link>
