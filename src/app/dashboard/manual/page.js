@@ -10,7 +10,6 @@ export default function ManualPage() {
   const params = useParams();
   const category = params?.category;
 
-
   return (
     <div className="flex flex-col h-screen bg-[#001c38] text-white p-4">
       <DashboardHeader />
