@@ -1,34 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { updateOwner } from "@/api/admin/owners";
+import { updateOrganization } from "@/api/admin/organizations";
 import ProducerForm from "@/components/admin/materials/ProducerForm";
 import NCAGEForm from "@/components/admin/materials/NCAGEForm";
 
 export default function EditOwnerModal({ owner, onSave, onCancel }) {
   const [loading, setLoading] = useState(false);
-  const [hasNCAGE, setHasNCAGE] = useState(false);
   const [editData, setEditData] = useState(null);
+  const [hasNCAGE, setHasNCAGE] = useState(false);
 
   useEffect(() => {
-    setEditData({
-      ...owner,
-      organizationCompanyNCAGE: owner.organizationCompany || {
-        NCAGE_Code: "",
-        Organization_name: "",
-        Country: "",
-        City: "",
-        Status: "",
-        Street_Line_1: "",
-        Street_Line_2: "",
-        Postal_code: "",
-        Website: "",
-        Phone_number: "",
-        Fax_number: "",
-        Entity: "Owner",
-      },
-    });
-    setHasNCAGE(!!owner.organizationCompany);
+    setEditData({ ...owner });
+    setHasNCAGE(!!owner.NCAGE_Code);
   }, [owner]);
 
   if (!editData) return null;
@@ -38,19 +22,24 @@ export default function EditOwnerModal({ owner, onSave, onCancel }) {
       setLoading(true);
 
       const payload = {
-        companyName: editData.companyName,
-        Organisation_name: editData.Organisation_name,
-        address: editData.address,
-        country: editData.country,
-        armedForces: editData.armedForces,
-        hasNCAGE,
-        organizationCompanyNCAGE: hasNCAGE
-          ? { ...editData.organizationCompanyNCAGE, Entity: "Owner" }
-          : null,
+        Organization_name: editData.Organization_name,
+        Country: editData.Country,
+        City: editData.City,
+        Status: editData.Status,
+        Street_Line_1: editData.Street_Line_1,
+        Street_Line_2: editData.Street_Line_2,
+        Postal_code: editData.Postal_code,
+        Website: editData.Website,
+        Phone_number: editData.Phone_number,
+        Fax_number: editData.Fax_number,
+        NCAGE_Code: hasNCAGE ? editData.NCAGE_Code : null,
       };
 
-      const updated = await updateOwner(editData.ID, payload);
-      onSave(updated);
+      console.log(payload)
+
+      const updated = await updateOrganization(editData.ID, payload);
+
+      onSave(updated.organization ?? updated);
     } catch (err) {
       console.error(err);
       alert("Errore durante il salvataggio");
@@ -70,43 +59,34 @@ export default function EditOwnerModal({ owner, onSave, onCancel }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <ProducerForm
               data={editData}
+              onChange={setEditData}
               hasNCAGE={hasNCAGE}
               setHasNCAGE={setHasNCAGE}
-              onChange={setEditData}
             />
 
             {hasNCAGE && (
               <NCAGEForm
-                data={editData.organizationCompanyNCAGE}
-                onChange={(updater) =>
-                  setEditData((prev) => ({
-                    ...prev,
-                    organizationCompanyNCAGE:
-                      typeof updater === "function"
-                        ? updater(prev.organizationCompanyNCAGE)
-                        : updater,
-                  }))
-                }
+                data={editData}
+                onChange={setEditData}
               />
             )}
           </div>
         </div>
 
-        <div className="sticky bottom-0 bg-white p-4 flex justify-end gap-3 rounded-xl">
+        <div className="sticky bottom-0 bg-white p-4 flex justify-end gap-3">
           <button
             onClick={onCancel}
             disabled={loading}
-            className="cursor-pointer px-4 py-2 rounded-lg bg-gray-300 text-gray-900 hover:bg-gray-400"
+            className="px-4 py-2 rounded-lg bg-gray-300 hover:bg-gray-400"
           >
             Annulla
           </button>
+
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className={`cursor-pointer px-4 py-2 rounded-lg text-white ${
-              loading
-                ? "bg-gray-500 cursor-not-allowed"
-                : "bg-blue-700 hover:bg-blue-800"
+            className={`px-4 py-2 rounded-lg text-white ${
+              loading ? "bg-gray-500" : "bg-blue-700 hover:bg-blue-800"
             }`}
           >
             {loading ? "Salvataggio..." : "Salva"}

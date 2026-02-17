@@ -307,7 +307,7 @@ export default function ProjectESWBSTab({ projectId }) {
                   style={{ paddingLeft: `${item.level * 20}px` }}
                   className={`flex flex-col gap-1 mb-1 ${
                     item.hasMaintenance
-                      ? "bg-emerald-50 border-l-4 border-emerald-500"
+                      ? "bg-emerald-50"
                       : ""
                   } rounded-md p-1`}
                 >

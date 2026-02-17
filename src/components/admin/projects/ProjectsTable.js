@@ -28,7 +28,7 @@ export default function ProjectsTable({ projects }) {
               <tr
                 key={proj.id}
                 onClick={() => router.push(`/admin/projects/${proj.id}`)}
-                className={`transition-all duration-300 transform hover:scale-[1.01] hover:shadow-lg cursor-pointer ${
+                className={`transition-all duration-300 transform hover:bg-blue-50 hover:shadow-lg cursor-pointer ${
                   idx % 2 === 0 ? "bg-gray-50" : "bg-white"
                 }`}
               >

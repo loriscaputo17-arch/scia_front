@@ -1,19 +1,21 @@
 "use client";
 
-export default function ProducersTabs({ owners, activeTab, setActiveTab }) {
+export default function ProducersTabs({ items, activeTab, setActiveTab, label }) {
+  if (items.length <= 1) return null;
+
   return (
-    <div className="flex gap-2 mb-4 overflow-x-auto">
-      {owners.map((_, idx) => (
+    <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+      {items.map((_, idx) => (
         <button
           key={idx}
           onClick={() => setActiveTab(idx)}
-          className={`px-4 py-2 text-sm font-medium rounded-full transition ${
+          className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
             activeTab === idx
-              ? "bg-blue-100 text-blue-700"
-              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              ? "bg-blue-600 text-white"
+              : "bg-gray-200 text-gray-800 hover:bg-gray-300"
           }`}
         >
-          Produttore {idx + 1}
+          {label} {idx + 1}
         </button>
       ))}
     </div>

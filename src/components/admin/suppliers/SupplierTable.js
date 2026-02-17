@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import EditOwnerModal from "@/components/admin/owners/EditOwnerModal";
+import EditOwnerModal from "@/components/admin/suppliers/EditSupplierModal";
 
 export default function OwnersTable({ owners, onUpdate }) {
   const [search, setSearch] = useState("");
@@ -9,8 +9,8 @@ export default function OwnersTable({ owners, onUpdate }) {
 
   const filteredOwners = owners.filter(
     (o) =>
-      o.companyName?.toLowerCase().includes(search.toLowerCase()) ||
-      o.Organisation_name?.toLowerCase().includes(search.toLowerCase())
+      o.Organization_name?.toLowerCase().includes(search.toLowerCase()) ||
+      o.NCAGE_Code?.toLowerCase().includes(search.toLowerCase())
   );
 
   const handleSave = (updatedOwner) => {
@@ -37,7 +37,6 @@ export default function OwnersTable({ owners, onUpdate }) {
           <thead className="bg-gray-100 text-gray-600 uppercase text-sm font-semibold tracking-wide">
             <tr>
               <th className="px-6 py-4 text-left rounded-tl-xl">ID</th>
-              <th className="px-6 py-4 text-left">Nome</th>
               <th className="px-6 py-4 text-left">Organizzazione</th>
               <th className="px-6 py-4 text-left">Indirizzo</th>
               <th className="px-6 py-4 text-left">Paese</th>
@@ -61,23 +60,23 @@ export default function OwnersTable({ owners, onUpdate }) {
                   }`}
                 >
                   <td className="px-6 py-4">{owner.ID}</td>
+
                   <td className="px-6 py-4 font-medium text-gray-900">
-                    {owner.companyName || "-"}
+                    {owner.Organization_name || "-"}
                   </td>
-                  <td className="px-6 py-4 text-gray-700">
-                    {owner.Organisation_name || "-"}
-                  </td>
+
                   <td className="px-6 py-4 text-gray-600">
-                    {owner.address || "-"}
+                    {owner.City || "-"}
                   </td>
+
                   <td className="px-6 py-4 text-gray-600">
-                    {owner.country || "-"}
+                    {owner.Country || "-"}
                   </td>
+
                   <td className="px-6 py-4 text-gray-700">
-                    {owner.organizationCompany?.NCAGE_Code ||
-                      owner.organizationCompany?.NCAGE ||
-                      "—"}
+                    {owner.NCAGE_Code || "—"}
                   </td>
+
                 </tr>
               ))
             )}

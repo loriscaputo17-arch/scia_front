@@ -11,7 +11,7 @@ export default function OwnerForm({ data, onChange, hasNCAGE, setHasNCAGE }) {
 
   return (
     <div className="space-y-4">
-      <h4 className="font-semibold text-gray-900">Dati Owner</h4>
+      <h4 className="font-semibold text-gray-900">Dati</h4>
 
       <Input
         label="Nome Azienda"

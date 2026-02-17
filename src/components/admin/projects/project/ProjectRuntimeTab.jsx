@@ -94,7 +94,7 @@ export default function ProjectRuntimeTab({ project, shipId, shipModelId }) {
         placeholder="Cerca manutenzione..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        className="border p-2 rounded-lg w-full text-sm focus:ring focus:ring-blue-200"
+        className="border border-gray-200 p-2 rounded-lg w-full text-sm focus:ring focus:ring-blue-200"
       />
 
       {/* ⏳ Loading */}
@@ -129,7 +129,7 @@ export default function ProjectRuntimeTab({ project, shipId, shipModelId }) {
               {filteredData.map((row, idx) => (
                 <tr
                   key={row.id}
-                  className={`cursor-pointer transition-all hover:scale-[1.01] ${
+                  className={`cursor-pointer transition-all hover:bg-blue-50 ${
                     idx % 2 === 0 ? "bg-gray-50" : "bg-white"
                   }`}
                 >

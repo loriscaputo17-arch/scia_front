@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { updateOwner } from "@/api/admin/owners";
+import { createOwners } from "@/api/admin/owners";
 import OwnerCreateForm from "@/components/admin/materials/OwnerCreateForm";
 import NCAGEForm from "@/components/admin/materials/NCAGEForm";
 import OwnersTabs from "@/components/admin/materials/OwnersTabs";
@@ -71,12 +71,13 @@ export default function AddOwnersModal({ onClose, onAdded }) {
 
       const created = [];
       for (const p of payloads) {
-        const res = await updateOwner("create", p);
+        const res = await createOwners(p);
         created.push(res);
       }
 
-      onAdded(created);
+      //onAdded(created);
       onClose();
+      
     } catch (err) {
       console.error(err);
       alert("Errore durante il salvataggio");

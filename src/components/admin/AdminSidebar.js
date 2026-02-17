@@ -223,9 +223,15 @@ export default function AdminSidebar({ activeModelId = null }) {
                         className={menuItemStyle(isOpen)}
                         onClick={() => toggleModel(String(model.id))}
                       >
-                        <span className="flex items-center gap-2">
-                          {model.model_name || `Modello #${model.id}`}
-                        </span>
+                        <div className="flex items-center w-full">
+                          <p className="flex items-center gap-2">
+                            {model.shipModel.model_name || `Modello #${model.id}`}
+                          </p>
+                           <p className="ml-auto text-xs">
+                            id:{model.id}
+                          </p>
+                        </div>
+                        
                         {isOpen ? (
                           <ChevronDown size={16} />
                         ) : (

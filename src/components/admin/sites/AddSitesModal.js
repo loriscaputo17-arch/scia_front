@@ -169,7 +169,7 @@ export default function AddSitesModal({ onClose, onAdded }) {
             className={`flex items-center gap-2 px-5 py-2 rounded-lg text-white ${
               loading
                 ? "bg-gray-400 cursor-not-allowed"
-                : "bg-green-600 hover:bg-green-700"
+                : "bg-blue-700 hover:bg-green-700"
             }`}
           >
             {loading ? "Salvataggio..." : "Salva"}

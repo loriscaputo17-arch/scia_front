@@ -48,15 +48,6 @@ export default function ProjectGeneralTab({ project }) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700">
-              Cliente / Owner
-            </label>
-            <p className="mt-1 px-4 py-2 bg-gray-50 rounded-md text-gray-900 border border-gray-200">
-              {project.owner?.companyName || project.owner?.name || "—"}
-            </p>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
               Cantiere Costruttore
             </label>
             <p className="mt-1 px-4 py-2 bg-gray-50 rounded-md text-gray-900 border border-gray-200">

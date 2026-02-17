@@ -1,98 +1,42 @@
-"use client";
-
-import { useState } from "react";
-import EditOwnerModal from "@/components/admin/owners/EditOwnerModal";
+import GenericTable from "@/components/admin/GenericTable";
+import EditOwnerModal from "./EditOwnerModal";
 
 export default function OwnersTable({ owners, onUpdate }) {
-  const [search, setSearch] = useState("");
-  const [selectedOwner, setSelectedOwner] = useState(null);
-
-  const filteredOwners = owners.filter(
-    (o) =>
-      o.companyName?.toLowerCase().includes(search.toLowerCase()) ||
-      o.Organisation_name?.toLowerCase().includes(search.toLowerCase())
-  );
-
-  const handleSave = (updatedOwner) => {
-    if (onUpdate) onUpdate(updatedOwner);
-    setSelectedOwner(null);
-  };
-
   return (
-    <div className="space-y-4">
-      {/* 🔎 Barra di ricerca */}
-      <div className="bg-white shadow-md rounded-xl p-4 flex flex-wrap gap-3 items-center border border-gray-100">
-        <input
-          type="text"
-          placeholder="Cerca per nome azienda o organizzazione..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="border border-gray-200 rounded-lg px-4 py-2 text-sm text-gray-900 focus:ring-2 focus:ring-blue-200 focus:outline-none w-full sm:w-80"
-        />
-      </div>
-
-      {/* 📋 Tabella */}
-      <div className="overflow-x-auto bg-gray-50 shadow-xl rounded-xl relative">
-        <table className="min-w-full rounded-xl divide-y divide-gray-200">
-          <thead className="bg-gray-100 text-gray-600 uppercase text-sm font-semibold tracking-wide">
-            <tr>
-              <th className="px-6 py-4 text-left rounded-tl-xl">ID</th>
-              <th className="px-6 py-4 text-left">Nome Owner</th>
-              <th className="px-6 py-4 text-left">Organizzazione</th>
-              <th className="px-6 py-4 text-left">Indirizzo</th>
-              <th className="px-6 py-4 text-left">Paese</th>
-              <th className="px-6 py-4 text-left rounded-tr-xl">NCAGE</th>
-            </tr>
-          </thead>
-          <tbody className="text-gray-700 text-sm">
-            {filteredOwners.length === 0 ? (
-              <tr>
-                <td colSpan="6" className="text-center py-6 text-gray-400">
-                  Nessun owner trovato
-                </td>
-              </tr>
-            ) : (
-              filteredOwners.map((owner, idx) => (
-                <tr
-                  key={owner.ID}
-                  onClick={() => setSelectedOwner(owner)}
-                  className={`transition-all duration-300 hover:bg-blue-50 cursor-pointer ${
-                    idx % 2 === 0 ? "bg-gray-50" : "bg-white"
-                  }`}
-                >
-                  <td className="px-6 py-4">{owner.ID}</td>
-                  <td className="px-6 py-4 font-medium text-gray-900">
-                    {owner.companyName || "-"}
-                  </td>
-                  <td className="px-6 py-4 text-gray-700">
-                    {owner.Organisation_name || "-"}
-                  </td>
-                  <td className="px-6 py-4 text-gray-600">
-                    {owner.address || "-"}
-                  </td>
-                  <td className="px-6 py-4 text-gray-600">
-                    {owner.country || "-"}
-                  </td>
-                  <td className="px-6 py-4 text-gray-700">
-                    {owner.organizationCompany?.NCAGE_Code ||
-                      owner.organizationCompany?.NCAGE ||
-                      "—"}
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* 🧱 Modale Modifica */}
-      {selectedOwner && (
+    <GenericTable
+      data={owners}
+      searchPlaceholder="Cerca owner..."
+      searchFn={(o, s) =>
+        o.companyName?.toLowerCase().includes(s.toLowerCase()) ||
+        o.Organisation_name?.toLowerCase().includes(s.toLowerCase())
+      }
+      columns={[
+        { key: "id", header: "ID", render: (o) => o.ID },
+        { key: "name", header: "Nome", render: (o) => o.companyName },
+        {
+          key: "org",
+          header: "Organizzazione",
+          render: (o) => o.Organisation_name,
+        },
+        { key: "addr", header: "Indirizzo", render: (o) => o.address },
+        { key: "country", header: "Paese", render: (o) => o.country },
+        {
+          key: "ncage",
+          header: "NCAGE",
+          render: (o) =>
+            o.organizationCompany?.NCAGE_Code ||
+            o.organizationCompany?.NCAGE ||
+            "—",
+        },
+      ]}
+      EditModal={({ item, onSave, onCancel }) => (
         <EditOwnerModal
-          owner={selectedOwner}
-          onSave={handleSave}
-          onCancel={() => setSelectedOwner(null)}
+          owner={item}
+          onSave={onSave}
+          onCancel={onCancel}
         />
       )}
-    </div>
+      onUpdate={onUpdate}
+    />
   );
 }

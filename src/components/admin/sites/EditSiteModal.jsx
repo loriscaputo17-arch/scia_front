@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { updateShipyard } from "@/api/admin/shipyards";
-import Form from "@/components/admin/materials/Form";
+import OwnerForm from "@/components/admin/materials/OwnerForm";
 import NCAGEForm from "@/components/admin/materials/NCAGEForm";
 
 export default function EditSiteModal({ site, onSave, onCancel }) {
@@ -64,11 +64,11 @@ export default function EditSiteModal({ site, onSave, onCancel }) {
 
         <div className="flex-1 overflow-y-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Form
+            <OwnerForm
               data={editData}
-              onChange={setEditData}
               hasNCAGE={hasNCAGE}
               setHasNCAGE={setHasNCAGE}
+              onChange={setEditData}
             />
 
             {hasNCAGE && (
@@ -88,18 +88,18 @@ export default function EditSiteModal({ site, onSave, onCancel }) {
           </div>
         </div>
 
-        <div className="p-4 bg-white sticky bottom-0 flex justify-end gap-3 rounded-xl">
+        <div className="sticky bottom-0 bg-white p-4 flex justify-end gap-3 rounded-xl">
           <button
             onClick={onCancel}
             disabled={loading}
-            className="cursor-pointer px-4 py-2 rounded-lg bg-gray-300 text-gray-900 hover:bg-gray-400 transition"
+            className="cursor-pointer px-4 py-2 rounded-lg bg-gray-300 text-gray-900 hover:bg-gray-400"
           >
             Annulla
           </button>
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className={` cursor-pointer px-4 py-2 rounded-lg text-white transition ${
+            className={`cursor-pointer px-4 py-2 rounded-lg text-white ${
               loading
                 ? "bg-gray-500 cursor-not-allowed"
                 : "bg-blue-700 hover:bg-blue-800"
@@ -112,3 +112,4 @@ export default function EditSiteModal({ site, onSave, onCancel }) {
     </div>
   );
 }
+

@@ -11,7 +11,7 @@ export default function ProjectsFilters({ filters, setFilters }) {
       <div className="bg-white shadow-md w-full rounded-xl p-4 flex flex-wrap gap-3 items-center border border-gray-100">
         <input
           type="text"
-          placeholder="Cerca per nome azienda..."
+          placeholder="Cerca per nome commessa..."
           value={filters.name}
           onChange={(e) => setFilters({ ...filters, name: e.target.value })}
           className="border border-gray-200 rounded-lg px-4 py-2 text-sm text-gray-900 focus:ring-2 focus:ring-blue-200 focus:outline-none w-full sm:w-64"

@@ -1,11 +1,20 @@
 "use client";
+
 import { useState } from "react";
 import { X, Plus, Save } from "lucide-react";
 import { createUsers } from "@/api/admin/users";
+import Input from "@/components/admin/materials/Input";
+
+const ROLES = [
+  { value: "Admin", label: "Admin" },
+  { value: "Member", label: "Member" },
+  { value: "Chief Engineer", label: "Chief Engineer" },
+  { value: "Comandante", label: "Comandante" },
+];
 
 export default function AddUsersModal({ onClose, onAdded }) {
   const [newUsers, setNewUsers] = useState([
-    { first_name: "", last_name: "", email: "", password: "", role_name: "User" },
+    { first_name: "", last_name: "", email: "", password: "", role_name: "Member" },
   ]);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
@@ -17,12 +26,33 @@ export default function AddUsersModal({ onClose, onAdded }) {
   };
 
   const addUser = () =>
-    setNewUsers([...newUsers, { first_name: "", last_name: "", email: "", password: "", role_name: "User" }]);
+    setNewUsers([
+      ...newUsers,
+      { first_name: "", last_name: "", email: "", password: "", role_name: "Member" },
+    ]);
 
-  const removeUser = (index) =>
+  const removeUser = (index) => {
+    if (newUsers.length === 1) {
+      alert("Devi avere almeno un utente");
+      return;
+    }
     setNewUsers(newUsers.filter((_, i) => i !== index));
+    if (activeTab >= newUsers.length - 1) {
+      setActiveTab(Math.max(0, activeTab - 1));
+    }
+  };
 
   const handleSubmit = async () => {
+    // Validazione base
+    const invalidUsers = newUsers.filter(
+      (u) => !u.first_name || !u.last_name || !u.email || !u.password
+    );
+    
+    if (invalidUsers.length > 0) {
+      alert("Compila tutti i campi obbligatori per ogni utente");
+      return;
+    }
+
     try {
       setLoading(true);
       await createUsers(newUsers);
@@ -37,103 +67,142 @@ export default function AddUsersModal({ onClose, onAdded }) {
     }
   };
 
-  const inputClass =
-    "px-4 py-2 rounded-lg bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-200 text-gray-900";
-
   return (
-    <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-      <div className="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-3xl relative">
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-700"
-        >
-          <X size={24} />
-        </button>
-
-        <h3 className="text-2xl font-semibold mb-6 text-gray-900">Aggiungi Nuovi Utenti</h3>
-
-        <div className="flex gap-2 mb-4 overflow-x-auto">
-          {newUsers.map((_, idx) => (
-            <button
-              key={idx}
-              onClick={() => setActiveTab(idx)}
-              className={`px-4 py-2 rounded-full text-sm font-medium ${
-                activeTab === idx
-                  ? "bg-blue-100 text-blue-600"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-              }`}
-            >
-              Utente {idx + 1}
-            </button>
-          ))}
+    <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+      <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-lg text-gray-900">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-semibold">Aggiungi Nuovi Utenti</h3>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-700 transition-colors cursor-pointer "
+          >
+            <X size={24} />
+          </button>
         </div>
 
-        {newUsers.map((u, idx) => (
-          <div key={idx} className={activeTab === idx ? "block" : "hidden"}>
-            <div className="grid grid-cols-2 gap-4">
-              <input
-                type="text"
-                placeholder="Nome"
-                className={inputClass}
-                value={u.first_name}
-                onChange={(e) => handleChange(idx, "first_name", e.target.value)}
-              />
-              <input
-                type="text"
-                placeholder="Cognome"
-                className={inputClass}
-                value={u.last_name}
-                onChange={(e) => handleChange(idx, "last_name", e.target.value)}
-              />
+        {/* Tab Navigation */}
+        {newUsers.length > 1 && (
+          <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+            {newUsers.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => setActiveTab(idx)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+                  activeTab === idx
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                }`}
+              >
+                Utente {idx + 1}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* User Forms */}
+        {newUsers.map((user, idx) => (
+          <div
+            key={idx}
+            className={activeTab === idx ? "block space-y-4" : "hidden"}
+          >
+            <Input
+              label="Nome"
+              value={user.first_name}
+              onChange={(v) => handleChange(idx, "first_name", v)}
+              placeholder="Inserisci il nome"
+            />
+
+            <Input
+              label="Cognome"
+              value={user.last_name}
+              onChange={(v) => handleChange(idx, "last_name", v)}
+              placeholder="Inserisci il cognome"
+            />
+
+            <div>
+              <label className="block text-sm font-medium text-gray-800 mb-1">
+                Email
+              </label>
               <input
                 type="email"
-                placeholder="Email"
-                className={inputClass}
-                value={u.email}
+                value={user.email}
                 onChange={(e) => handleChange(idx, "email", e.target.value)}
-              />
-              <input
-                type="password"
-                placeholder="Password"
-                className={inputClass}
-                value={u.password}
-                onChange={(e) => handleChange(idx, "password", e.target.value)}
-              />
-              <input
-                type="text"
-                placeholder="Ruolo"
-                className={inputClass}
-                value={u.role_name}
-                onChange={(e) => handleChange(idx, "role_name", e.target.value)}
+                placeholder="email@esempio.com"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-            <button
-              onClick={() => removeUser(idx)}
-              className="mt-3 text-red-500 hover:text-red-600 font-medium flex items-center gap-1"
-            >
-              <X size={16} /> Rimuovi Utente
-            </button>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-800 mb-1">
+                Password
+              </label>
+              <input
+                type="password"
+                value={user.password}
+                onChange={(e) => handleChange(idx, "password", e.target.value)}
+                placeholder="Inserisci una password"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-800 mb-1">
+                Ruolo
+              </label>
+              <select
+                value={user.role_name}
+                onChange={(e) => handleChange(idx, "role_name", e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {ROLES.map((r) => (
+                  <option key={r.value} value={r.value}>
+                    {r.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {newUsers.length > 1 && (
+              <button
+                onClick={() => removeUser(idx)}
+                className="mt-2 text-red-600 hover:text-red-700 font-medium flex items-center gap-1 text-sm transition-colors"
+              >
+                <X size={16} /> Rimuovi questo utente
+              </button>
+            )}
           </div>
         ))}
 
-        <div className="flex justify-between mt-6">
+        {/* Action Buttons */}
+        <div className="mt-6 flex justify-between gap-3">
           <button
             onClick={addUser}
-            className="flex items-center gap-2 px-5 py-3 bg-blue-200/30 hover:bg-blue-200 text-blue-600 font-semibold rounded-2xl"
-          >
-            <Plus size={18} /> Aggiungi Utente
-          </button>
-          <button
-            onClick={handleSubmit}
             disabled={loading}
-            className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-semibold ${
-              loading
-                ? "bg-gray-300 text-gray-500"
-                : "bg-green-200/30 hover:bg-green-200 text-green-600"
-            }`}
+            className="cursor-pointer flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-200 text-gray-800 hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Save size={18} /> {loading ? "Salvataggio..." : "Salva Tutti"}
+            Aggiungi Utente
           </button>
+          
+          <div className="flex gap-3">
+            <button
+              onClick={onClose}
+              disabled={loading}
+              className="cursor-pointer px-4 py-2 rounded-lg bg-gray-200 text-gray-800 hover:bg-gray-300 transition-colors disabled:opacity-50"
+            >
+              Annulla
+            </button>
+            <button
+              onClick={handleSubmit}
+              disabled={loading}
+              className={`cursor-pointer  flex items-center gap-2 px-4 py-2 rounded-lg text-white transition-colors ${
+                loading
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-blue-600 hover:bg-blue-700"
+              }`}
+            >
+              {loading ? "Salvataggio..." : "Salva Tutti"}
+            </button>
+          </div>
         </div>
       </div>
     </div>

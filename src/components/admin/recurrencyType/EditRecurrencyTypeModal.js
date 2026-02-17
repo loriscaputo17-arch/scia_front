@@ -99,7 +99,6 @@ export default function EditRecurrencyTypeModal({ recurrency, onCancel, onSave }
                 : "bg-red-600 hover:bg-red-700"
             }`}
           >
-            <Trash2 size={18} />
             {deleting ? "Eliminazione..." : "Elimina"}
           </button>
 
@@ -113,7 +112,7 @@ export default function EditRecurrencyTypeModal({ recurrency, onCancel, onSave }
                 : "bg-blue-600 hover:bg-blue-700"
             }`}
           >
-            {loading ? "Salvataggio..." : "Salva Modifiche"}
+            {loading ? "Salvataggio..." : "Salva"}
           </button>
         </div>
       </div>

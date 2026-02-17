@@ -60,7 +60,7 @@ export default function ProjectFilesTab({ shipModelId }) {
           className="cursor-pointer px-4 py-2 rounded-lg text-white bg-blue-600 hover:bg-blue-700"
           onClick={() => setModalOpen(true)}
         >
-          + Carica File
+          Carica File
         </button>
       </div>
 
