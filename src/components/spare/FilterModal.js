@@ -5,9 +5,6 @@ import Image from "next/image";
 import { useTranslation } from "@/app/i18n";
 
 export default function FilterSidebar({ isOpen, onClose, filters, toggleFilter }) {
-  /** -------------------------------------------------
-   *  HOOKS — devono essere sempre in cima al componente
-   *  ------------------------------------------------- */
   const sidebarRef = useRef(null);
 
   const { t, i18n } = useTranslation("maintenance");
@@ -26,15 +23,9 @@ export default function FilterSidebar({ isOpen, onClose, filters, toggleFilter }
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen, onClose]);
 
-  /** -------------------------------------------------
-   *  EARLY RETURN (DOPO GLI HOOK!)
-   *  ------------------------------------------------- */
   if (!i18n?.isInitialized) return null;
   if (!isOpen) return null;
 
-  /** -------------------------------------------------
-   *  HELPERS
-   *  ------------------------------------------------- */
   const renderCheckboxes = (category, items) => {
     return items.map(({ key, label, iconSrc, iconAlt }) => (
       <label key={key} className="flex items-center gap-2 mb-4 cursor-pointer">
@@ -58,9 +49,6 @@ export default function FilterSidebar({ isOpen, onClose, filters, toggleFilter }
     ));
   };
 
-  /** -------------------------------------------------
-   *  RENDER UI
-   *  ------------------------------------------------- */
   return (
     <div className="fixed inset-0 flex justify-end bg-black/50 z-10">
       <div
@@ -72,14 +60,23 @@ export default function FilterSidebar({ isOpen, onClose, filters, toggleFilter }
         {/* TASK FILTER */}
         <div className="mb-5">
           <h3 className="text-[16px] text-[#789fd6] mb-3">Task</h3>
-
-          {renderCheckboxes("task", [
-            { key: "inStock", label: t("filters2.in_stock") },
-            { key: "nonDisponibile", label: t("filters2.out_of_stock") },
-          ])}
+          {[
+            { key: "inGiacenza",     label: t("in_stock")    },
+            { key: "nonDisponibile", label: t("out_of_stock") },
+          ].map(({ key, label }) => (
+            <label key={key} className="flex items-center gap-2 mb-4 cursor-pointer">
+              <span>{label}</span>
+              <input
+                type="checkbox"
+                checked={filters.task[key]}
+                onChange={() => toggleFilter("task", key)}
+                className="mr-2 cursor-pointer w-[20px] h-[20px] appearance-none border-2 border-[#ffffff20] bg-transparent rounded-sm checked:bg-[#789fd6] checked:border-[#789fd6] ml-auto"
+              />
+            </label>
+          ))}
         </div>
 
-        {/* SUPPLIER */}
+        {/* SUPPLIER 
         <div className="mb-5">
           <h3 className="text-[16px] text-[#789fd6] mb-2">{t("supplier")}</h3>
 
@@ -97,41 +94,29 @@ export default function FilterSidebar({ isOpen, onClose, filters, toggleFilter }
               />
             </label>
           ))}
-        </div>
+        </div>*/}
 
         {/* WAREHOUSES */}
         <div className="mb-5">
-          <h3 className="text-[16px] text-[#789fd6] mb-2">{t("level")}</h3>
+          <h3 className="text-[16px] text-[#789fd6] mb-2">{t("warehouse")}</h3>
 
-          {Object.keys(filters.magazzino).map((key) => {
-            const icons = {
-              onboard: "/icons/shape.png",
-              dockside: "/icons/Shape-10.png",
-              drydock: "/icons/Shape-11.png",
-              external: "/icons/Shape-12.png",
-            };
-
-            return (
-              <label key={key} className="flex items-center gap-2 mb-4 cursor-pointer">
-                {icons[key] && (
-                  <Image src={icons[key]} alt={key} width={18} height={18} />
-                )}
-
-                <span>
-                  {key.replace(/([A-Z])/g, " $1").replace(/^./, (s) => s.toUpperCase())}
-                </span>
-
-                <input
-                  type="checkbox"
-                  checked={filters.magazzino[key]}
-                  onChange={() => toggleFilter("magazzino", key)}
-                  className="mr-2 cursor-pointer w-[20px] h-[20px] appearance-none 
-                             border-2 border-[#ffffff20] bg-transparent rounded-sm 
-                             checked:bg-[#789fd6] checked:border-[#789fd6] ml-auto"
-                />
-              </label>
-            );
-          })}
+          {[
+            { key: "onboard",  label: "A bordo",          icon: "/icons/shape.png"    },
+            { key: "dockside", label: "In banchina",       icon: "/icons/Shape-10.png" },
+            { key: "drydock",  label: "In bacino",         icon: "/icons/Shape-11.png" },
+            { key: "external", label: "Fornitore esterno", icon: "/icons/Shape-12.png" },
+          ].map(({ key, label, icon }) => (
+            <label key={key} className="flex items-center gap-2 mb-4 cursor-pointer">
+              <Image src={icon} alt={label} width={18} height={18} />
+              <span>{label}</span>
+              <input
+                type="checkbox"
+                checked={filters.magazzino[key]}
+                onChange={() => toggleFilter("magazzino", key)}
+                className="mr-2 cursor-pointer w-[20px] h-[20px] appearance-none border-2 border-[#ffffff20] bg-transparent rounded-sm checked:bg-[#789fd6] checked:border-[#789fd6] ml-auto"
+              />
+            </label>
+          ))}
         </div>
 
         {/* CONFIRM BUTTON */}

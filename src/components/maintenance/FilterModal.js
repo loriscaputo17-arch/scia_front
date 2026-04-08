@@ -5,7 +5,7 @@ import Image from 'next/image';
 import FacilitiesModal from "./FacilitiesModal";
 import { useTranslation } from "@/app/i18n";
 
-export default function FilterSidebar({ isOpen, onClose, onFiltersChange }) {
+export default function FilterSidebar({ isOpen, onClose, onFiltersChange, initialSystem }) {
   const [filters, setFilters] = useState({
     stato: {
       scaduta: false,
@@ -45,9 +45,26 @@ export default function FilterSidebar({ isOpen, onClose, onFiltersChange }) {
       richiestiInEsaurimento: false,
     },
     system: {
-      selectedElement: null,
+      selectedElement: initialSystem ? Number(initialSystem) : null,
+    },
+    ricorrenza_giorni: {
+      from: "",
+      to: "",
     },
   });
+
+  const [selectedSystemName, setSelectedSystemName] = useState(null);
+
+  useEffect(() => {
+    if (initialSystem) {
+      setFilters(prev => ({
+        ...prev,
+        system: { selectedElement: Number(initialSystem) },
+      }));
+      // Opzionale: mostra il codice come nome se non hai il nome disponibile
+      setSelectedSystemName(initialSystem);
+    }
+  }, [initialSystem]);
 
   const toggleFilter = (category, key) => {
     setFilters((prev) => ({
@@ -101,16 +118,46 @@ export default function FilterSidebar({ isOpen, onClose, onFiltersChange }) {
         <div ref={sidebarRef} className="w-80 h-screen bg-[#022a52] text-white p-5" style={{ height: '100%', overflowY: 'scroll'}}>
         <h2 className="text-2xl font-semibold mb-4">{t("filters")}</h2>
 
+        {/* System */}
+        <div className="mb-5">
+          <h3 className="text-[16px] text-[#789fd6] mb-2">{t("system")}</h3>
+          
+          <div className="flex items-center cursor-pointer" onClick={() => setFacilitiesOpen(true)}>
+            <p className={selectedSystemName ? "text-white" : "text-white/60"}>
+              {selectedSystemName || t("select_systems")}
+            </p>
+
+            <div className="ml-auto flex gap-4 items-center">
+            {selectedSystemName && (
+              <button
+                className="mr-0 text-white/40 hover:text-white"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedSystemName(null);
+                  setFilters(prev => ({ ...prev, system: { selectedElement: null } }));
+                }}
+              >
+                ✕
+              </button>
+            )}
+            <svg className="" fill="white" width="16px" height="16px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512">
+              <path d="M310.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L242.7 256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z"/>
+            </svg>
+            </div>
+            
+          </div>
+        </div>
+
         {/* Stato */}
         <div className="mb-5">
           <h3 className="text-[16px] text-[#789fd6] mb-3">{t("state")}</h3>
           {[
-            { key: "scaduta", label: t("expired"), color: "bg-red-500" },
-            { key: "inScadenza", label: t("expiring"), color: "bg-orange-500" },
-            { key: "scadutaDaPoco", label: t("recently_expired"), color: "bg-yellow-500" },
-            { key: "attiva", label: t("active"), color: "bg-green-500" },
-            { key: "inPausa", label: t("paused"), color: "bg-gray-500" },
-            { key: "programmata", label: t("scheduled"), color: "bg-blue-500" },
+            { key: "scaduta",       label: t("expired"),          color: "bg-red-500"    },  // rosso
+            { key: "scadutaDaPoco", label: t("recently_expired"), color: "bg-orange-500" },  // arancione
+            { key: "inScadenza",    label: t("expiring"),          color: "bg-yellow-500" },  // giallo
+            { key: "attiva",        label: t("active"),            color: "bg-green-500"  },  // verde
+            { key: "inPausa",       label: t("paused"),            color: "bg-gray-500"   },
+            { key: "programmata",   label: t("scheduled"),         color: "bg-blue-500"   },
           ].map((item) => (
             <label key={item.key} className="flex items-center gap-2 mb-4 cursor-pointer">
               <span className={`w-5 h-5 ${item.color} rounded-sm`}></span>
@@ -143,6 +190,60 @@ export default function FilterSidebar({ isOpen, onClose, onFiltersChange }) {
               />
             </label>
           ))}
+        </div>
+
+        <div className="mb-5">
+          <h3 className="text-[16px] text-[#789fd6] mb-2">Range ore di moto</h3>
+          <p className="text-white/50 text-xs mb-3">
+          </p>
+
+          <div className="flex gap-2">
+            <div className="flex flex-col flex-1 w-20">
+              <label className="text-xs text-white/60 mb-1">Da</label>
+              <input
+                type="number"
+                min="0"
+                value={filters.ricorrenza_giorni.from}
+                onChange={(e) =>
+                  setFilters(prev => ({     
+                    ...prev,
+                    ricorrenza_giorni: { ...prev.ricorrenza_giorni, from: e.target.value },
+                  }))
+                }
+                placeholder="es. 100"
+                className="w-full bg-[#011d38] border border-[#ffffff20] rounded-md px-3 py-2 text-white placeholder-white/30 text-sm focus:outline-none focus:border-[#789fd6]"
+              />
+              {/* Mostra conversione in giorni */}
+              {filters.ricorrenza_giorni.from && (
+                <span className="text-white/30 text-xs mt-1">
+                  ≈ {Math.round(Number(filters.ricorrenza_giorni.from) / 24)} giorni
+                </span>
+              )}
+            </div>
+
+            <div className="flex flex-col flex-1 w-20">
+              <label className="text-xs text-white/60 mb-1">A</label>
+              <input
+                type="number"
+                min="0"
+                value={filters.ricorrenza_giorni.to}
+                onChange={(e) =>
+                    setFilters(prev => ({       
+                      ...prev,
+                      ricorrenza_giorni: { ...prev.ricorrenza_giorni, to: e.target.value },
+                    }))
+                  }
+                placeholder="es. 500"
+                className="w-full bg-[#011d38] border border-[#ffffff20] rounded-md px-3 py-2 text-white placeholder-white/30 text-sm focus:outline-none focus:border-[#789fd6]"
+              />
+              {filters.ricorrenza_giorni.to && (
+                <span className="text-white/30 text-xs mt-1">
+                  ≈ {Math.round(Number(filters.ricorrenza_giorni.to) / 24)} giorni
+                </span>
+              )}
+            </div>
+          </div>
+
         </div>
 
         {/* Livello */}
@@ -199,15 +300,7 @@ export default function FilterSidebar({ isOpen, onClose, onFiltersChange }) {
         </div>
 
 
-        {/* Squadra */}
-        <div className="mb-5">
-          <h3 className="text-[16px] text-[#789fd6] mb-2">{t("system")}</h3>
-          
-          <div className="flex items-center cursor-pointer" onClick={() => setFacilitiesOpen(true)}>
-            <p>{t("select_systems")}</p>
-            <svg className="ml-auto" fill="white" width="16px" height="16px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path d="M310.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L242.7 256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z"/></svg>
-          </div>
-        </div>
+        
 
         <div>
           <h3 className="text-[16px] text-[#789fd6] mb-2">{t("spare_parts")}</h3>
@@ -252,17 +345,19 @@ export default function FilterSidebar({ isOpen, onClose, onFiltersChange }) {
         </button>
       </div>
 
-<FacilitiesModal 
-    isOpen={facilitiesOpen}
-    onClose2={() => setFacilitiesOpen(false)}
-    onSelectSystem={(element) => {
-        setFilters(prev => ({
-            ...prev,
-            system: { selectedElement: element?.id || null }
-        }));
-    }}
-/>
-
+      <FacilitiesModal 
+          isOpen={facilitiesOpen}
+          onClose2={() => setFacilitiesOpen(false)}
+          eswbs={filters.system.selectedElement ? String(filters.system.selectedElement) : null}  // ← aggiunto
+          onSelectSystem={(element) => {
+            setSelectedSystemName(element ? element.name : null);
+            setFilters(prev => ({
+              ...prev,
+              system: { selectedElement: element ? Number(element.eswbs_code) : null }
+            }));
+            setFacilitiesOpen(false);
+          }}
+      />
 
       </div>
     ) : null;

@@ -4,7 +4,7 @@ import { forwardRef, useEffect, useState } from "react";
 import { useTranslation } from "@/app/i18n";
 
 const StatusBadge = forwardRef(function StatusBadge(
-  { dueDate, dueDays, earlyThreshold, dueThreshold, delayThreshold },
+  { dueDate, dueDays, earlyThreshold, dueThreshold, delayThreshold, fallbackLabel },
   ref
 ) {
   const { t, i18n } = useTranslation("maintenance");
@@ -12,6 +12,16 @@ const StatusBadge = forwardRef(function StatusBadge(
 
   useEffect(() => setMounted(true), []);
   if (!mounted || !i18n.isInitialized) return null;
+
+  if (!dueDate && fallbackLabel) {
+    return (
+      <div className="flex items-center justify-center h-full px-3 py-2">
+        <span className="text-white/60 text-sm font-medium italic">
+          {fallbackLabel}
+        </span>
+      </div>
+    );
+  }
 
   const parseLocalDate = (value) => {
     if (!value) return null;
@@ -43,22 +53,28 @@ const StatusBadge = forwardRef(function StatusBadge(
   const orangeStart = new Date(end);
   const redStart = new Date(end); redStart.setDate(end.getDate() + delay);
 
+  const daysLeft = dueDays ?? 0;
   let bgColor = "transparent";
 
-  if (today < greenStart) bgColor = "transparent";
-  else if (today < yellowStart) bgColor = "rgb(45,182,71)"; 
-  else if (today < orangeStart) bgColor = "rgb(255,191,37)";
-  else if (today < redStart) bgColor = "rgb(244,114,22)";
-  else bgColor = "rgb(208,2,27)";
+  if (daysLeft > early) {
+    bgColor = "transparent";                 
+  } else if (daysLeft > due) {
+    bgColor = "rgb(45,182,71)";  //attiva              
+  } else if (daysLeft > 0) {
+    bgColor = "rgb(255,191,37)"; //in scadenza               
+  } else if (daysLeft >= -delay) {
+    bgColor = "rgb(244,114,22)"; //scaduta da poco              
+  } else {
+    bgColor = "rgb(208,2,27)"; //scaduta         
+  }
 
   const formattedDate = end.toLocaleDateString(i18n.language === "en" ? "en-GB" : "it-IT");
 
   return (
     <div
       ref={ref}
-      data-bgcolor={bgColor}
       className="text-center sm:p-4 text-white"
-      style={{ background: bgColor }}
+      
     >
       <div className="flex sm:hidden items-center justify-center gap-2 text-xs">
         <span className="px-2 py-1 rounded-full" style={{ background: bgColor }}>

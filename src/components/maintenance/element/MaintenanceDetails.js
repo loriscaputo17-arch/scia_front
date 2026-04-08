@@ -49,9 +49,6 @@ export default function MaintenanceDetails({ details }) {
   const maintenanceId = details?.[0]?.id || null;
   const executionState = details?.[0]?.execution_state;
 
-  /* --------------------------------
-   * FETCH ULTIME NOTE
-   -------------------------------- */
   useEffect(() => {
     if (!maintenanceId) return;
 
@@ -154,7 +151,7 @@ export default function MaintenanceDetails({ details }) {
     window.location.reload();
   };
 
-  const disabled = executionState !== null;
+  const disabled = executionState === "1" || executionState === "2" || executionState === "3";
 
   if (!mounted) return null;
 
@@ -253,7 +250,7 @@ export default function MaintenanceDetails({ details }) {
           )}
         </div>
 
-        <div className="flex gap-4 mb-6">
+        <div className="md:flex inline gap-4 mb-6">
 
           <button
             onClick={() => !disabled && handleOk()}
@@ -314,6 +311,7 @@ export default function MaintenanceDetails({ details }) {
           onClose={() => setOpenConfirmOk(false)}
           onClick={() => uploadNotesToDb("ok")}
           maintenanceListId={maintenanceId}
+          details={details} 
         />
       )}
 

@@ -10,22 +10,12 @@ export default function SelectModal({ isOpen, onClose, onSelect, shipId, userId 
   const [isLoading, setIsLoading] = useState(false);
   const { t, i18n } = useTranslation("maintenance");
 
-  const getStatusColor = (date) => {
-
-    const today = new Date();
-    const dueDate = new Date(date);
-    const dueDays = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
-
-    if (dueDays < -15) {
-      return "#d0021b";
-    } else if (dueDays < 0) {
-      return "rgb(244,114,22)"; 
-    } else if (dueDays <= 3) {
-      return "#ffbf25";
-    } else if (dueDays > 15) {
-      return "rgb(45,182,71)";
-    }
-    return "#CCCCCC";
+  const colorMap = {
+    red: "bg-[rgb(208,2,27)]",
+    orange: "bg-[rgb(244,114,22)]",
+    yellow: "bg-[rgb(255,191,37)] text-black",
+    green: "bg-[rgb(45,182,71)]",
+    gray: "bg-gray-500"
   };
 
   useEffect(() => {
@@ -48,6 +38,8 @@ export default function SelectModal({ isOpen, onClose, onSelect, shipId, userId 
     }
   };
 
+  
+
   return isOpen ? (
     <div className="fixed inset-0 flex sm:items-center sm:justify-center bg-black/50 z-10">
       <div className="bg-[#022a52] w-full sm:w-[90%] p-6 rounded-md shadow-lg text-white">
@@ -63,7 +55,7 @@ export default function SelectModal({ isOpen, onClose, onSelect, shipId, userId 
         <div className="bg-transparent rounded-md overflow-hidden" style={{height: "50vh", overflowY: "scroll"}}>
           {/* Tabella desktop (da sm in su) */}
           <table className="w-full text-white border-collapse hidden sm:table">
-            <thead className="bg-white text-black">
+            <thead className="bg-white text-black sticky top-0 z-10">
               <tr>
                 <th className="p-3 text-left border border-[#022a52]">{t("title_text")}</th>
                 <th className="p-3 text-left border border-[#022a52]">Task</th>
@@ -92,8 +84,12 @@ export default function SelectModal({ isOpen, onClose, onSelect, shipId, userId 
                       <div>{item.title}</div>
                     </td>
                     <td className="p-3 border border-[#022a52]">{item.tasks}</td>
-                    <td className={`p-3 border border-[#022a52] bg-[${getStatusColor(item.dueDate)}]`}>
-                      {item.dueDate !== "N/A" ? new Date(item.dueDate).toLocaleDateString("it-IT") : "N/A"}
+                    <td className="p-3 border border-[#022a52]">
+                      <span className={`px-2 py-1 rounded-full text-xs ${colorMap[item.statusColor]}`}>
+                        {item.dueDate
+                          ? new Date(item.dueDate).toLocaleDateString("it-IT")
+                          : item.expirationLabel}
+                      </span>
                     </td>
                     <td className="p-3 border border-[#022a52]">
                       {item.lastExecution !== "N/A" ? new Date(item.lastExecution).toLocaleDateString("it-IT") : "N/A"}
@@ -128,7 +124,13 @@ export default function SelectModal({ isOpen, onClose, onSelect, shipId, userId 
                     checked={selectedType?.id === item.id}
                   />
                   <div className="flex flex-col flex-grow gap-2">
-                    <span className={`rounded-full py-1 px-3 w-[fit-content] bg-[${getStatusColor(item.dueDate)}] text-[10px]`}>{item.dueDate !== "N/A" ? new Date(item.dueDate).toLocaleDateString("it-IT") : "N/A"}</span>
+                    <span
+                      className={`rounded-full py-1 px-3 w-fit text-[10px] ${colorMap[item.statusColor]}`}
+                    >
+                      {item.dueDate
+                        ? new Date(item.dueDate).toLocaleDateString("it-IT")
+                        : item.expirationLabel}
+                    </span>
                     <span className="font-semibold text-2xl text-white">{item.title}</span>
                     <span className="text-[#9ba7b9]">Task: {item.tasks} - Ultima esec: {item.lastExecution !== "N/A" ? new Date(item.lastExecution).toLocaleDateString("it-IT") : "N/A"}</span>
                   </div>

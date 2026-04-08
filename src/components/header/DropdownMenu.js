@@ -15,8 +15,8 @@ export default function DropdownMenu({ isOpen, onClose }) {
   const [mounted, setMounted] = useState(false);
   const [BEVersion, setBEVersion] = useState([]);
 
-  const { user } = useUser();
-  const shipId = user?.teamInfo?.assignedShip?.id;
+  const { user, selectedShipId: shipId } = useUser();
+
 
   useEffect(() => {
     function handleClickOutside(event) {

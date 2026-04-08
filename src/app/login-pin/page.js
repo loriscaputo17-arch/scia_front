@@ -17,7 +17,7 @@ export default function PINLoginPage() {
   // se già loggato, vai alla dashboard
   useEffect(() => {
     const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-    if (token) router.push("/dashboard");
+    if (token) router.push("/select-ship");
   }, [router]);
 
   const handleButtonClick = (value) => {
@@ -53,7 +53,7 @@ export default function PINLoginPage() {
       if (!response.ok) throw new Error(data.error || "Errore login");
 
       localStorage.setItem("token", data.token);
-      router.push("/dashboard");
+      router.push("/select-ship");
     } catch (err) {
       setError(true);
       setPin("");

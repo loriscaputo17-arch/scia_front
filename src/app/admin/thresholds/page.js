@@ -16,7 +16,6 @@ export default function ThresholdsPage() {
     const fetchThresholds = async () => {
       try {
         const data = await getThresholds();
-        console.log("Thresholds:", data);
         setThresholds(data);
       } catch (err) {
         console.error("Errore nel fetch soglie:", err);

@@ -22,17 +22,41 @@ export default function SelectModal({ isOpen, onClose, onSelect, types, defaultT
   };
 
   const groupedTypes = Object.values(
-    types.reduce((acc, type) => {
+    types.reduce((acc, task) => {
+      const name = task?.maintenance_list?.name || "Unknown";
 
-      const name = type?.recurrencyType?.name;
       if (!acc[name]) {
         acc[name] = {
-          ...type,
+          id: name, // 👈 chiave unica
+          title: name,
           count: 1,
+          tasks: [task],
+          lastExecution: task.execution_date,
+          nextDue: task.ending_date,
         };
       } else {
         acc[name].count += 1;
+        acc[name].tasks.push(task);
+
+        // ultima esecuzione
+        if (
+          task.execution_date &&
+          (!acc[name].lastExecution ||
+            new Date(task.execution_date) > new Date(acc[name].lastExecution))
+        ) {
+          acc[name].lastExecution = task.execution_date;
+        }
+
+        // prossima scadenza
+        if (
+          task.ending_date &&
+          (!acc[name].nextDue ||
+            new Date(task.ending_date) < new Date(acc[name].nextDue))
+        ) {
+          acc[name].nextDue = task.ending_date;
+        }
       }
+
       return acc;
     }, {})
   );
@@ -56,9 +80,13 @@ export default function SelectModal({ isOpen, onClose, onSelect, types, defaultT
           </button>
         </div>
 
-        <div className="bg-transparent rounded-md overflow-hidden">
-          <table className="w-full text-white border-collapse hidden sm:table">
-            <thead className="bg-white text-black">
+          
+
+              <div className="bg-transparent rounded-md overflow-hidden">
+  
+  <div style={{ maxHeight: "50vh", overflowY: "auto" }}>
+    <table className="w-full text-white border-collapse hidden sm:table">
+      <thead className="bg-white text-black sticky top-0 z-10">
               <tr>
                 <th className="p-3 text-left border border-[#022a52]">{t("select")}</th>
                 <th className="p-3 text-left border border-[#022a52]">{t("title_text")}</th>
@@ -82,10 +110,22 @@ export default function SelectModal({ isOpen, onClose, onSelect, types, defaultT
                         checked={selectedType?.id === type.id}
                       />
                     </td>
-                    <td className="p-3 border border-[#022a52]" style={{borderRight: '1px solid black', borderBottom: '1px solid black'}}>{type.recurrencyType.name}</td>
-                    <td className="p-3 border border-[#022a52]" style={{borderRight: '1px solid black', borderBottom: '1px solid black'}}>{types.length}</td>
-                    <td className="p-3 border border-[#022a52]" style={{borderRight: '1px solid black', borderBottom: '1px solid black'}}>{type.ending_date !== "N/A" ? new Date(type.ending_date).toLocaleDateString("it-IT") : "N/A"}</td>
-                    <td className="p-3 border border-[#022a52]" style={{borderBottom: '1px solid black'}}>{type.execution_date !== "N/A" ? new Date(type.execution_date).toLocaleDateString("it-IT") : "N/A"}</td>
+                    <td>
+                      {type.title.length > 20 
+                      ? type.title.substring(0, 20) + "..." 
+                      : type.title}
+                    </td>
+                    <td>{type.count}</td>
+                    <td>
+                      {type.nextDue
+                        ? new Date(type.nextDue).toLocaleDateString("it-IT")
+                        : "-"}
+                    </td>
+                    <td>
+                      {type.lastExecution
+                        ? new Date(type.lastExecution).toLocaleDateString("it-IT")
+                        : "-"}
+                    </td>
                   </tr>
                 ))
               ) : (
@@ -139,6 +179,7 @@ export default function SelectModal({ isOpen, onClose, onSelect, types, defaultT
         >
           {t("confirm")}
         </button>
+      </div>
       </div>
     </div>
   ) : null;

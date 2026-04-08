@@ -60,8 +60,6 @@ const CheckListRow = ({ data }) => {
 
   const { t, i18n } = useTranslation("maintenance");
 
-  console.log(data)
-
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -81,7 +79,7 @@ const CheckListRow = ({ data }) => {
     router.push(`/dashboard/checklist/${data.id}`);
   };
 
-  const { getNotes, clearNotes, user } = useUser();
+  const { getNotes, clearNotes, user, selectedShipId: shipId } = useUser();
 
   const uploadNotesToDb = async (status) => {
     const failureId = data?.id;
@@ -129,30 +127,28 @@ const CheckListRow = ({ data }) => {
   };
 
   const handleOk = async () => {
-    try {
-      await uploadNotesToDb("ok");
-
-      await markAsOk(data.id, {
-        maintenanceList_id: data.id,
-        userId: user?.id,
-        userType: "User logged in",
-        time: 0,
-        level: null,
-        spares: []
-      });
-
-      clearNotes(data.id);
-      window.location.reload();
-    } catch (err) {
-      console.error("Errore handleOk()", err);
-      alert("Errore durante il completamento OK.");
-    }
+  try {
+    await uploadNotesToDb("ok");
+    await markAsOk(data.id, {
+      maintenanceList_id: data.id,
+      userId: user?.id,
+      userType: "User logged in",
+      time: 0,
+      level: null,
+      spares: []
+    }, [], shipId); 
+    window.location.reload();
+    clearNotes(data.id);
+  } catch (err) {
+    console.error("Errore handleOk()", err);
+    alert("Errore durante il completamento OK.");
+  }
   };
 
   const handleAnomaly = async () => {
     try {
       await uploadNotesToDb("anomaly");
-      await markAs(data.id, 2);
+      await markAs(data.id, 2, shipId); 
       window.location.reload();
     } catch (err) {
       console.error("Errore anomaly:", err);
@@ -160,25 +156,49 @@ const CheckListRow = ({ data }) => {
     }
   };
 
+  const getFacilityIcon = (code) => {
+    if (!code) return null;
+    const firstDigit = code.trim().charAt(0);
+    if (!/^[0-9]$/.test(firstDigit)) return null;
+    return `/icons/facilities/Ico${firstDigit}.svg`;
+  };
+
+  const eswbsCode =
+    data?.Element?.element_model?.ESWBS_code ||
+    data?.maintenance_list?.end_item_element_model?.ESWBS_code;
+
+  const elementName = data?.Element
+    ? `${data.Element.element_model?.ESWBS_code || ""} ${data.Element.name || ""}`.trim()
+    : data?.maintenance_list?.end_item_element_model
+      ? `${data.maintenance_list.end_item_element_model.ESWBS_code || ""} ${data.maintenance_list.end_item_element_model.LCN_name || ""}`.trim()
+      : "";
+
+  const facilityIcon = getFacilityIcon(eswbsCode);
+
   return (
     <div>
       <div className="hidden sm:grid grid-cols-[2fr_1fr_1fr_1fr_1fr] 
       items-center border-b border-[#001c38] 
       bg-[#022a52] cursor-pointer"
       >
-        <div onClick={handleRowClick} className="border border-[#001c38] p-3 flex flex-col justify-center min-h-[60px]" style={{ height: "-webkit-fill-available" }}> 
+       <div onClick={handleRowClick} className="border border-[#001c38] p-3 flex flex-col justify-center min-h-[60px]" style={{ height: "-webkit-fill-available" }}> 
           <p className="text-white text-[18px] font-semibold">
             {data.maintenance_list.name.length > 45 
               ? data.maintenance_list.name.substring(0, 45) + "..." 
               : data.maintenance_list.name}
           </p>
-          <p className="text-white/60 text-[16px] text-sm truncate">
-            <ElementIcon elementId={data.Element.progressive_code} /> {data.Element.name}
+          <p className="text-white/60 text-[16px] text-sm truncate flex items-center gap-2">
+            {facilityIcon && (
+              <Image src={facilityIcon} alt="facility icon" width={16} height={16} />
+            )}
+            {elementName}
           </p>
         </div>
+
         <div onClick={handleRowClick} className="border border-[#001c38] p-3 text-center text-white justify-center flex flex-col items-center gap-2" style={{ height: "-webkit-fill-available" }}>
           <p className="text-[18px] text-white">{data?.maintenance_list?.recurrency_type?.name}</p>
         </div>
+        
         <div className="border border-[#001c38] p-3 flex items-center justify-center cursor-pointer" onClick={() => setIsOpen(true)} style={{ height: "-webkit-fill-available" }}>
           <div className="flex gap-4">
             <svg
@@ -239,7 +259,7 @@ const CheckListRow = ({ data }) => {
         > 
           <p className="text-white text-[18px] font-semibold truncate">{data.maintenance_list.name}</p>
           <p className="text-white/60 text-[16px] truncate">
-            <ElementIcon elementId={data.Element.progressive_code} /> {data.Element.name}
+            <ElementIcon elementId={data?.Element?.progressive_code} /> {data?.Element?.name}
           </p>
         </div>
 

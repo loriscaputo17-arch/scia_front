@@ -64,7 +64,6 @@ export default function FailureModal({ isOpen, onClose, data }) {
       customFields,
       ship_id
     };
-  //console.log(payload)
     try {
       const response = await addFailure(payload);
       onClose();

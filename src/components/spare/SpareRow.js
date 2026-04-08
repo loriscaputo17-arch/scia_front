@@ -55,7 +55,7 @@ const SpareRow = ({ data }) => {
   return (
     <div>
       {/* Desktop view */}
-      <div className="hidden sm:grid grid-cols-[2fr_1fr_1fr_1fr_1fr] items-center border-b border-[#001c38] bg-[#022a52] cursor-pointer">
+      <div className="hidden sm:grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr] items-center border-b border-[#001c38] bg-[#022a52] cursor-pointer">
         {/* Part Name & ESWBS */}
         <div
           onClick={handleRowClick}
@@ -63,11 +63,25 @@ const SpareRow = ({ data }) => {
           style={{ height: "-webkit-fill-available" }}
         >
           <p className="text-white text-[18px] font-semibold truncate">
-            {data?.Part_name ?? "N/A"}
+            {data?.Part_name
+              ? data.Part_name.length > 30
+                ? data.Part_name.slice(0, 28) + "..."
+                : data.Part_name
+              : "N/A"}
           </p>
           <p className="text-white/60 text-[16px] truncate">
             {data?.elementModel?.ESWBS_code && <ElementIcon elementId={data.elementModel.ESWBS_code} />}{" "}
-            {data?.elementModel?.ESWBS_code ?? ""}
+            {data?.elementModel?.ESWBS_code ?? ""} {data?.elementModel?.LCN_name.slice(0, 28) ?? ""}
+          </p>
+        </div>
+
+        <div
+          onClick={handleRowClick}
+          className="border border-[#001c38] p-3 text-center text-white justify-center flex flex-col items-center gap-2"
+          style={{ height: "-webkit-fill-available" }}
+        >
+          <p className="text-[18px] text-white">
+            {getQuantitySum(data?.installed_quantity ?? [])}
           </p>
         </div>
 

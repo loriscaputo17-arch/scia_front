@@ -17,8 +17,7 @@ export default function RemoteAssistance() {
         const email = "tuo@email.it";
         const password = "tuapassword";
         const result = await loginCareAr({ email, password });
-        //console.log("Login riuscito:", result);
-        // Qui gestisci il risultato
+        
       } catch (error) {
         console.error("Errore login:", error);
       }

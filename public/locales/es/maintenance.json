@@ -82,8 +82,8 @@
   "stock": "Inventario",
   "actions": "Acción",
   "search_by_name": "Buscar por nombre...",
-  "added_to_the_cart": "Agregado al carrito",
-  "added_cart_text": "El producto ha sido agregado a tu carrito",
+  "added_to_the_cart": "Agregado al lista de deseos",
+  "added_cart_text": "El producto se ha añadido a tu lista de deseos.",
   "supplier": "Proveedor",
   "part_name": "Nombre de la pieza",
   "system_filter": "Filtro de sistema",
@@ -127,7 +127,7 @@
   "name_not_available": "Nombre no disponible",
   "image": "Imagen",
   "q_installed": "Cantidad instalada",
-  "go_to_cart": "Ir al carrito",
+  "go_to_cart": "Ir a la lista de deseos",
   "add_other_products": "Agregar otros productos",
   "photographic_notes": "Notas fotográficas",
   "vocal_notes": "Notas de voz",
@@ -160,6 +160,12 @@
   "expiring": "Por caducar",
   "scheduled": "Programada",
   "days_short": "dias",
-  "login_pin_error": "PIN no válido o deshabilitado."
-
+  "in_stock": "En stock",
+  "out_of_stock": "Agotado",
+  "login_pin_error": "PIN no válido o deshabilitado.",
+  "move_spare_part": "Mover repuesto",
+  "choose_eswbs": "Elige ESWBS",
+  "maintenances": "Mantenimientos",
+  "view_maintenances": "Ver mantenimientos",
+  "frequency": "Frecuencia"
 }

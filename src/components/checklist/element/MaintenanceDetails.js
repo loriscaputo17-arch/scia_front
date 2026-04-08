@@ -13,7 +13,7 @@ import { getTextsGeneral, getPhotosGeneral, getAudiosGeneral } from "@/api/shipF
 import { addPhotographicNoteGeneral, addVocalNoteGeneral, addTextNoteGeneral } from "@/api/failures";
 import { useUser } from "@/context/UserContext";
 
-const MaintenanceDetails = ({ details }) => {
+const ReadingsDetails = ({ details }) => {
 
   const [showFull, setShowFull] = useState(false);
   const [noteHistoryModal, setNoteHistoryModal] = useState(false);
@@ -157,60 +157,69 @@ const MaintenanceDetails = ({ details }) => {
   return (
     <div className="p-2 w-full">
 
+      {/* FOTO */}
       <div className="mb-8">
         <div className="flex items-center mb-2">
           <h2 className="text-lg text-[#789fd6]">{t("details")}</h2>
-          <button className="text-[14px] text-[#fff] ml-auto cursor-pointer" onClick={() => setPhotoHistoryModal(true)}>{t("see_history")}</button>
+          <button className="text-[14px] text-[#fff] ml-auto cursor-pointer" onClick={() => setPhotoHistoryModal(true)}>
+            {t("see_history")}
+          </button>
         </div>
-        {latestPhoto && (
+        {latestPhoto ? (
           <div className="flex items-center gap-4 cursor-pointer">
-            <Image 
+            <Image
               src={latestPhoto.image_url}
               alt="Foto nota"
               width={80}
               height={80}
               className="rounded-lg"
-              style={{width: "80px", height: "80px", objectFit: "cover"}}
+              style={{ width: "80px", height: "80px", objectFit: "cover" }}
             />
             <div>
               <h2 className="text-md text-[#fff]">{latestPhoto.authorDetails.first_name} {latestPhoto.authorDetails.last_name}</h2>
               <h2 className="text-[14px] text-[#ffffff94]">{new Date(latestPhoto.created_at).toLocaleString()}</h2>
             </div>
           </div>
+        ) : (
+          <p className="text-white/40 italic">{t("no_data_available")}</p>
         )}
       </div>
 
+      {/* AUDIO */}
       <div className="mb-8">
         <div className="flex items-center mb-2 mt-4">
           <h2 className="text-lg text-[#789fd6]">{t("vocal_note")}</h2>
-          <button className="text-[14px] text-[#fff] ml-auto cursor-pointer" onClick={() => setNoteHistoryModal(true)}>{t("see_history")}</button>
+          <button className="text-[14px] text-[#fff] ml-auto cursor-pointer" onClick={() => setNoteHistoryModal(true)}>
+            {t("see_history")}
+          </button>
         </div>
-        {latestAudio && (
-          <div className="flex items-center gap-4 cursor-pointer">
-            <div className="w-full">
-              <AudioPlayer
-                audioSrc={latestAudio.audio_url}
-                username={latestAudio.authorDetails.first_name[0] + latestAudio.authorDetails.last_name[0]}
-                dateTime={latestAudio.created_at}
-              />
-            </div>
-          </div>
+        {latestAudio ? (
+          <AudioPlayer
+            audioSrc={latestAudio.audio_url}
+            username={latestAudio.authorDetails.first_name[0] + latestAudio.authorDetails.last_name[0]}
+            dateTime={latestAudio.created_at}
+          />
+        ) : (
+          <p className="text-white/40 italic">{t("no_data_available")}</p>
         )}
       </div>
 
+      {/* TESTO */}
       <div className="mb-8">
         <div className="flex items-center mb-2 mt-4">
           <h2 className="text-lg text-[#789fd6]">{t("text_note")}</h2>
-          <button className="text-[14px] text-[#fff] ml-auto cursor-pointer" onClick={() => setTextHistoryModal(true)}>{t("see_history")}</button>
+          <button className="text-[14px] text-[#fff] ml-auto cursor-pointer" onClick={() => setTextHistoryModal(true)}>
+            {t("see_history")}
+          </button>
         </div>
-        {latestText && (
-          <div className="flex items-center gap-4 cursor-pointer">
-            <div className="w-full bg-[#00000038] p-4 rounded-md">
-              <p className="text-white text-[12px] opacity-60">{latestText.authorDetails.first_name} {latestText.authorDetails.last_name}</p>
-              <p className="text-white text-[16px] mt-2 mb-2">{latestText.text_field}</p>
-              <p className="text-white opacity-60 text-sm ml-auto w-fit">{new Date(latestText.created_at).toLocaleString()}</p>
-            </div>
+        {latestText ? (
+          <div className="w-full bg-[#00000038] p-4 rounded-md">
+            <p className="text-white opacity-60">{latestText.authorDetails.first_name} {latestText.authorDetails.last_name}</p>
+            <p className="text-white text-[16px] mt-2 mb-2">{latestText.text_field}</p>
+            <p className="text-white opacity-60 text-sm ml-auto w-fit">{new Date(latestText.created_at).toLocaleString()}</p>
           </div>
+        ) : (
+          <p className="text-white/40 italic">{t("no_data_available")}</p>
         )}
       </div>
 
@@ -265,4 +274,4 @@ const MaintenanceDetails = ({ details }) => {
   );
 };
 
-export default MaintenanceDetails;
+export default ReadingsDetails;

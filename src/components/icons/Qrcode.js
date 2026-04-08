@@ -5,6 +5,8 @@ import { Html5Qrcode, Html5QrcodeSupportedFormats } from "html5-qrcode";
 import Image from "next/image";
 import LastScanPopup from "@/components/header/LastScanPopup";
 import { useRouter } from "next/navigation";
+import { useUser } from "@/context/UserContext";
+import { createScan } from "@/api/scan";
 
 export default function Qrcode({ className = "", onScan }) {
   const [scanning, setScanning] = useState(false);
@@ -14,6 +16,8 @@ export default function Qrcode({ className = "", onScan }) {
   const scannerRef = useRef(null);
   const scannerId = "reader";
   const router = useRouter();
+  const { user, selectedShipId: shipId } = useUser();
+  const hasScannedRef = useRef(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -23,6 +27,7 @@ export default function Qrcode({ className = "", onScan }) {
 
   useEffect(() => {
     if (!scanning) return;
+    hasScannedRef.current = false;
 
     const html5QrCode = new Html5Qrcode(scannerId);
     scannerRef.current = html5QrCode;
@@ -45,30 +50,43 @@ export default function Qrcode({ className = "", onScan }) {
           .start(
             { facingMode: "environment" },
             config,
-            (decodedText) => {
+            async (decodedText) => {
+              if (hasScannedRef.current) return;
+              hasScannedRef.current = true;
               stopScanner();
 
-              // Check if EAN-13: 13 digits only
               const ean13Regex = /^\d{13}$/;
-
               if (ean13Regex.test(decodedText)) {
-                // Redirect to product page with EAN code
                 router.push(`/product/${decodedText}`);
                 return;
               }
 
-              // Check if decodedText is a valid URL
+              // ── URL valido ──────────────────────────────────────
               try {
-                const url = new URL(decodedText);
-                window.location.href = url.href;
+                new URL(decodedText);
+
+                // Controlla se è un link impianto SCIA
+                const match = decodedText.match(/\/impianti\/(\d+)/);
+                if (match) {
+                  const elementId = parseInt(match[1]);
+
+                  // Salva scan nel DB
+                  if (user?.id && shipId) {
+                    await createScan(elementId, shipId, user.id);
+                  }
+
+                  // Naviga alla pagina impianto
+                  router.push(`/dashboard/impianti/${elementId}`);
+                } else {
+                  // Altro URL — naviga direttamente
+                  window.location.href = decodedText;
+                }
               } catch {
-                // Not a URL, fallback to onScan callback if exists
+                // Non è un URL — callback generica
                 if (onScan) onScan(decodedText);
               }
             },
-            (error) => {
-              // Ignore continuous scan errors
-            }
+            () => {} // ignore continuous scan errors
           )
           .catch((err) => {
             console.error("Errore avvio scanner:", err);
@@ -83,20 +101,9 @@ export default function Qrcode({ className = "", onScan }) {
     return () => {
       stopScanner();
     };
-  }, [scanning, onScan, router]);
+  }, [scanning, onScan, router, user, shipId]);
 
   const stopScanner = () => {
-    /*if (scannerRef.current) {
-      scannerRef.current
-        .stop()
-        .then(() => {
-          scannerRef.current.clear();
-          scannerRef.current = null;
-        })
-        .catch((err) => {
-          console.error("Errore arresto scanner:", err);
-        });
-    }*/
     setScanning(false);
   };
 
@@ -126,19 +133,13 @@ export default function Qrcode({ className = "", onScan }) {
         >
           <button
             className="block w-full text-left px-2 py-1 hover:bg-gray-100 rounded"
-            onClick={() => {
-              setShowMenu(false);
-              setScanning(true);
-            }}
+            onClick={() => { setShowMenu(false); setScanning(true); }}
           >
             Scansiona
           </button>
           <button
             className="block w-full text-left px-2 py-1 hover:bg-gray-100 rounded mt-2"
-            onClick={() => {
-              setShowMenu(false);
-              setShowLastScan(true);
-            }}
+            onClick={() => { setShowMenu(false); setShowLastScan(true); }}
           >
             Ultime scansioni
           </button>

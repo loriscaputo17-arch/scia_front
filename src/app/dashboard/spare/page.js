@@ -4,7 +4,6 @@ import Breadcrumbs from "@/components/dashboard/Breadcrumbs";
 import SpareTable from "@/components/spare/SpareTable";
 
 export default function SparePage({ params }) {
-  const { category } = params;
 
   return (
     <div className="flex flex-col h-screen bg-[#001c38] text-white p-4">
@@ -13,7 +12,7 @@ export default function SparePage({ params }) {
         <Breadcrumbs />
       </div>
       <div className="flex-1 rounded-lg">
-        <SpareTable category={category} />
+        <SpareTable />
       </div>
     </div>
   );

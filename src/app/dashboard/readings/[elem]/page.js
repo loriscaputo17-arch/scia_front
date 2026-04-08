@@ -21,16 +21,14 @@ export default function ElementPage({ params }) {
 
   const { user } = useUser();
   const [tasksData, setTasksData] = useState([]);
-
-    const loadTasks = async () => {
-      try {
-        const fetchReading = await getReading(readingId, user?.id);
-        setTasksData(fetchReading);
-      } catch (err) {
-        console.error(err);
-      } finally {
-      }
-    };
+  const loadTasks = async () => {
+    try {
+      const fetchReading = await getReading(readingId, user?.id);
+      setTasksData(fetchReading ? [fetchReading] : []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
   
     useEffect(() => {
       loadTasks();
@@ -50,7 +48,7 @@ export default function ElementPage({ params }) {
       <DashboardHeader />
 
       <div className="flex w-full items-center mt-4">
-        <Breadcrumbs title={tasksData?.[0]?.task_name} position="last" />
+        <Breadcrumbs title={tasksData?.[0]?.task_name || 'Lettura'} position="last" />
       </div>
 
       <div className="flex items-center pt-2 pb-4">

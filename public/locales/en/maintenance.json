@@ -78,8 +78,8 @@
     "stock": "Stock",
     "actions": "Action",
     "search_by_name": "Search by name...",
-    "added_to_the_cart": "Added to the cart",
-    "added_cart_text": "The product has been added to your cart",
+    "added_to_the_cart": "Added to the wishlist",
+    "added_cart_text": "The product has been added to your wishlist",
     "supplier": "Fornitore",
     "part_name": "Part Name",
     "system_filter": "System filter",
@@ -123,7 +123,7 @@
   "name_not_available": "Name not available",
   "image": "Image",
   "q_installed": "Installed quantity",
-  "go_to_cart": "Go to cart",
+  "go_to_cart": "Go to wishlist",
   "add_other_products": "Add other products",
   "photographic_notes": "Photographic notes",
   "vocal_notes": "Voice notes",
@@ -160,13 +160,14 @@
     "expiring": "Expiring",
     "scheduled": "Scheduled",
     "days_short": "days",
-    "filters2": {
-      "in_stock": "In stock",
-      "out_of_stock": "Out of stock"
-    },
-  "login_pin_error": "Invalid or disabled PIN."
-
-
+    "in_stock": "In stock",
+    "out_of_stock": "Out of stock",
+  "login_pin_error": "Invalid or disabled PIN.",
+  "move_spare_part": "Move spare part",
+  "choose_eswbs": "Choose ESWBS",
+  "maintenances": "Maintenances",
+   "view_maintenances": "View maintenances",
+     "frequency": "Frequency"
 
 }
   

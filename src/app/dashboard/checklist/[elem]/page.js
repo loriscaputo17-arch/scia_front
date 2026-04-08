@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import DashboardHeader from "@/components/header/DashboardHeader";
 import Breadcrumbs from "@/components/dashboard/Breadcrumbs";
 import MaintenanceDetails from "@/components/checklist/element/MaintenanceDetails";
@@ -9,6 +9,7 @@ import NoteModal from "@/components/checklist/element/NoteModal";
 import { useParams } from "next/navigation";
 import { useTranslation } from "@/app/i18n";
 import { fetchMaintenanceJob } from "@/api/maintenance";
+import { useUser } from "@/context/UserContext";
 
 export default function ElementPage({ params }) {
   const [noteModal, setNoteModal] = useState(false);
@@ -20,11 +21,19 @@ export default function ElementPage({ params }) {
   let bgColor = "bg-gray-400";
   let textColor = "text-white"; 
 
+  const { user, selectedShipId: shipId } = useUser();
+
+  const fetchedRef = useRef(false);
+
   useEffect(() => {
-    fetchMaintenanceJob(jobId).then((data) => {
+    if (!jobId || !shipId) return;
+    if (fetchedRef.current) return;
+    fetchedRef.current = true;
+    
+    fetchMaintenanceJob(jobId, shipId).then((data) => {
       setMaintenanceData(data || []);
     });
-  }, [jobId]);
+  }, [jobId, shipId]);
 
     const { t, i18n } = useTranslation("maintenance");
     const [mounted, setMounted] = useState(false);
@@ -33,7 +42,14 @@ export default function ElementPage({ params }) {
       setMounted(true);
     }, []);
       
-  if (!mounted || !i18n.isInitialized || maintenancedata.length === 0) return null;
+    if (!mounted || !i18n.isInitialized) return null;
+
+    // Mostra loading separato
+    if (maintenancedata.length === 0) return (
+      <div className="flex flex-col bg-[#001c38] text-white p-4 min-h-screen">
+        <DashboardHeader />
+      </div>
+    );
 
   return (
     <div className="flex flex-col bg-[#001c38] text-white p-4">
@@ -45,7 +61,12 @@ export default function ElementPage({ params }) {
 
       <div className="flex items-center pt-2 pb-4">
         <div className='flex items-center gap-4'>
-          <h2 className="text-2xl font-bold">{maintenancedata[0]?.maintenance_list.name}</h2>
+          <h2 className="text-2xl font-bold">
+            {maintenancedata[0]?.maintenance_list.name
+              ? maintenancedata[0].maintenance_list.name.charAt(0).toUpperCase() +
+                maintenancedata[0].maintenance_list.name.slice(1).toLowerCase()
+              : ""}
+          </h2>
         </div>
 
         <div className='ml-auto flex items-center gap-4'>

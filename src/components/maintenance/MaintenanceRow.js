@@ -9,23 +9,43 @@ import { computeExpiryDate, diffInDaysFromToday, getStatusColor } from "@/utils/
 import { getDeadlineVisuals } from "@/utils/maintenanceThresholds";
 
 const areaIcons = {
-  "IV - BACINO": "/icons/shape.png",
-  "In banchina": "/icons/dock.png",
-  "In bacino": "/icons/drydock.png",
-  "Esterno": "/icons/external.png",
+  "I":             "/icons/shape.png",
+  "II ALFA":       "/icons/shape.png",
+  "II BRAVO":      "/icons/Shape-10.png",
+  "III":           "/icons/Shape-12.png",
+  "IV - DOCKYARD": "/icons/Shape-11.png",
+  "IV - FIRM":     "/icons/Shape-11.png",
+};
+
+const levelLabels = {
+  "I":             "A bordo",
+  "II ALFA":       "A bordo",
+  "II BRAVO":      "In banchina",
+  "III":           "Fornitore esterno",
+  "IV - DOCKYARD": "In bacino",
+  "IV - FIRM":     "In bacino",
 };
 
 const NoteIcons = ({ hasPhoto, hasAudio, hasText, onOpen, rowColor }) => {
-  const Icon = ({ path, active }) => (
+  
+const Icon = ({ path, active }) => {
+  const color = active
+    ? (rowColor && rowColor !== "transparent" ? rowColor : "#fff")
+    : "rgba(255,255,255,0.2)";
+
+  return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 576 512"
-      fill={active ? rowColor : "rgba(255,255,255,0.2)"}
+      fill={color}
+      stroke={color}
+      strokeWidth="16"
       className="w-6 h-6"
     >
       <path d={path} />
     </svg>
   );
+};
 
   const PHOTO_PATH =
     "M288 144a128 128 0 1 0 0 256 128 128 0 1 0 0-256zm0 208a80 80 0 1 1 0-160 80 80 0 1 1 0 160zm288-80c0 106-86 192-192 192H192C86 464 0 378 0 272V240c0-35 29-64 64-64h48l29-58c6-12 18-20 32-20h192c14 0 26 8 32 20l29 58h48c35 0 64 29 64 64v32z";
@@ -55,6 +75,17 @@ const ActionsMenu = ({ onPause, onResume, onDetails }) => {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   const toggle = () => setOpen((v) => !v);
+
+  // 👈 aggiungi questo
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+    if (open) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open]);
   return (
     <div className="p-3 flex items-center justify-center w-8 relative" ref={ref}>
       <svg onClick={toggle} className="cursor-pointer" fill="white" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 512">
@@ -84,7 +115,6 @@ const TitleCell = ({ jobName, elementName, onClick, eswbsCode }) => {
     return text.slice(0, maxLength) + "...";
   }
 
-
   const icon = getFacilityIcon(eswbsCode);
 
   return (
@@ -92,17 +122,16 @@ const TitleCell = ({ jobName, elementName, onClick, eswbsCode }) => {
       <div className="flex items-center gap-2">
 
         <p className="text-white text-[18px] font-semibold">
-          {jobName ? truncate(jobName, 35) : ""}
+          {jobName ? truncate(jobName, 28) : ""}
         </p>
 
-      </div>
+      </div> 
 
       <p className="text-white/60 text-[16px] text-sm truncate flex items-center gap-2">
         {icon && (
           <Image src={icon} alt="facility icon" width={16} height={16} />
         )}
-
-        {elementName ? elementName.charAt(0).toUpperCase() + elementName.slice(1) : ""}
+        {elementName ? truncate(elementName.charAt(0).toUpperCase() + elementName.slice(1), 28) : ""}
       </p>
     </div>
   );
@@ -111,10 +140,16 @@ const TitleCell = ({ jobName, elementName, onClick, eswbsCode }) => {
 const RecurrencyCell = ({ recurrencyLabel, levelMMI, onClick }) => (
   <div onClick={onClick} className="border border-[#001c38] p-3 text-center text-white flex flex-col items-center gap-2" style={{ height: "-webkit-fill-available" }}>
     <p className="text-[18px] text-white">{recurrencyLabel}</p>
-    <div className="flex items-center gap-2">
-      {areaIcons[levelMMI] && <img src={areaIcons[levelMMI]} alt={levelMMI} className="w-4 h-4" />}
-      <p className="text-[16px] text-[#67c2ae]">{levelMMI} level</p>
-    </div>
+    {levelMMI && (
+      <div className="flex items-center gap-2">
+        {areaIcons[levelMMI] && (
+          <img src={areaIcons[levelMMI]} alt={levelLabels[levelMMI]} className="w-4 h-4" />
+        )}
+        <p className="text-[16px] text-[#67c2ae]">
+          {levelLabels[levelMMI] || levelMMI}
+        </p>
+      </div>
+    )}
   </div>
 );
 
@@ -128,17 +163,10 @@ export default function MaintenanceRow({ data }) {
   if (!mounted || !i18n.isInitialized) return null;
 
   const recurrency = data.maintenance_list?.recurrency_type?.name;
-  const earlyThreshold = data.maintenance_list?.recurrency_type?.early_threshold;
-  const dueThreshold = data.maintenance_list?.recurrency_type?.due_threshold;
-  const delayThreshold = data.maintenance_list?.recurrency_type?.delay_threshold;
 
-  const expiryDate = computeExpiryDate({
-    executionDate: data.execution_date,       
-    endingDate: data.ending_date, 
-    startingDate: data.starting_date,             
-    recurrency,
-    maintenanceList: data.job?.maintenance_list,
-  });
+  const expiryDate = data.computed_expiry_date
+  ? new Date(data.computed_expiry_date)
+  : null;
 
   const { bgColor: rowColor } = getDeadlineVisuals({
     dueDate: expiryDate,
@@ -162,8 +190,17 @@ export default function MaintenanceRow({ data }) {
 
         <TitleCell 
           jobName={data.maintenance_list?.name}
-          elementName={`${data.Element?.element_model?.ESWBS_code} ${data.Element?.name}`}
-          eswbsCode={data.Element?.element_model?.ESWBS_code}
+          elementName={
+            data.Element
+              ? `${data.Element.element_model?.ESWBS_code || ""} ${data.Element.name || ""}`
+              : data.maintenance_list?.end_item_element_model
+                ? `${data.maintenance_list.end_item_element_model.ESWBS_code || ""} ${data.maintenance_list.end_item_element_model.LCN_name || ""}`
+                : null
+          }
+          eswbsCode={
+            data.Element?.element_model?.ESWBS_code 
+            || data.maintenance_list?.end_item_element_model?.ESWBS_code
+          }
           onClick={handleRowClick}
         />
 
@@ -211,6 +248,7 @@ export default function MaintenanceRow({ data }) {
             earlyThreshold={data.maintenance_list?.recurrency_type?.early_threshold}
             dueThreshold={data.maintenance_list?.recurrency_type?.due_threshold}
             delayThreshold={data.maintenance_list?.recurrency_type?.delay_threshold}
+            fallbackLabel={!expiryDate ? data.maintenance_list?.recurrency_type?.name : null} // 👈
           />
 
         </div>
@@ -223,46 +261,106 @@ export default function MaintenanceRow({ data }) {
       </div>
 
       <div
-        className="flex sm:hidden flex-col bg-[#022a52] border-b border-[#001c38] rounded-md px-4 py-3 mb-4"
-        style={{ borderLeft: `8px solid ${rowColor}` }}
-      >
-        <div className="flex items-start justify-between">
-          <StatusBadge 
-            dueDate={expiryDate?.toISOString?.() || expiryDate}
-            dueDays={dueDays ?? undefined}
-            earlyThreshold={data.maintenance_list?.recurrency_type?.early_threshold}
-            dueThreshold={data.maintenance_list?.recurrency_type?.due_threshold}
-            delayThreshold={data.maintenance_list?.recurrency_type?.delay_threshold}
-          />
-          <ActionsMenu
-            onPause={() => handleOptionClick(2)}
-            onResume={() => handleOptionClick(1)}
-            onDetails={handleRowClick}
-          />
-        </div>
+  className="flex sm:hidden flex-col bg-[#022a52] border-b border-[#001c38] rounded-lg px-4 py-3 mb-3"
+  style={{ borderLeft: `8px solid ${rowColor}` }}
+>
+  {/* ── Riga 1: StatusBadge + ActionsMenu ── */}
+  <div className="flex items-center justify-between mb-3">
+    <StatusBadge
+      dueDate={expiryDate?.toISOString?.() || expiryDate}
+      dueDays={dueDays ?? undefined}
+      earlyThreshold={data.maintenance_list?.recurrency_type?.early_threshold}
+      dueThreshold={data.maintenance_list?.recurrency_type?.due_threshold}
+      delayThreshold={data.maintenance_list?.recurrency_type?.delay_threshold}
+      fallbackLabel={!expiryDate ? data.maintenance_list?.recurrency_type?.name : null}
+    />
+    <ActionsMenu
+      onPause={() => handleOptionClick(3)}
+      onResume={() => handleOptionClick(1)}
+      onDetails={handleRowClick}
+    />
+  </div>
 
-        <div className="mt-4" onClick={handleRowClick}>
-          <p className="text-white text-base font-semibold truncate">{data.job?.name}</p>
-          <p className="text-white/60 text-sm truncate">{data.Element?.element_model?.LCN_name}</p>
-        </div>
+  {/* ── Riga 2: Nome task + elemento ── */}
+  <div onClick={handleRowClick} className="cursor-pointer mb-3">
+    <p className="text-white font-semibold text-base leading-tight truncate">
+      {data.maintenance_list?.name}
+    </p>
+    <p className="text-white/60 text-xs mt-1 flex items-center gap-1 truncate">
+      {(() => {
+        const eswbs = data.Element?.element_model?.ESWBS_code
+          || data.maintenance_list?.end_item_element_model?.ESWBS_code;
+        const name = data.Element
+          ? `${data.Element.element_model?.ESWBS_code || ""} ${data.Element.name || ""}`
+          : data.maintenance_list?.end_item_element_model
+            ? `${data.maintenance_list.end_item_element_model.ESWBS_code || ""} ${data.maintenance_list.end_item_element_model.LCN_name || ""}`
+            : null;
 
-        <div className="mt-3 flex flex-wrap gap-3 items-center">
-          {expiryDate && <LegendItem icon="/icons/Shape-2.png" label={t("items.time_deadline")} />}
-          {(data.status?.id === 2 || data.execution_state === 2) && <LegendItem icon="/icons/Path.png" label={t("items.planned_stop")} />}
-        </div>
+        const icon = (() => {
+          if (!eswbs) return null;
+          const d = eswbs.trim().charAt(0);
+          return /^[0-9]$/.test(d) ? `/icons/facilities/Ico${d}.svg` : null;
+        })();
 
-        {hasNotes && (
-          <div className="mt-4">
-            <NoteIcons
-              hasPhoto={(data.photographicNotes || []).length > 0}
-              hasAudio={(data.vocalNotes || []).length > 0}
-              hasText={(data.textNotes || []).length > 0}
-              onOpen={hasNotes ? () => setIsOpen(true) : undefined}
-              rowColor={rowColor}
+        return (
+          <>
+            {icon && <Image src={icon} alt="" width={12} height={12} className="shrink-0" />}
+            <span>{name}</span>
+          </>
+        );
+      })()}
+    </p>
+  </div>
+
+  {/* ── Riga 3: Ricorrenza + livello + icone note + legenda ── */}
+  <div className="flex items-center gap-3 flex-wrap">
+    
+    {/* Ricorrenza e livello */}
+    <div className="flex flex-col">
+      <span className="text-white text-sm font-semibold">
+        {recurrency || t("unknown")}
+      </span>
+      {data.maintenance_list?.maintenance_level?.Level_MMI && (
+        <div className="flex items-center gap-1 mt-0.5">
+          {areaIcons[data.maintenance_list.maintenance_level.Level_MMI] && (
+            <img
+              src={areaIcons[data.maintenance_list.maintenance_level.Level_MMI]}
+              alt=""
+              className="w-3 h-3"
             />
-          </div>
-        )}
+          )}
+          <span className="text-[#67c2ae] text-xs">
+            {levelLabels[data.maintenance_list.maintenance_level.Level_MMI]}
+          </span>
+        </div>
+      )}
+    </div>
+
+    {/* Legenda icone */}
+    <div className="flex items-center gap-2">
+      {expiryDate && <LegendItem icon="/icons/Shape-2.png" label={t("items.time_deadline")} />}
+      {(data.status?.id === 2 || data.execution_state === 2) && (
+        <LegendItem icon="/icons/Path.png" label={t("items.planned_stop")} />
+      )}
+      {Array.isArray(data.spares) && data.spares.length > 0 && (
+        <LegendItem icon="/icons/Shape-9.png" label={t("items.spares_required")} />
+      )}
+    </div>
+
+    {/* Note icons */}
+    {hasNotes && (
+      <div className="ml-auto">
+        <NoteIcons
+          hasPhoto={(data.photographicNotes || []).length > 0}
+          hasAudio={(data.vocalNotes || []).length > 0}
+          hasText={(data.textNotes || []).length > 0}
+          onOpen={() => setIsOpen(true)}
+          rowColor={rowColor}
+        />
       </div>
+    )}
+  </div>
+</div>
 
       <NotesModal isOpen={isOpen} onClose={() => setIsOpen(false)} data={data} />
     </div>

@@ -1,14 +1,16 @@
 "use client"
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import MaintenanceRow from "./MaintenanceRow";
 import { fetchMaintenanceJobs } from "@/api/maintenance";
+import { fetchMaintenanceJobsOnCondition } from "@/api/maintenance";
 import SelectModal from "./SelectModal";
 import LegendModal from "./LegendModal";
 import FilterModal from "./FilterModal";
 import { useTranslation } from "@/app/i18n";
 import { useUser } from "@/context/UserContext";
 import { computeExpiryDate } from "@/utils/maintenanceDates";
+import { useSearchParams } from "next/navigation";
 
 const MaintenanceTable = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -16,11 +18,60 @@ const MaintenanceTable = () => {
   const [legendOpen, setLegendOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [maintenancedata, setMaintenanceData] = useState([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const loaderRef = useRef(null);
 
   const [filters, setFilters] = useState(null);
 
-  const { user } = useUser();
-  const shipId = user?.teamInfo?.assignedShip?.id;
+  const { user, selectedShipId: shipId } = useUser();
+  const resetRef = useRef(0);
+
+  const searchParams = useSearchParams();
+  const eswbsFromUrl = searchParams.get("eswbs_code");
+  const [activeTab, setActiveTab] = useState("maintenance");
+  const [conditionData, setConditionData] = useState([]);
+
+  useEffect(() => {
+    if (!eswbsFromUrl || activeTab !== "condition") return;
+
+    const fetchCondition = async () => {
+      try {
+        const data = await fetchMaintenanceJobsOnCondition(
+          eswbsFromUrl,
+          shipId,
+          user?.id
+        );
+
+        console.log("CONDITION:", data);
+
+        setConditionData(data?.jobs || []);
+      } catch (err) {
+        console.error("Errore condition:", err);
+      }
+    };
+
+    fetchCondition();
+  }, [activeTab, eswbsFromUrl, shipId, user]);
+
+  useEffect(() => {
+    setMaintenanceData([]);
+    setPage(1);
+    setHasMore(true);
+    resetRef.current += 1;
+  }, [selectedType, shipId, user, filters]);
+
+  useEffect(() => {
+    if (eswbsFromUrl) {
+      setFilters((prev) => ({
+        ...prev,
+        system: {
+          selectedElement: eswbsFromUrl,
+        },
+      }));
+    }
+  }, [eswbsFromUrl]);
 
   const handleSelectType = (type) => {
     setSelectedType(type);
@@ -28,151 +79,161 @@ const MaintenanceTable = () => {
   };
 
   useEffect(() => {
-        fetchMaintenanceJobs(selectedType?.id, shipId, user?.id).then((data) => {
-          setMaintenanceData(data || []);
-        });
-    }, [selectedType, shipId, user]);
-
-    const applyFilters = (data) => {
-      if (!Array.isArray(data)) return [];
-      if (!filters) return data;
-
-      return data.filter(item => {
-
-        const dueDate = new Date(item.ending_date);
-        const startDate = new Date(item.starting_date);
-        const today = new Date();
-        const diffDays = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
-
-        // ---- FILTRI STATO ----
-        if (filters.stato) {
-          const {
-            scaduta,
-            scadutaDaPoco,
-            inScadenza,
-            attiva,
-            programmata,
-            inPausa
-          } = filters.stato;
-
-          const matchScaduta = diffDays < -15;
-          const matchScadutaDaPoco = diffDays >= -15 && diffDays < 0;
-          const matchInScadenza = diffDays >= 0 && diffDays <= 15;
-          const matchAttiva = diffDays > 15; // 👈 CORRETTO
-          const matchProgrammata = startDate > today;
-          const matchInPausa = item.status_id === 2 || item.execution_state === 2;
-
-          // Controllo se almeno un filtro STATO è attivo
-          const statoFiltersActive = Object.values(filters.stato).some(Boolean);
-
-          if (statoFiltersActive) {
-            const matched = [
-              scaduta && matchScaduta,
-              scadutaDaPoco && matchScadutaDaPoco,
-              inScadenza && matchInScadenza,
-              attiva && matchAttiva,
-              programmata && matchProgrammata,
-              inPausa && matchInPausa
-            ].some(Boolean);
-
-            if (!matched) return false;
-          }
-        }
-
-        // ---- FILTRO RICORRENZA ----
-        if (filters.ricorrenza) {
-          const recurrenceMap = {
-            settimanale: [2],
-            bisettimanale: [7],
-            mensile: [3],
-            bimestrale: [8],
-            trimestrale: [4],
-            semestrale: [30, 40], // Semiannual e 6 mesi
-            annuale: [5],
-            biennale: [9],
-            triennale: [10],
-          };
-
-          const selectedFilters = Object.entries(filters.ricorrenza)
-            .filter(([_, active]) => active)
-            .flatMap(([key]) => recurrenceMap[key] || []);
-
-          // recupera il valore REALE dal dato
-          const recurrency = item.maintenance_list?.recurrency_type?.id;
-
-          // Se filtri attivi → deve matchare
-          if (selectedFilters.length > 0 && !selectedFilters.includes(recurrency)) {
-              return false;
-            }
-        }
-
-        // ---- FILTRO LIVELLO ----
-        if (filters.livello) {
-          const levelMap = {
-            aBordo: ["I"], 
-            inBanchina: ["II"],
-            inBacino: ["IV - BACINO"],
-            fornitoreEsterno: ["III"],
-          };
-
-          const selectedLevels = Object.entries(filters.livello)
-            .filter(([_, active]) => active)
-            .flatMap(([key]) => levelMap[key] || []);
-
-          if (selectedLevels.length > 0) {
-            const levelValue = item.maintenance_list?.maintenance_level?.Level_MMI;
-            if (!selectedLevels.includes(levelValue)) {
-              return false;
-            }
-          }
-        }
-
-        // ---- FILTRO PER IMPIANTO / ELEMENT ----
-        if (filters.system?.selectedElement) {
-          const selectedId = Number(filters.system.selectedElement);
-
-          const matchesByElement = item.Element?.id === selectedId;
-
-          const matchesBySpare =
-            item.spares?.some(sp => sp.element_model_id === selectedId);
-
-          if (!matchesByElement && !matchesBySpare) {
-            return false;
-          }
-        }
-
-        // ---- FILTRO RICAMBI ----
-        if (filters.ricambi) {
-          const {
-            richiesti,
-            richiestiDisponibili,
-            richiestiNonDisponibili,
-            richiestiInEsaurimento,
-          } = filters.ricambi;
-
-          const hasSpares = Array.isArray(item.spares) && item.spares.length > 0;
-
-          if (richiesti) {
-            if (!hasSpares) return false;
-          }
-
-          /*
-          if (richiestiDisponibili) {
-            if (!hasSpares) return false;
-          }
-
-          if (richiestiNonDisponibili) {
-            if (!hasSpares) return false;
-          }
-
-          if (richiestiInEsaurimento) {
-            if (!hasSpares) return false;
-          }*/
-        }
-
-        return true;
+    if (!hasMore) return;
+    const currentReset = resetRef.current; // 👈 cattura il valore corrente
+    setIsLoading(true);
+    fetchMaintenanceJobs(selectedType?.id, shipId, user?.id, page, 10, filters).then((data) => {
+      if (resetRef.current !== currentReset) return; // 👈 se nel frattempo è arrivato un reset, ignora
+      setMaintenanceData((prev) => {
+        const existingIds = new Set(prev.map((item) => item.id));
+        const newItems = (data?.jobs || []).filter((item) => !existingIds.has(item.id));
+        return [...prev, ...newItems];
       });
-};
+      setHasMore(data?.hasMore ?? false);
+      setIsLoading(false);
+    });
+  }, [page, selectedType, shipId, user, filters]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoading && activeTab === "maintenance") {
+          setPage((prev) => prev + 1);
+        }
+      },
+      { threshold: 0.1 }
+    );
+    if (loaderRef.current) observer.observe(loaderRef.current);
+    return () => observer.disconnect();
+  }, [hasMore, isLoading]);
+
+  const applyFilters = (data) => {
+    if (!Array.isArray(data)) return [];
+    if (!filters) return data;
+
+    return data.filter(item => {
+
+      const expiry = computeExpiryDate({
+        executionDate: item.execution_date,
+        endingDate: item.ending_date,
+        startingDate: item.starting_date,
+        recurrency: item.maintenance_list?.recurrency_type,
+        maintenanceList: item.job?.maintenance_list,
+      });
+
+      // Usa la stessa logica di getDeadlineVisuals per determinare lo "stato colore"
+      const getItemBgColor = () => {
+        if (!expiry) return "transparent";
+
+        const end = new Date(expiry);
+        end.setHours(0, 0, 0, 0);
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const early = Number(item.maintenance_list?.recurrency_type?.early_threshold ?? 0);
+        const due   = Number(item.maintenance_list?.recurrency_type?.due_threshold   ?? 0);
+        const delay = Number(item.maintenance_list?.recurrency_type?.delay_threshold  ?? 0);
+
+        const greenStart  = new Date(end); greenStart.setDate(end.getDate() - early);
+        const yellowStart = new Date(end); yellowStart.setDate(end.getDate() - due);
+        const orangeStart = new Date(end); // = end stesso
+        const redStart    = new Date(end); redStart.setDate(end.getDate() + delay);
+
+        if (today < greenStart)  return "transparent";           // programmata / attiva ok
+        if (today < yellowStart) return "rgb(45,182,71)";        // verde (early)
+        if (today < orangeStart) return "rgb(255,191,37)";       // giallo (due)
+        if (today < redStart)    return "rgb(244,114,22)";       // arancione (in scadenza)
+        return "rgb(208,2,27)";                                   // rosso (scaduta)
+      };
+
+      const bgColor = getItemBgColor();
+      const isInPausa = item.status_id === 2 || item.execution_state === 2;
+
+      const startDate = new Date(item.starting_date);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const isProgrammata = startDate > today;
+
+      // ---- FILTRI STATO ----
+      if (filters.stato) {
+        const { scaduta, scadutaDaPoco, inScadenza, attiva, programmata, inPausa } = filters.stato;
+        const statoFiltersActive = Object.values(filters.stato).some(Boolean);
+
+        if (statoFiltersActive) {
+          const matched = [
+            scaduta       && bgColor === "rgb(208,2,27)",          // rosso
+            scadutaDaPoco && bgColor === "rgb(244,114,22)",         // arancione = scaduta da poco
+            inScadenza    && bgColor === "rgb(255,191,37)",         // giallo = in scadenza
+            attiva        && (bgColor === "rgb(45,182,71)" || bgColor === "transparent"),  // verde + nessuna soglia
+            programmata   && isProgrammata,
+            inPausa       && isInPausa,
+          ].some(Boolean);
+
+          if (!matched) return false;
+        }
+      }
+
+      // ---- FILTRO RICORRENZA ----
+      if (filters.ricorrenza) {
+        const recurrenceMap = {
+          settimanale:   [2],
+          bisettimanale: [7],
+          mensile:       [3],
+          bimestrale:    [8],
+          trimestrale:   [4],
+          semestrale:    [30, 40],
+          annuale:       [5],
+          biennale:      [9],
+          triennale:     [10],
+        };
+
+        const selectedFilters = Object.entries(filters.ricorrenza)
+          .filter(([_, active]) => active)
+          .flatMap(([key]) => recurrenceMap[key] || []);
+
+        const recurrency = item.maintenance_list?.recurrency_type?.id;
+        if (selectedFilters.length > 0 && !selectedFilters.includes(recurrency)) return false;
+      }
+
+      // ---- FILTRO LIVELLO ----
+      if (filters.livello) {
+        const levelMap = {
+          aBordo:           ["I", "II ALFA"],        
+          inBanchina:       ["II BRAVO"],            
+          inBacino:         ["IV - DOCKYARD", "IV - FIRM"], 
+          fornitoreEsterno: ["III"],                 
+        };
+
+        const selectedLevels = Object.entries(filters.livello)
+          .filter(([_, active]) => active)
+          .flatMap(([key]) => levelMap[key] || []);
+
+        if (selectedLevels.length > 0) {
+          const levelValue = item.maintenance_list?.maintenance_level?.Level_MMI;
+          if (!selectedLevels.includes(levelValue)) return false;
+        }
+      }
+
+      // ---- FILTRO IMPIANTO ----
+      if (filters.system?.selectedElement) {
+        const selected = filters.system.selectedElement;
+
+        const elementCode = item.Element?.element_model?.ESWBS_code;
+
+        if (elementCode !== selected) return false;
+      }
+
+      // ---- FILTRO RICAMBI ----
+      if (filters.ricambi) {
+        const { richiesti } = filters.ricambi;
+        const hasSpares = Array.isArray(item.spares) && item.spares.length > 0;
+        if (richiesti && !hasSpares) return false;
+      }
+
+      return true;
+    });
+  };
 
     const countActiveFilters = () => {
       if (!filters) return 0;
@@ -189,7 +250,7 @@ const MaintenanceTable = () => {
       return count;
     };
 
-    const activeFilterCount = countActiveFilters();
+  const activeFilterCount = countActiveFilters();
 
   const { t, i18n } = useTranslation("maintenance");
   const [mounted, setMounted] = useState(false);
@@ -202,6 +263,32 @@ const MaintenanceTable = () => {
 
   return (
     <div className="w-full mx-auto rounded-lg shadow-md">
+
+      {eswbsFromUrl && (
+        <div className="flex mb-4 border-b border-white/20">
+          <button
+            onClick={() => setActiveTab("maintenance")}
+            className={`px-4 py-2 font-semibold ${
+              activeTab === "maintenance"
+                ? "border-b-2 border-white text-white"
+                : "text-white/60"
+            }`}
+          >
+            Manutenzioni ({maintenancedata.length})
+          </button>
+
+          <button
+            onClick={() => setActiveTab("condition")}
+            className={`px-4 py-2 font-semibold ${
+              activeTab === "condition"
+                ? "border-b-2 border-white text-white"
+                : "text-white/60"
+            }`}
+          >
+            Condizione ({conditionData.length})
+          </button>
+        </div>
+      )}
       
       <div className="items-center flex mb-2">
         <button
@@ -267,44 +354,32 @@ const MaintenanceTable = () => {
         <p className="border border-[#022a52] p-3 w-8 text-center"></p>
       </div>
 
-      {applyFilters(maintenancedata)
-        .sort((a, b) => {
-          const expA = computeExpiryDate({
-            executionDate: a.execution_date,
-            endingDate: a.ending_date,
-            startingDate: a.starting_date,
-            recurrency: a.maintenance_list?.recurrency_type?.name,
-            maintenanceList: a.job?.maintenance_list,
-          });
-
-          const expB = computeExpiryDate({
-            executionDate: b.execution_date,
-            endingDate: b.ending_date,
-            startingDate: b.starting_date,
-            recurrency: b.maintenance_list?.recurrency_type?.name,
-            maintenanceList: b.job?.maintenance_list,
-          });
-
-          const dateA = expA ? new Date(expA) : new Date(a.ending_date || a.starting_date);
-          const dateB = expB ? new Date(expB) : new Date(b.ending_date || b.starting_date);
-
-          return dateA - dateB;
-        })
-        .filter(
-          (item) =>
-            (!selectedType || item.recurrency_type_id === selectedType.id) &&
-            item.maintenance_list?.name
-        )
-        .map((item) => (
+      {activeTab === "maintenance" && (
+        maintenancedata.map((item) => (
           <MaintenanceRow key={item.id} data={item} />
-      ))}
+        ))
+      )}
 
+      {activeTab === "condition" && (
+        conditionData.length > 0 ? (
+          conditionData.map((item) => (
+            <MaintenanceRow key={item.id} data={item} />
+          ))
+        ) : (
+          <div className="p-4 text-white/60">Nessun dato disponibile</div>
+        )
+      )}
+
+      <div ref={loaderRef} className="py-4 text-center text-white/60 text-sm">
+        {isLoading && "Loading..."}
+        {!hasMore && maintenancedata.length > 0 && "Tutti i record caricati"}
+      </div>
 
       <SelectModal isOpen={isOpen} onClose={() => setIsOpen(false)} onSelect={handleSelectType} shipId={shipId} userId={user?.id} />
 
       <LegendModal isOpen={legendOpen} onClose={() => setLegendOpen(false)} />
 
-      <FilterModal isOpen={filterOpen} onClose={() => setFilterOpen(false)} onFiltersChange={(newFilters) => setFilters(newFilters)} />
+      <FilterModal isOpen={filterOpen} onClose={() => setFilterOpen(false)} onFiltersChange={(newFilters) => setFilters(newFilters)} initialSystem={eswbsFromUrl} />
         
     </div>
   );

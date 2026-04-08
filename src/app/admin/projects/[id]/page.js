@@ -21,8 +21,6 @@ export default function ProjectDetailsPage() {
   const match = pathname.match(/\/admin\/projects\/(\d+)/);
   const projectId = match ? match[1] : null;
 
-  console.log(projectId)
-
   useEffect(() => {
     if (!projectId) return;
     const fetchProject = async () => {

@@ -21,24 +21,27 @@ export async function fetchSpare(id, name) {
   }
 }
 
-export async function fetchSpares(ship_id) {
-    try {
-      const params = new URLSearchParams();
-      if (ship_id) params.append("ship_id", ship_id);
-  
-      const res = await fetch(`${BASE_URL}/api/spare/getSpares?${params.toString()}`);
-  
-      if (!res.ok) {
-        throw new Error(`Errore HTTP ${res.status}: Impossibile recuperare i ricambi`);
-      }
-  
-      const data = await res.json();
-      return data.spares || [];
-    } catch (error) {
-      console.error("Errore nel recupero dei ricambi:", error.message);
-      return [];
-    }
+export async function fetchSpares(ship_id, page = 1, limit = 10, filters = null, search = "", selectedCode = null) {
+  try {
+    const params = new URLSearchParams({ ship_id, page, limit });
+    if (search) params.append("search", search);
+    if (selectedCode) params.append("eswbs_code", selectedCode);
+    if (filters?.task?.inGiacenza) params.append("inGiacenza", "1");
+    if (filters?.task?.nonDisponibile) params.append("nonDisponibile", "1");
+
+    const magazzinoAttivi = Object.entries(filters?.magazzino || {})
+      .filter(([, v]) => v).map(([k]) => k);
+    if (magazzinoAttivi.length) params.append("magazzino", magazzinoAttivi.join(","));
+
+    const res = await fetch(`${BASE_URL}/api/spare/getSpares?${params}`);
+    if (!res.ok) throw new Error(`Errore HTTP ${res.status}`);
+    const data = await res.json();
+    return { spares: data.spares || [], hasMore: data.hasMore ?? false, total: data.total ?? 0 };
+  } catch (error) {
+    console.error("Errore nel recupero dei ricambi:", error.message);
+    return { spares: [], hasMore: false, total: 0 };
   }
+}
 
 export async function fetchSpareById(ean13, partNumber, eswbsSearch) {
     try {

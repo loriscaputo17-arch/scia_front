@@ -44,7 +44,6 @@ const getStatusColor = (gravity) => {
 };
 
 const MaintenanceRow = ({ data }) => {
-  console.log(data)
   const status = calculateStatus(data.data_recovery_expiration);
   const today = new Date();
   const dueDate = new Date(data.data_recovery_expiration);

@@ -1,35 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import FacilitiesList from "@/components/facilities/FacilitiesListxModal";
 import { useTranslation } from "@/app/i18n";
 
-export default function NotesModal({ isOpen, onClose2, onSelectCode }) {
-  /** -------------------------------------------------
-   * HOOKS (obbligatoriamente all’inizio)
-   * ------------------------------------------------- */
+export default function NotesModal({ isOpen, onClose2, onSelectCode, selectedCode: initialCode }) {
+  
   const [search, setSearch] = useState("");
-  const [selectedCode, setSelectedCode] = useState(null);
+  const [selectedCode, setSelectedCode] = useState(initialCode);
+
+  useEffect(() => {
+    setSelectedCode(initialCode);
+  }, [initialCode, isOpen]);
 
   const { t, i18n } = useTranslation("maintenance");
 
-  /** -------------------------------------------------
-   * EARLY RETURN (dopo i hook!)
-   * ------------------------------------------------- */
   if (!i18n?.isInitialized) return null;
   if (!isOpen) return null;
 
-  /** -------------------------------------------------
-   * HANDLERS
-   * ------------------------------------------------- */
   const handleConfirm = () => {
     onSelectCode(selectedCode);
     onClose2();
   };
 
-  /** -------------------------------------------------
-   * UI
-   * ------------------------------------------------- */
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-10">
       <div className="bg-[#022a52] sm:w-[70%] w-full sm:h-auto h-full p-6 rounded-md shadow-lg text-white overflow-y-auto max-h-[95vh]">
@@ -48,7 +41,7 @@ export default function NotesModal({ isOpen, onClose2, onSelectCode }) {
         {/* SEARCH FIELD */}
         <input
           type="text"
-          placeholder={t("search_here")}
+          placeholder={t("search_by_name")}
           className="w-full px-4 py-2 pr-10 bg-[#ffffff10] text-white rounded-md mb-4"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -58,6 +51,7 @@ export default function NotesModal({ isOpen, onClose2, onSelectCode }) {
         <FacilitiesList
           search={search}
           modal="yes"
+          eswbsCode={selectedCode} // 👈 QUESTO
           onSelect={(code) => setSelectedCode(code)}
         />
 

@@ -95,7 +95,6 @@ export default function ProjectESWBSTab({ projectId }) {
     const fetchSelected = async () => {
       try {
         const data = await getElementModels(projectId);
-        console.log(projectId)
 
         const mapped = data.map((item, index) => ({
           id:

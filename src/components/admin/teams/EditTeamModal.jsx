@@ -25,7 +25,6 @@ export default function EditTeamModal({ team, onSave, onCancel }) {
           getTeamMembers(team.id),
         ]);
 
-        console.log(teamMembers)
         setUsers(allUsers);
         setSelectedMembers(
           teamMembers.map((m) => ({

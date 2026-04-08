@@ -1,77 +1,56 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react";
-import Image from 'next/image';
+import { useRouter } from "next/navigation";
 import { useTranslation } from "@/app/i18n";
+import { useState, useEffect } from "react";
 
-const SparePartsStatus = ({ status }) => {
-
+const SparePartsStatus = ({ data }) => {
+  const router = useRouter();
   const { t, i18n } = useTranslation("facilities");
-      const [mounted, setMounted] = useState(false);
-    
-      useEffect(() => {
-        setMounted(true);
-      }, []);
-    
-      if (!mounted || !i18n.isInitialized) return null;
+  const [mounted, setMounted] = useState(false);
 
-    return (
-      <div>
-        <h2 className="text-lg text-[#789fd6] mb-2">{t("spare_parts_status")}</h2>
-        <ul>
-          {/*{status.map((item, index) => (
-            <li key={index} className="text-white flex items-center mb-2">
+  useEffect(() => { setMounted(true); }, []);
+  if (!mounted || !i18n.isInitialized) return null;
 
-              {index == 0 && (
-                            <Image 
-                            src="/icons/verified.svg"
-                            alt="verified icon"
-                            width={15} 
-                            height={15}
-                            className=" mr-2"
-                          />
-                          )}
+  const spares = data.spares || [];
+  const total = spares.length;
+  const parseQty = (q) => q ? parseFloat(q.toString().replace(',', '.').replace(/[^0-9.-]/g, '')) : 0;
+  const inStock = spares.filter(s => parseQty(s.quantity) > 0).length;
+  const outOfStock = total - inStock;
 
-                          {index == 1 && (
-                            <Image 
-                              src="/icons/cart.svg"
-                              alt="cart icon"
-                              width={15} 
-                              height={15}
-                              className=" mr-2 opacity-60"
-                            />
-                          )}
-              
-                          {index == 2 && (
-                            <Image 
-                              src="/icons/coming.svg"
-                              alt="coming icon"
-                              width={15} 
-                              height={15}
-                              className=" mr-2 opacity-60"
-                            />
-                          )}
-              
-                          {index == 3 && (
-                            <Image 
-                              src="/icons/warning.svg"
-                              alt="warning icon"
-                              width={15} 
-                              height={15}
-                              className=" mr-2"
-                            />
-                          )}
+  return (
+    <div>
+      <h2 className="text-lg text-[#789fd6] mb-3">{t("spare_parts_status")}</h2>
 
-            <p>{item.label} ({item.count})</p> 
-            <div className="ml-auto mr-8">
-              <svg fill="white" width="16px" height="16px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path d="M310.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L242.7 256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z"/></svg>
+      {total === 0 ? (
+        <p className="text-white/40 text-sm">Nessun ricambio</p>
+      ) : (
+        <div className="flex flex-col gap-2">
+          <div
+            className="flex items-center justify-between cursor-pointer hover:bg-white/5 rounded px-2 py-1"
+            onClick={() => router.push(`/dashboard/spare?eswbs_code=${data.model?.ESWBS_code}`)}
+          >
+            <p className="text-white text-sm">Totale ricambi</p>
+            <span className="text-[#789fd6] font-bold">{total}</span>
+          </div>
+          <div className="flex items-center justify-between px-2 py-1">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-green-400" />
+              <p className="text-white/60 text-sm">In giacenza</p>
             </div>
-          </li>
-          ))}*/}
-        </ul>
-      </div>
-    );
-  };
-  
-  export default SparePartsStatus;
-  
+            <span className="text-green-400 text-sm">{inStock}</span>
+          </div>
+          <div className="flex items-center justify-between px-2 py-1">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-red-400" />
+              <p className="text-white/60 text-sm">Non disponibili</p>
+            </div>
+            <span className="text-red-400 text-sm">{outOfStock}</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default SparePartsStatus;

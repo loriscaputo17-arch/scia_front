@@ -9,7 +9,6 @@ const QuantityControl = ({ quantity, spare_id }) => {
     setLoading(true);
     try {
       await updateProductQuantity(spare_id, newQuantity);
-      //console.log("Quantità aggiornata:", newQuantity);
     } catch (error) {
       console.error("Errore nell'aggiornamento della quantità:", error);
     } finally {

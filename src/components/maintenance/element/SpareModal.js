@@ -36,8 +36,6 @@ export default function SpareModal({ onClose, maintenanceListId }) {
         maintenanceList_id: maintenanceListId,
         };
         
-        //console.log(spareData)
-
     const result = await addSpareToMaintenanceList(maintenanceListId, spareData, imageFile);
 
     if (result) {

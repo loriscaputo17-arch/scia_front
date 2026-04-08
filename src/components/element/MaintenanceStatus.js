@@ -1,69 +1,49 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react";
-import Image from 'next/image';
+import { useRouter } from "next/navigation";
 import { useTranslation } from "@/app/i18n";
+import { useState, useEffect } from "react";
 
-const MaintenanceStatus = ({ status }) => {
-
+const MaintenanceStatus = ({ data }) => {
+  const router = useRouter();
   const { t, i18n } = useTranslation("facilities");
-    const [mounted, setMounted] = useState(false);
-  
-    useEffect(() => {
-      setMounted(true);
-    }, []);
-  
-    if (!mounted || !i18n.isInitialized) return null;
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
+  if (!mounted || !i18n.isInitialized) return null;
+
+  const total = data.maintenances?.length || 0;
+  const byRecurrency = {};
+  data.maintenances?.forEach(m => {
+    const name = m.recurrency_type?.name || "Altro";
+    byRecurrency[name] = (byRecurrency[name] || 0) + 1;
+  });
 
   return (
     <div>
-      <h2 className="text-lg text-[#789fd6] mb-2">{t("maintenance_status")}</h2>
+      <h2 className="text-lg text-[#789fd6] mb-3">{t("maintenance_status")}</h2>
 
-      <ul>
-        {/*{status.map((item, index) => (
-          <li key={index} className="text-white flex items-center mb-2">
-            {index <= 1 && (
-              <div
-                className="w-4 h-4 mr-2 rounded-sm"
-                style={{
-                  backgroundColor: index === 0 ? "#D0021B" : "#F47216",
-                }}
-              />
-            )}
-
-            {index == 2 && (
-              <div
-                className="w-4 h-4 mr-2 rounded-sm"
-                style={{
-                  backgroundColor: "#FFFFFF20",
-                }}
-              />
-            )}
-
-            {index == 3 && (
-              <Image 
-              src="/icons/doc.svg"
-              alt="document icon"
-              width={15} 
-              height={15}
-              className=" mr-2 opacity-60"
-            />
-            )}
-
-            <p>{item.label} ({item.count})</p>
-
-            <div className="ml-auto mr-8">
-                <svg fill="white" width="16px" height="16px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512">
-                  <path d="M310.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L242.7 256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z"/>
-                </svg>
-              </div>
-          </li>
-        ))}*/}
-      </ul>
+      {total === 0 ? (
+        <p className="text-white/40 text-sm">Nessuna manutenzione</p>
+      ) : (
+        <div className="flex flex-col gap-2">
+          <div
+            className="flex items-center justify-between cursor-pointer rounded py-1"
+            onClick={() => router.push(`/dashboard/maintenance?eswbs_code=${data.model?.ESWBS_code}`)}
+          >
+            <p className="text-white text-sm">Totale manutenzioni</p>
+            <span className="text-[#789fd6] font-bold">{total}</span>
+          </div>
+          {Object.entries(byRecurrency).map(([name, count]) => (
+            <div key={name} className="flex items-center justify-between py-1">
+              <p className="text-white/60 text-sm">{name}</p>
+              <span className="text-white/60 text-sm">{count}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
 
 export default MaintenanceStatus;
-
-  

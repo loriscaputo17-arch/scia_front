@@ -6,8 +6,6 @@ import EditMaintenanceLevelModal from "./EditMaintenanceLevelModal";
 export default function MaintenanceLevelTable({ levels, onLevelUpdated }) {
   const [selectedLevel, setSelectedLevel] = useState(null);
 
-  console.log(levels)
-
   const handleRowClick = (level) => {
     setSelectedLevel(level);
   };

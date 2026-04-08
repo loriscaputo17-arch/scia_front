@@ -21,15 +21,18 @@ const iconMap = {
 export default function ImpiantiList({ search, modal, eswbsCode, onSelect }) {
   const [impiantiData, setImpiantiData] = useState([]);
   const [openNodes, setOpenNodes] = useState({});
-  const [selectedCode, setSelectedCode] = useState(null);
-  const { user } = useUser();
+  const [selectedCode, setSelectedCode] = useState(eswbsCode);
   const router = useRouter();
 
-  const shipId = user?.teamInfo?.assignedShip?.id;
+  const { user, loading, selectedShipId: shipId } = useUser();
 
-  const handleSelect = (code) => {
-    setSelectedCode(code);
-    if (onSelect) onSelect(code);
+  useEffect(() => {
+    setSelectedCode(eswbsCode);
+  }, [eswbsCode]);
+
+  const handleSelect = (node) => {
+    setSelectedCode(node.eswbs_code);
+    if (onSelect) onSelect(node.eswbs_code);
   };
 
   useEffect(() => {
@@ -37,7 +40,7 @@ export default function ImpiantiList({ search, modal, eswbsCode, onSelect }) {
       if (!user?.id) return;
 
       try {
-        const result = await fetchElements(ship_id, user.id);
+        const result = await fetchElements(shipId, user.id);
         setImpiantiData(result);
 
         if (eswbsCode) {
@@ -66,8 +69,12 @@ export default function ImpiantiList({ search, modal, eswbsCode, onSelect }) {
         .map((node) => {
           const currentPath = [...path, node.id];
           const children = node.children ? filter(node.children, currentPath) : [];
-          const isMatch = node.name.toLowerCase().includes(searchText.toLowerCase());
+          const searchLower = searchText.toLowerCase();
 
+          const isMatch =
+            node.name?.toLowerCase().includes(searchLower) ||
+            node.eswbs_code?.toLowerCase().includes(searchLower);
+            
           if (isMatch || children.length > 0) {
             path.forEach((id) => (expanded[id] = true));
             return { ...node, children };
@@ -142,19 +149,21 @@ export default function ImpiantiList({ search, modal, eswbsCode, onSelect }) {
               )}
 
               <span>
-                {node.code}&nbsp; - &nbsp;{node.name}
+                {node.eswbs_code}&nbsp; - &nbsp;{node.name}
               </span>
             </div>
 
             <div className="flex items-center space-x-4">
               <input
                 type="checkbox"
-                checked={node.code === selectedCode}
+                checked={node.eswbs_code === selectedCode}
                 onChange={(e) => {
+                  e.stopPropagation(); // 👈 IMPORTANTISSIMO
                   if (e.target.checked) {
-                    handleSelect(node.code);
+                    handleSelect(node);
                   } else {
-                    handleSelect(null);
+                    setSelectedCode(null);
+                    if (onSelect) onSelect(null);
                   }
                 }}
                 className="mr-2 cursor-pointer w-[20px] h-[20px] appearance-none border-2 border-[#ffffff20] bg-transparent rounded-sm transition-all duration-200 checked:bg-[#789fd6] checked:border-[#789fd6] hover:opacity-80 focus:outline-none"

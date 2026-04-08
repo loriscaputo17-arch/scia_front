@@ -7,42 +7,41 @@ import { useUser } from "@/context/UserContext";
 import { markAsOk } from "@/api/maintenance";
 import { useRouter } from "next/navigation";
 import { getMaintenanceLevels } from "@/api/admin/maintenanceLevel";
-import { getSpares } from "@/api/admin/spares";
 
-export default function ConfirmMaintenance({ onClose, maintenanceListId, onClick }) {
+// IDs ricorrenza che consentono selezione spare
+const SELECTABLE_RECURRENCY_IDS = [6, 13];
+
+export default function ConfirmMaintenance({ onClose, maintenanceListId, onClick, details }) {
   const [selectedTime, setSelectedTime] = useState(null);
   const [level, setLevel] = useState("");
   const [levels, setLevels] = useState([]);
-  const [spares, setSpares] = useState([]);
   const [selectedSpareIDs, setSelectedSpareIDs] = useState([]);
 
-  const { user } = useUser();
   const router = useRouter();
-  const shipId = user?.teamInfo?.assignedShip?.id;
-
+  const { user, selectedShipId: shipId } = useUser();
   const { t } = useTranslation("maintenance");
 
   const timeOptions = [5, 10, 15, 30, 45, 60, 90, 120];
 
+  // Dati dalla manutenzione passata come prop
+  const recurrencyTypeId = details?.[0]?.maintenance_list?.RecurrencyType_ID;
+  const sparesSelectable = SELECTABLE_RECURRENCY_IDS.includes(recurrencyTypeId);
+
+  const spares = details?.[0]?.spares || [];
+  const consumables = details?.[0]?.consumables || [];
+  const tools = details?.[0]?.tools || [];
+
   useEffect(() => {
     async function fetchData() {
       try {
-        const [levelData, spareData] = await Promise.all([
-          getMaintenanceLevels(),
-          getSpares(shipId)
-        ]);
-
+        const levelData = await getMaintenanceLevels();
         setLevels(levelData);
-        setSpares(spareData);
       } catch (e) {
         console.error("Errore nel caricamento:", e);
       }
     }
-
     fetchData();
-  }, [shipId]);
-
-  const userType = "User logged in";
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -54,32 +53,25 @@ export default function ConfirmMaintenance({ onClose, maintenanceListId, onClick
     const spareData = {
       time: selectedTime,
       level,
-      userType,
+      userType: "User logged in",
       userId: user?.id,
       maintenanceList_id: maintenanceListId,
       spares: selectedSpareIDs,
     };
 
-    const result = await markAsOk(maintenanceListId, spareData, selectedSpareIDs);
+    const result = await markAsOk(maintenanceListId, spareData, selectedSpareIDs, shipId);
 
     if (result) {
       onClick("ok");
       onClose();
 
-      // Mini feedback
       const successToast = document.createElement("div");
-      successToast.style.position = "fixed";
-      successToast.style.bottom = "30px";
-      successToast.style.left = "50%";
-      successToast.style.transform = "translateX(-50%)";
-      successToast.style.padding = "15px 25px";
-      successToast.style.background = "#2db647";
-      successToast.style.color = "white";
-      successToast.style.fontWeight = "bold";
-      successToast.style.borderRadius = "10px";
-      successToast.style.fontSize = "18px";
+      successToast.style.cssText = `
+        position:fixed; bottom:30px; left:50%; transform:translateX(-50%);
+        padding:15px 25px; background:#2db647; color:white;
+        font-weight:bold; border-radius:10px; font-size:18px;
+      `;
       successToast.innerText = t("maintenance_completed_successfully");
-
       document.body.appendChild(successToast);
 
       setTimeout(() => {
@@ -93,7 +85,7 @@ export default function ConfirmMaintenance({ onClose, maintenanceListId, onClick
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-[#000000ab] z-50">
+    <div className="fixed inset-0 flex items-center justify-center bg-[#000000ab] z-50 overflow-y-auto py-6">
       <form onSubmit={handleSubmit} className="bg-[#022a52] sm:w-[70%] w-full p-5 rounded-md text-white">
 
         {/* Header */}
@@ -104,12 +96,62 @@ export default function ConfirmMaintenance({ onClose, maintenanceListId, onClick
 
         <p className="text-[18px] font-semibold mb-4">{t("please_confirm")}</p>
 
-        {/* Spare Parts Selection */}
-        <label className="text-[#789FD6] text-sm">{t("please_select_spare_parts_used")}</label>
-        <SpareSelector spares={spares} onSelectChange={setSelectedSpareIDs} />
+        {/* SPARE PARTS */}
+        {spares.length > 0 && (
+          <div className="mb-5">
+            <label className="text-[#789FD6] text-sm block mb-2">
+              {sparesSelectable ? t("please_select_spare_parts_used") : "Ricambi"}
+            </label>
+
+            {sparesSelectable ? (
+              // Selezionabili
+              <SpareSelector spares={spares} onSelectChange={setSelectedSpareIDs} />
+            ) : (
+              // Solo visualizzazione
+              <div className="flex flex-col gap-2">
+                {spares.map((s) => (
+                  <div key={s.ID} className="flex justify-between bg-[#ffffff0d] rounded-lg px-4 py-2">
+                    <span className="text-white text-sm">{s.Part_name || s.Serial_number}</span>
+                    <span className="text-white/50 text-xs">Qty: {s.quantity || "—"}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* CONSUMABLES */}
+        {consumables.length > 0 && (
+          <div className="mb-5">
+            <label className="text-[#789FD6] text-sm block mb-2">Consumabili utilizzati</label>
+            <div className="flex flex-col gap-2">
+              {consumables.map((c) => (
+                <div key={c.ID} className="flex justify-between bg-[#ffffff0d] rounded-lg px-4 py-2">
+                  <span className="text-white text-sm">{c.Commercial_Name}</span>
+                  <span className="text-white/50 text-xs">{c.quantity ?? "AR"} {c.unit}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* TOOLS */}
+        {tools.length > 0 && (
+          <div className="mb-5">
+            <label className="text-[#789FD6] text-sm block mb-2">Attrezzature utilizzate</label>
+            <div className="flex flex-col gap-2">
+              {tools.map((tool) => (
+                <div key={tool.ID} className="flex justify-between bg-[#ffffff0d] rounded-lg px-4 py-2">
+                  <span className="text-white text-sm">{tool.Tool_name}</span>
+                  <span className="text-white/50 text-xs">{tool.quantity ?? "—"} {tool.unit}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Time Selection */}
-        <div className="mt-6">
+        <div className="mt-4">
           <label className="text-[#789FD6] text-sm">{t("time_taken")}</label>
           <div className="flex flex-wrap gap-2 mt-2">
             {timeOptions.map((min) => (
@@ -146,7 +188,7 @@ export default function ConfirmMaintenance({ onClose, maintenanceListId, onClick
         </div>
 
         {/* User */}
-        <div className="mt-6">
+        <div className="mt-4">
           <label className="text-[#789FD6] text-sm">{t("user_executor")}</label>
           <input
             type="text"

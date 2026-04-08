@@ -28,8 +28,7 @@ const FailuresTable = () => {
     },
   });
 
-  const { user } = useUser();
-  const shipId = user?.teamInfo?.assignedShip?.id;
+  const { user, selectedShipId: shipId } = useUser();
 
   const [loading, setLoading] = useState(true);
 

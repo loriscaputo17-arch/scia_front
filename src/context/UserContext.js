@@ -10,6 +10,11 @@ const UserContext = createContext(null);
 export function UserProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [selectedShipId, setSelectedShipId] = useState(() => {
+    if (typeof window === "undefined") return null;
+    const stored = localStorage.getItem("selectedShipId");
+    return stored ? Number(stored) : null;
+  });
   const router = useRouter();
   const pathname = usePathname();
 
@@ -27,7 +32,7 @@ export function UserProvider({ children }) {
       };
     });
   };
-  
+
   const getNotes = (failureId) => failureNotes[failureId] || { text: [], photo: [], vocal: [] };
   const clearNotes = (failureId) => {
     setFailureNotes((prev) => {
@@ -53,14 +58,20 @@ export function UserProvider({ children }) {
       pathname.startsWith("/login-pin") ||
       pathname.startsWith("/adminLogin") ||
       pathname.startsWith("/reset-password") ||
-      pathname.startsWith("/forgot-password");
+      pathname.startsWith("/forgot-password") ||
+      pathname.startsWith("/select-ship");   // ← aggiunto
 
     if (isAuthPage && token) {
       try {
         const decoded = jwtDecode(token);
         const now = Date.now() / 1000;
         if (decoded.exp && decoded.exp > now) {
-          router.replace("/dashboard");
+          // Se sei su select-ship, lascialo stare
+          if (pathname.startsWith("/select-ship")) {
+            setLoading(false);
+            return;
+          }
+          router.replace("/select-ship");  // da login → select-ship, non dashboard
           return;
         }
       } catch {
@@ -95,17 +106,21 @@ export function UserProvider({ children }) {
         const result = await getProfileData();
         if (result) {
           setUser(result);
+          const storedShipId = localStorage.getItem("selectedShipId");
+          setSelectedShipId(storedShipId ? Number(storedShipId) : null);
           setLoading(false);
         } else {
           setTimeout(async () => {
             const retry = await getProfileData();
             if (retry) {
               setUser(retry);
+              const storedShipId = localStorage.getItem("selectedShipId");
+              setSelectedShipId(storedShipId ? Number(storedShipId) : null);
               setLoading(false);
             } else {
               localStorage.removeItem("token");
               setLoading(false);
-             router.replace("/login");
+              router.replace("/login");
             }
           }, 500);
         }
@@ -123,6 +138,8 @@ export function UserProvider({ children }) {
         user,
         setUser,
         loading,
+        selectedShipId,
+        setSelectedShipId,
         addNote,
         getNotes,
         clearNotes,

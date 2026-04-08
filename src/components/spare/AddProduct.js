@@ -29,8 +29,7 @@ export default function AddProduct({ onClose }) {
   const [imagePreview, setImagePreview] = useState(null);
   const [facilitiesOpen, setFacilitiesOpen] = useState(false);
 
-  const { user } = useUser();
-  const shipId = user?.teamInfo?.assignedShip?.id;
+  const { user, selectedShipId: shipId } = useUser();
 
   const { t, i18n } = useTranslation("maintenance");
   const [mounted, setMounted] = useState(false);

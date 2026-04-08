@@ -49,7 +49,6 @@ export default function InfoCard({ data }) {
     }
   }, [data]);
   
-
   const [isOpen2, setIsOpen2] = useState(false);
 
   async function handleSave() {
@@ -165,11 +164,11 @@ export default function InfoCard({ data }) {
   <div className="flex flex-col">
     <label className="text-[#789FD6] text-sm mb-2">{t("email")}</label>
     <input
-  type="text"
-  value={email}
-  disabled
-  className="px-4 py-2 bg-[#ffffff10] text-white opacity-50 cursor-not-allowed rounded-md"
-/>
+      type="text"
+      value={email}
+      disabled
+      className="px-4 py-2 bg-[#ffffff10] text-white opacity-50 cursor-not-allowed rounded-md"
+    />
 
   </div>
 
@@ -197,7 +196,7 @@ export default function InfoCard({ data }) {
             alt={selectedRank.grado}
             className="w-4 h-8 mr-2"
           />
-          {selectedRank.grado}
+          {t(selectedRank.grado)}
         </>
       )}
       <span className="ml-auto">▼</span>

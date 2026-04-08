@@ -2,12 +2,10 @@
 
 import { useState, useRef, useEffect } from "react";
 import Image from 'next/image';
-import FacilitiesModal from "./FacilitiesModal";
 import { useTranslation } from "@/app/i18n";
 
-export default function FilterSidebar({ isOpen, onClose, filters, toggleFilter }) {
+export default function FilterSidebar({ isOpen, onClose, filters, toggleFilter, availableTags }) {
 
-  const [facilitiesOpen, setFacilitiesOpen] = useState(false);
   const sidebarRef = useRef(null);
 
   useEffect(() => {
@@ -91,6 +89,24 @@ export default function FilterSidebar({ isOpen, onClose, filters, toggleFilter }
           ])}
         </div>
 
+        {availableTags.length > 0 && (
+          <div className="mb-5">
+            <h3 className="text-[16px] text-[#789fd6] mb-2">Tag</h3>
+            {availableTags.map(tag => (
+              <label key={tag} className="flex items-center gap-2 mb-4 cursor-pointer">
+                <span className="text-sm capitalize">{tag.charAt(0).toUpperCase() + tag.slice(1).toLowerCase()}</span>
+                <input
+                  type="checkbox"
+                  checked={filters.tags[tag] || false}
+                  onChange={() => toggleFilter("tags", tag)}
+                  className="mr-2 cursor-pointer w-[20px] h-[20px] appearance-none border-2 border-[#ffffff20] bg-transparent rounded-sm transition-all duration-200 
+                    checked:bg-[#789fd6] checked:border-[#789fd6] hover:opacity-80 focus:outline-none ml-auto"
+                />
+              </label>
+            ))}
+          </div>
+        )}
+
         <button
           className="w-full bg-[#789fd6] p-3 mt-8 text-white font-semibold cursor-pointer rounded-md"
           onClick={onClose}
@@ -99,7 +115,6 @@ export default function FilterSidebar({ isOpen, onClose, filters, toggleFilter }
         </button>
       </div>
 
-      <FacilitiesModal isOpen={facilitiesOpen} onClose2={() => setFacilitiesOpen(false)} />
     </div>
   ) : null;
 }

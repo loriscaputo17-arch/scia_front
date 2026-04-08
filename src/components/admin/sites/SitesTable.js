@@ -2,7 +2,6 @@ import GenericTable from "@/components/admin/GenericTable";
 import EditSiteModal from "./EditSiteModal";
 
 export default function SitesTable({ sites, onUpdate }) {
-  console.log(sites)
   return (
     <GenericTable
       data={sites}

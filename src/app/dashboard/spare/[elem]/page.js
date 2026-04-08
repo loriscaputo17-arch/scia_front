@@ -43,14 +43,12 @@ export default function SparePage({ params }) {
       if (!data) return;
   
       try {
-        const response = await addProduct(data[0].id, user.id, "1", "in_attesa");
+        const response = await addProduct(data[0].ID, user.id, "1", "in_attesa");
         setCartAdded(true);
       } catch (error) {
         console.error("Errore nell'aggiungere il prodotto al carrello:", error);
       }
     };
-
-    console.log(data)
     
   const { t, i18n } = useTranslation("maintenance");
   if (!i18n.isInitialized) return null;

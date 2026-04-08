@@ -5,11 +5,13 @@ import Image from "next/image";
 import { useTranslation } from "@/app/i18n";
 import { useEffect, useState } from "react";
 import { fetchMaintenanceJob } from "@/api/maintenance";
+import { useUser } from "@/context/UserContext";
 
 export default function Breadcrumbs({ title, position }) {
   const pathname = usePathname();
   const paths = pathname.split("/").filter(Boolean);
   const lastSegment = paths.at(-1);
+  const { selectedShipId: shipId } = useUser();
 
   const [label, setLabel] = useState(null);
   const { t } = useTranslation("breadcrumbs");
@@ -20,23 +22,40 @@ export default function Breadcrumbs({ title, position }) {
   useEffect(() => {
     if (!isNumeric(lastSegment)) return;
 
-    fetchMaintenanceJob(lastSegment).then((result) => {
+    fetchMaintenanceJob(lastSegment, shipId).then((result) => {
       if (result) setLabel(result[0]?.maintenance_list?.name);
     });
   }, [lastSegment]);
 
   const capitalize = (string) =>
-    string.replace(/%20/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+    string
+      .replace(/%20/g, " ")
+      .toLowerCase()
+      .replace(/^\w/, (c) => c.toUpperCase());
+
+  useEffect(() => {
+    if (!isNumeric(lastSegment)) return;
+
+    fetchMaintenanceJob(lastSegment, shipId).then((result) => {
+      const name = result?.[0]?.maintenance_list?.name;
+      if (name) {
+        setLabel(
+          name.charAt(0).toUpperCase() + name.slice(1).toLowerCase()
+        );
+      }
+    });
+  }, [lastSegment]);
 
   const getLabel = (segment) => {
     const finalLabel = segment === lastSegment && label ? label : segment;
-
     const translated = t(finalLabel.toLowerCase());
 
-    // Se NON esiste traduzione → capitalizza
-    return translated === finalLabel.toLowerCase()
-      ? capitalize(finalLabel)
-      : translated;
+    if (translated === finalLabel.toLowerCase()) {
+      return capitalize(finalLabel);
+    }
+
+    // Capitalizza anche le traduzioni
+    return translated.charAt(0).toUpperCase() + translated.slice(1).toLowerCase();
   };
 
   return (

@@ -35,8 +35,6 @@ export default function EditOwnerModal({ owner, onSave, onCancel }) {
         NCAGE_Code: hasNCAGE ? editData.NCAGE_Code : null,
       };
 
-      console.log(payload)
-
       const updated = await updateOrganization(editData.ID, payload);
 
       onSave(updated.organization ?? updated);

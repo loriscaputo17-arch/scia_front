@@ -45,7 +45,6 @@ export default function ElementPage({ params }) {
     if (!failures || failures.length === 0) return;
 
     const failureData = failures.find((item) => String(item.id) === id);
-    //console.log(failureData)
     setFailure(failureData);
 
     if (!failureData) return;

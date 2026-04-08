@@ -41,8 +41,8 @@ export default function FacilitiesModal({ isOpen, onClose2, eswbs, onSelectSyste
                 modal="yes"
                 eswbsCode={eswbs}
                 onSelect={onSelectSystem}
+                close={onClose2}
             />
-
 
         </div>
         <button

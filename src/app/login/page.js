@@ -73,7 +73,7 @@ export default function LoginPage() {
 
       await new Promise((resolve) => setTimeout(resolve, 800));
 
-      router.replace("/dashboard");
+      router.replace("/select-ship");
     } catch (err) {
       setError(err.message || "Errore di connessione al server");
     } finally {

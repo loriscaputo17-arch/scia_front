@@ -24,7 +24,6 @@ export default function ProjectFilesTab({ shipModelId }) {
       const data = await getProjectFiles(shipModelId);
       setFiles(data);
 
-      console.log(data)
     } catch (err) {
       console.error("Errore caricamento files:", err);
     } finally {

@@ -12,9 +12,6 @@ import { useUser } from "@/context/UserContext";
 import { useTranslation } from "@/app/i18n";
 
 export default function MoveProduct({ isOpen, onClose, data }) {
-  /** ---------------------------------------------------------
-   * HOOKS (devono essere sempre allo stesso ordine)
-   * --------------------------------------------------------- */
   const [ean13, setEan13] = useState("");
   const [partNumber, setPartNumber] = useState("");
   const [eswbsSearch, setEswbsSearch] = useState("");
@@ -30,14 +27,13 @@ export default function MoveProduct({ isOpen, onClose, data }) {
 
   const scannerRef = useRef(null);
 
-  const { user } = useUser();
-  const shipId = user?.teamInfo?.assignedShip?.id;
+  const [newLocation, setNewLocation] = useState("");
+  const [newQuantity, setNewQuantity] = useState("");
+
+  const { user, selectedShipId: shipId } = useUser();
 
   const { t, i18n } = useTranslation("maintenance");
 
-  /** ---------------------------------------------------------
-   * EFFECT: Gestione scanner
-   * --------------------------------------------------------- */
   useEffect(() => {
     if (!scanning) return;
 
@@ -70,15 +66,9 @@ export default function MoveProduct({ isOpen, onClose, data }) {
     };
   }, [scanning, data]);
 
-  /** ---------------------------------------------------------
-   * EARLY RETURN DOPO GLI HOOK
-   * --------------------------------------------------------- */
   if (!i18n?.isInitialized) return null;
   if (!isOpen) return null;
 
-  /** ---------------------------------------------------------
-   * HANDLERS
-   * --------------------------------------------------------- */
   const handleSearch = async () => {
     try {
       const response = await fetchSpareById(ean13, partNumber, eswbsSearch);
@@ -98,13 +88,26 @@ export default function MoveProduct({ isOpen, onClose, data }) {
     if (!results) return;
 
     try {
-      const updatedData = {
+      // Assicurati che locationData sia sempre un array
+      const locationData = Array.isArray(results.locationData)
+        ? results.locationData
+        : results.locationData
+          ? [results.locationData]
+          : [];
+
+      if (!locationData.length || !locationData[0]?.newLocation) {
+        alert("Inserisci una nuova ubicazione");
+        return;
+      }
+
+      const updateData = {
         ...results,
-        updatedAt: new Date().toISOString(),
-        scanId: data?.id || null,
+        locationData,
       };
 
-      await updateSpare(updatedData.ID, updatedData, shipId, user.id);
+      await updateSpare(results.ID, updateData, shipId, user.id);
+      alert("Ricambio aggiornato con successo");
+      resetModal();
     } catch (error) {
       console.error("Errore durante la conferma:", error);
     }

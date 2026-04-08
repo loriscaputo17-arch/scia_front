@@ -18,7 +18,6 @@ export default function AddTeamsModal({ onClose }) {
     setNewTeams([...newTeams, { name: "", role: "", manager: "", email: "", active: true }]);
   const removeTeamRow = (index) => setNewTeams(newTeams.filter((_, i) => i !== index));
   const submitTeams = () => {
-    console.log("Submit teams", newTeams);
     onClose();
   };
 

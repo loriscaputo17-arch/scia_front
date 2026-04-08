@@ -7,11 +7,10 @@ import { usePathname } from "next/navigation";
 export default function AlghoWidget() {
   const { user } = useUser();
   const pathname = usePathname();
-  const [botId, setBotId] = useState(null);
 
   const hiddenPaths = [
     "/login",
-    "/login-pin",
+    "/login-pin", 
     "/forgot-password",
     "/reset-password",
   ];
@@ -19,25 +18,19 @@ export default function AlghoWidget() {
   const isHidden = hiddenPaths.includes(pathname);
 
   useEffect(() => {
-    if (isHidden) return;
+    // Aspetta che user sia disponibile
+    if (isHidden || !user) return;
 
-    const lang = typeof window !== "undefined" ? (localStorage.getItem("i18nextLng") || "it") : "it";
+    const lang = localStorage.getItem("i18nextLng") || "it";
 
-    if (user && lang) {
-      const bot =
-        lang === "it"
-          ? user.bot_id_ita
-          : lang === "es"
-          ? user.bot_id_esp
-          : user.bot_id_ing;
+    const botId =
+      lang === "it" ? user.botIds?.ita :
+      lang === "es" ? user.botIds?.esp :
+      user.botIds?.ing;
+    if (!botId) return;
 
-      setBotId(bot);
-    }
-  }, [user, pathname]);
 
-  useEffect(() => {
-    if (isHidden || !botId) return;
-
+    // Evita duplicati
     if (document.getElementById("algho-viewer-module")) return;
 
     const tag = document.createElement("algho-viewer");
@@ -56,7 +49,8 @@ export default function AlghoWidget() {
     script.setAttribute("charset", "UTF-8");
     script.setAttribute("src", "https://virtualassistant.alghoncloud.com/algho-viewer.min.js");
     document.body.appendChild(script);
-  }, [botId, isHidden]);
+
+  }, [user, isHidden]); // ← dipende da user, si riesegue quando arriva
 
   return null;
 }

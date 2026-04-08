@@ -12,6 +12,7 @@ import { useParams } from "next/navigation";
 import { useTranslation } from "@/app/i18n";
 import { updateMaintenanceJobStatus } from "@/api/maintenance";
 import StatusBadgeDetail from "@/components/maintenance/StatusBadgeDetail";
+import { useUser } from "@/context/UserContext";
 
 export default function ElementPage({ params }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -22,6 +23,8 @@ export default function ElementPage({ params }) {
 
   const [maintenancedata, setMaintenanceData] = useState(false);
 
+  const { user, selectedShipId: shipId } = useUser();
+
   const handleOptionClick = async (option) => {
     const res = await updateMaintenanceJobStatus(jobId, option);
     if (res) {
@@ -30,10 +33,17 @@ export default function ElementPage({ params }) {
   };
 
   useEffect(() => {
-    fetchMaintenanceJob(jobId).then((data) => {
+    if (!jobId, !shipId) return;
+    fetchMaintenanceJob(jobId, shipId).then((data) => { 
       setMaintenanceData(data || []);
     });
-  }, [jobId]);
+  }, [jobId, shipId]);
+
+  const job = maintenancedata[0];
+
+  const isOnCondition =
+    job?.recurrency_type_id === 6 ||
+    job?.maintenance_list?.recurrency_type?.id === 6;
 
   const { t, i18n } = useTranslation("maintenance");
   const [mounted, setMounted] = useState(false);
@@ -53,18 +63,25 @@ export default function ElementPage({ params }) {
       </div>
 
       <div className="flex items-start sm:items-center pt-4 pb-4">
+
         <div className='block sm:flex items-center gap-4'>
-          
-        <p className="text-2xl font-bold sm:mb-0 mb-2">
-          {(() => {
-            if (!maintenancedata[0]?.maintenance_list.name) return "";
-            const text = maintenancedata[0]?.maintenance_list.name.toLowerCase();
-            const formatted =
-              text.charAt(0).toUpperCase() + text.slice(1);
-            return formatted;
-          })()}
-        </p>
-          <StatusBadgeDetail dueDate={maintenancedata[0]?.ending_date} pauseDate={maintenancedata[0]?.pauseDate} string={maintenancedata[0]?.status.name} />
+          <p className="text-2xl font-bold sm:mb-0 mb-2">
+            {(() => {
+              if (!maintenancedata[0]?.maintenance_list.name) return "";
+              const text = maintenancedata[0]?.maintenance_list.name.toLowerCase();
+              const formatted =
+                text.charAt(0).toUpperCase() + text.slice(1);
+              return formatted;
+            })()}
+          </p>
+
+          {!isOnCondition && (
+            <StatusBadgeDetail
+              dueDate={job?.ending_date}
+              pauseDate={job?.pauseDate}
+              string={job?.status.name}
+            />
+          )}
         </div>
 
         <div className="ml-auto flex items-center gap-4">

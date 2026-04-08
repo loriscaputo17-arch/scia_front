@@ -46,3 +46,17 @@ export async function getScans({ shipId, userId }) {
     throw error;
   }
 }
+
+export async function createScan(element_id, ship_id, user_id) {
+  try {
+    const response = await fetch(`${BASE_URL}/api/scans/createScan`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ element_id, ship_id, user_id }),
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("Errore createScan:", error);
+    return null;
+  }
+}

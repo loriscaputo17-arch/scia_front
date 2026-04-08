@@ -11,15 +11,15 @@ const categories = [
   { id: "Checklist",   key: "checklist",   imageSrc: "/icons/dash_checklist.png" },
   { id: "Readings",    key: "readings",    imageSrc: "/icons/time.png" },
   { id: "Spare",       key: "spares",      imageSrc: "/icons/dash_corr.png" },
-  { id: "files",       key: "files",       imageSrc: "/icons/ico_dashboard_manual.png" },
+  { id: "manual",      key: "files",      imageSrc: "/icons/ico_dashboard_manual.png" },
   { id: "failures",    key: "failures",    imageSrc: "/icons/dash_warning.png" }
 ];
 
 export default function DashboardGrid() {
-  const { user, loading } = useUser();
   const { t, i18n } = useTranslation("dashboard");
 
-  const shipId = user?.teamInfo?.assignedShip?.id;
+  const { user, loading, selectedShipId: shipId } = useUser();
+
 
   // ⚠️ Always call all hooks before returning!
   const { data, error } = useSWR(

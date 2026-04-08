@@ -21,7 +21,6 @@ export default function TeamsPage() {
     const fetchTeams = async () => {
       try {
         const data = await getTeams();
-        console.log(data)
         setTeams(data);
       } catch (err) {
         console.error("Errore nel fetch squadre:", err);

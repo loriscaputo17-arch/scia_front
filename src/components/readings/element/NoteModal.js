@@ -138,7 +138,7 @@ export default function NoteModal({ onClose, id, status = "pending" }) {
               onClick={handleTextAdd}
               className="bg-[#789fd6] mt-2 px-3 py-2 rounded-md text-white w-full"
             >
-              {t("add")}
+              {t("add_note")}
             </button>
           </div>
         )}
