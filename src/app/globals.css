@@ -28,3 +28,8 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+select option {
+  background-color: #022a52;
+  color: #ffffff;
+}
