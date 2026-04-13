@@ -56,7 +56,7 @@ export default function AdminLoginPin() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-[#0A2038] text-white">
       <h1 className="text-3xl font-bold mb-2">
-        <span>Scia</span>{" "}
+        <span>Wake</span>{" "}
         <span className="italic font-light text-lg">Admin</span>
       </h1>
       <h2 className="text-md font-regular mb-6">{t("insert_pin")}</h2>

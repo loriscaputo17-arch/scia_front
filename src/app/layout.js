@@ -17,8 +17,11 @@ const barlow = Barlow({ subsets: ["latin"], weight: "500" });
 
 // ✅ Titolo e descrizione restano qui
 export const metadata = {
-  title: "Scia",
-  description: "Scia App",
+  title: "Wake",
+  description: "Wake App",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 // ✅ Viewport spostato qui, come export a parte

@@ -1,22 +1,28 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import Image from "next/image";
 import UserInfo from "@/components/header/UserInfo";
 import QRCode from "@/components/icons/Qrcode";
 import LastScan from "@/components/header/LastScan";
 import MenuButton from "@/components/header/MenuButton";
 import BackIcon from "@/components/icons/BackIcon";
-import { useTranslation } from "@/app/i18n";
+import Link from "next/link";
 
 export default function DashboardHeader() {
   const pathname = usePathname();
-  const router = useRouter(); 
+  const router = useRouter();
 
-  const isDashboard = pathname === "/dashboard"; 
+  const isDashboard = pathname === "/dashboard";
 
   return (
     <div className="flex w-full h-[80px] items-center gap-4">
+      <Link href="/dashboard" className="flex-[1] h-full flex items-center justify-center bg-[#fff] rounded-lg p-2">
+        <div>
+          <Image src="/logo.png" alt="Logo" width={120} height={60} className="object-contain h-full w-auto" />
+        </div>
+      </Link>
+
       {!isDashboard && (
         <div 
           className="flex-[1] h-full flex items-center justify-center bg-[#022a52] rounded-lg cursor-pointer"
