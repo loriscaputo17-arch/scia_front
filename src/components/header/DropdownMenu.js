@@ -43,74 +43,74 @@ export default function DropdownMenu({ isOpen, onClose }) {
   return (
     <div
       ref={menuRef}
-      className="absolute z-2 right-0 mt-2 w-48 bg-[#022a52] text-white shadow-md rounded-md py-2"
+      className="absolute z-2 right-0 mt-2 w-48 bg-[#fff] text-white shadow-md rounded-md py-2"
     >
       <ul className="text-sm">
         <li>
-          <Link href="/dashboard" className="flex items-center px-4 py-2 hover:bg-[#033d75] cursor-pointer">
-              <Image
+          <Link href="/dashboard" className="flex items-center px-4 py-2 hover:bg-gray-100 text-[#022a52] cursor-pointer">
+              <Image 
                                                     src="/icons/homeico.svg"
                                                     alt="back"
-                                                    className="mr-2 invert"
-                                                    width={14}
+                                                    className="mr-2"
+                                                    width={14} 
                                                     height={14}
                                                   />
               Dashboard
           </Link>
         </li>
         <li>
-          <div onClick={() => router.push(`/dashboard/impianti`)} className="flex items-center px-4 py-2 hover:bg-[#033d75] cursor-pointer">
-          <Image
+          <div onClick={() => router.push(`/dashboard/impianti`)} className="flex items-center px-4 py-2 hover:bg-gray-100 text-[#022a52] cursor-pointer">
+          <Image 
                                                     src="/icons/facilitiesico.svg"
                                                     alt="back"
-                                                    className="mr-2 invert"
-                                                    width={14}
+                                                    className="mr-2"
+                                                    width={14} 
                                                     height={14}
                                                   />               {t("facilities")}
           </div>
         </li>
         <li>
-          <Link href="/dashboard/cart" className="flex items-center px-4 py-2 hover:bg-[#033d75] cursor-pointer">
-          <Image
+          <Link href="/dashboard/cart" className="flex items-center px-4 py-2 hover:bg-gray-100 text-[#022a52] cursor-pointer">
+          <Image 
                                                     src="/icons/cartico.svg"
                                                     alt="back"
-                                                    className="mr-2 invert"
-                                                    width={14}
+                                                    className="mr-2"
+                                                    width={14} 
                                                     height={14}
                                                   />
                                                                 {t("cart")}
           </Link>
         </li>
         {/*<li>
-          <Link href="/warehouse_management" className="flex items-center px-4 py-2 hover:bg-[#033d75] cursor-pointer">
-          <Image
+          <Link href="/warehouse_management" className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer">
+          <Image 
                                                     src="/icons/storageico.svg"
                                                     alt="back"
-                                                    className="mr-2 invert"
-                                                    width={14}
+                                                    className="mr-2"
+                                                    width={14} 
                                                     height={14}
                                                   />
                {t("manage_warehouse")}
           </Link>
         </li>*/}
         <li>
-          <Link href="/dashboard/remoteAssistance" className="flex items-center px-4 py-2 hover:bg-[#033d75] cursor-pointer">
-          <Image
+          <Link href="/dashboard/remoteAssistance" className="flex items-center px-4 py-2 hover:bg-gray-100 text-[#022a52] cursor-pointer">
+          <Image 
                                                     src="/icons/remoteassico.svg"
                                                     alt="back"
-                                                    className="mr-2 invert"
-                                                    width={14}
+                                                    className="mr-2"
+                                                    width={14} 
                                                     height={14}
                                                   />            {t("remote_assistance")}
           </Link>
         </li>
         <li>
-          <Link href="/dashboard/settings" className="flex items-center px-4 py-2 hover:bg-[#033d75] cursor-pointer">
-          <Image
+          <Link href="/dashboard/settings" className="flex items-center px-4 py-2 hover:bg-gray-100 text-[#022a52] cursor-pointer">
+          <Image 
                                                     src="/icons/settingsico.svg"
                                                     alt="back"
-                                                    className="mr-2 invert"
-                                                    width={14}
+                                                    className="mr-2"
+                                                    width={14} 
                                                     height={14}
                                                   />              {t("settings")}
           </Link>
@@ -118,8 +118,8 @@ export default function DropdownMenu({ isOpen, onClose }) {
 
         {user?.type == "Comando" &&
           <li>
-            <Link href="/dashboard/overview" className="flex items-center px-4 py-2 hover:bg-[#033d75] cursor-pointer">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="#ffffff" width={"14px"} height={"14px"} viewBox="0 0 512 512"><path d="M0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zm320 96c0-26.9-16.5-49.9-40-59.3L280 88c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 204.7c-23.5 9.5-40 32.5-40 59.3c0 35.3 28.7 64 64 64s64-28.7 64-64zM144 176a32 32 0 1 0 0-64 32 32 0 1 0 0 64zm-16 80a32 32 0 1 0 -64 0 32 32 0 1 0 64 0zm288 32a32 32 0 1 0 0-64 32 32 0 1 0 0 64zM400 144a32 32 0 1 0 -64 0 32 32 0 1 0 64 0z"/></svg>             
+            <Link href="/dashboard/overview" className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="#000" width={"14px"} height={"14px"} viewBox="0 0 512 512"><path d="M0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zm320 96c0-26.9-16.5-49.9-40-59.3L280 88c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 204.7c-23.5 9.5-40 32.5-40 59.3c0 35.3 28.7 64 64 64s64-28.7 64-64zM144 176a32 32 0 1 0 0-64 32 32 0 1 0 0 64zm-16 80a32 32 0 1 0 -64 0 32 32 0 1 0 64 0zm288 32a32 32 0 1 0 0-64 32 32 0 1 0 0 64zM400 144a32 32 0 1 0 -64 0 32 32 0 1 0 64 0z"/></svg>             
                 &nbsp; &nbsp; Overview
             </Link>
           </li>

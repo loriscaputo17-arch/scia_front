@@ -63,7 +63,7 @@ export default function UserInfo() {
 
   return (
     <div
-      className="flex items-center gap-4 p-3 rounded-lg cursor-pointer transition"
+      className="flex items-center gap-4 p-1 rounded-lg cursor-pointer transition"
       onClick={() => router.push("/dashboard/profile")}
     >
       <Image

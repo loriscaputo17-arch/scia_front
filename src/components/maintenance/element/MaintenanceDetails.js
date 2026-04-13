@@ -40,7 +40,7 @@ export default function MaintenanceDetails({ details }) {
   const [openConfirmOk, setOpenConfirmOk] = useState(false);
 
   const { t, i18n } = useTranslation("maintenance");
-  const { getNotes, clearNotes, user } = useUser();
+  const { getNotes, clearNotes, user, selectedShipId: shipId } = useUser();
 
   const router = useRouter();
 
@@ -48,7 +48,7 @@ export default function MaintenanceDetails({ details }) {
 
   const maintenanceId = details?.[0]?.id || null;
   const executionState = details?.[0]?.execution_state;
-
+  
   useEffect(() => {
     if (!maintenanceId) return;
 
@@ -142,12 +142,12 @@ export default function MaintenanceDetails({ details }) {
   };
 
   const handleAnomaly = async () => {
-    await markAs(maintenanceId, 2);
+    await markAs(maintenanceId, 2, shipId);
     window.location.reload();
   };
 
   const handleNotPerformed = async () => {
-    await markAs(maintenanceId, 3);
+    await markAs(maintenanceId, 3, shipId);
     window.location.reload();
   };
 
@@ -252,37 +252,55 @@ export default function MaintenanceDetails({ details }) {
 
         <div className="md:flex inline gap-4 mb-6">
 
-          <button
-            onClick={() => !disabled && handleOk()}
-            disabled={disabled}
-            className={`w-full py-6 rounded-md flex justify-center items-center transition 
-            ${disabled ? "bg-gray-600 opacity-40 cursor-not-allowed" : "bg-[#15375d] hover:bg-blue-700"}`}
-          >
-            <Image src="/done.png" width={20} height={20} alt="OK" className="mr-2" />
-            {t("ok")}
-          </button>
+  {/* OK */}
+  <button
+    onClick={() => executionState !== "1" && handleOk()}
+    disabled={disabled}
+    className={`w-full py-6 rounded-md flex justify-center items-center transition 
+    ${executionState === "1"
+      ? "bg-green-700 opacity-90 cursor-not-allowed"
+      : disabled
+        ? "bg-gray-600 opacity-40 cursor-not-allowed"
+        : "bg-[#15375d] hover:bg-blue-700"
+    }`}
+  >
+    <Image src="/done.png" width={20} height={20} alt="OK" className="mr-2" />
+    {t("ok")}
+  </button>
 
-          {/* ANOMALIA */}
-          <button
-            onClick={() => !disabled && handleAnomaly()}
-            disabled={disabled}
-            className={`w-full py-6 rounded-md flex justify-center items-center transition 
-            ${disabled ? "bg-gray-600 opacity-40 cursor-not-allowed" : "bg-[#15375d] hover:bg-blue-700"}`}
-          >
-            <Image src="/x.png" width={20} height={20} alt="Anomaly" className="mr-2" />
-            {t("anomaly")}
-          </button>
+  {/* ANOMALIA */}
+  <button
+    onClick={() => executionState !== "2" && !disabled && handleAnomaly()}
+    disabled={disabled}
+    className={`w-full py-6 rounded-md flex justify-center items-center transition 
+    ${executionState === "2"
+      ? "bg-red-700 opacity-90 cursor-not-allowed"
+      : disabled
+        ? "bg-gray-600 opacity-40 cursor-not-allowed"
+        : "bg-[#15375d] hover:bg-blue-700"
+    }`}
+  >
+    <Image src="/x.png" width={20} height={20} alt="Anomaly" className="mr-2" />
+    {t("anomaly")}
+  </button>
 
-          <button
-            onClick={() => !disabled && handleNotPerformed()}
-            disabled={disabled}
-            className={`w-full py-6 rounded-md flex justify-center items-center transition
-            ${disabled ? "bg-gray-600 opacity-40 cursor-not-allowed" : "bg-[#15375d] hover:bg-blue-700"}`}
-          >
-            <Image src="/time.png" width={20} height={20} alt="Not performed" className="mr-2" />
-            {t("not_perfomed")}
-          </button>
-        </div>
+  {/* NOT PERFORMED */}
+  <button
+    onClick={() => executionState !== "3" && !disabled && handleNotPerformed()}
+    disabled={disabled}
+    className={`w-full py-6 rounded-md flex justify-center items-center transition
+    ${executionState === "3"
+      ? "bg-yellow-600 opacity-90 cursor-not-allowed"
+      : disabled
+        ? "bg-gray-600 opacity-40 cursor-not-allowed"
+        : "bg-[#15375d] hover:bg-blue-700"
+    }`}
+  >
+    <Image src="/time.png" width={20} height={20} alt="Not performed" className="mr-2" />
+    {t("not_perfomed")}
+  </button>
+
+</div>
       </div>
 
       {modalAudioHistory && (

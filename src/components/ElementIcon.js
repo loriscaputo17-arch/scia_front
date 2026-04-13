@@ -1,15 +1,15 @@
 import Image from "next/image";
 
 const elementIcons = {
-  1: "/icons/facilities/ico1.svg",
-  2: "/icons/facilities/ico2.svg",
-  3: "/icons/facilities/ico3.svg",
-  4: "/icons/facilities/ico4.svg",
-  5: "/icons/facilities/ico5.svg",
-  6: "/icons/facilities/ico6.svg",
-  7: "/icons/facilities/ico7.svg",
-  8: "/icons/facilities/ico8.svg",
-  9: "/icons/facilities/ico9.svg",
+  1: "/icons/facilities/Ico1.svg",
+  2: "/icons/facilities/Ico2.svg",
+  3: "/icons/facilities/Ico3.svg",
+  4: "/icons/facilities/Ico4.svg",
+  5: "/icons/facilities/Ico5.svg",
+  6: "/icons/facilities/Ico6.svg",
+  7: "/icons/facilities/Ico7.svg",
+  8: "/icons/facilities/Ico8.svg",
+  9: "/icons/facilities/Ico9.svg",
 };
 
 const getElementIcon = (elementId) => {

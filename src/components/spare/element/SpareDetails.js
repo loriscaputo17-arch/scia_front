@@ -88,19 +88,20 @@ const SpareDetails = ({ details }) => {
             </button>
           </div>
         )}
-
-        {/* IMMAGINE */}
-        <div>
-          <h2 className="text-lg text-[#789fd6] mb-2">{t("image")}</h2>
-          <Image
-            src={spare.image || "/spareexample.png"}
-            alt="Spare"
-            width={80}
-            height={80}
-            className="rounded-lg cursor-pointer"
-            onClick={() => setZoomImage(spare.image || "/spareexample.png")}
-          />
-        </div>
+        
+        {spare.image && (
+          <div>
+            <h2 className="text-lg text-[#789fd6] mb-2">{t("image")}</h2>
+            <Image
+              src={spare.image || "/spareexample.png"}
+              alt="Spare"
+              width={80}
+              height={80}
+              className="rounded-lg cursor-pointer"
+              onClick={() => setZoomImage(spare.image || "/spareexample.png")}
+            />
+          </div>
+        )}
 
         {/* EAN13 */}
         {spare.ean13 && (
@@ -200,6 +201,21 @@ const SpareDetails = ({ details }) => {
             >
               Apri
             </button>
+          </div>
+        )}
+
+        {/* SHIPYARD ARRANGEMENT DRAWING */}
+        {spare.Shipyard_arrangement_drawing_link && (
+          <div>
+            <h2 className="text-lg text-[#789fd6] mb-2">Shipyard Arrangement Drawing</h2>
+            <Image
+              src={spare.Shipyard_arrangement_drawing_link}
+              alt="Shipyard Arrangement Drawing"
+              width={200}
+              height={200}
+              className="rounded-lg cursor-pointer object-contain"
+              onClick={() => setZoomImage(spare.Shipyard_arrangement_drawing_link)}
+            />
           </div>
         )}
 
