@@ -33,7 +33,7 @@ export default function QRPrintPage() {
     const fetchData = async () => {
       if (!user?.id) return;
       try {
-        const result = await fetchElements(shipId, user.id, teamId, ["UI", "IU"]);
+        const result = await fetchElements(shipId, user.id, teamId, ["El", "EI"]);
         const flat = flattenElements(result || []);
         setElements(flat);
         setLoading(false);
