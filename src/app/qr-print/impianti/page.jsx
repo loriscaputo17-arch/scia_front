@@ -18,24 +18,17 @@ const flattenElements = (nodes, level = 0) => {
   return result;
 };
 
-// splitDescription rimossa dal frontend: ora è solo nel backend.
-// L'Excel viene generato server-side da exportDymoExcel.
-
 async function downloadDymoExcel(toPrint, shipId, lcnTypes = []) {
   const elementIds = toPrint.map((el) => el.id);
-
   const response = await fetch(`${BASE_API_URL}/api/element/${shipId}/dymo-export`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ lcnTypes, elementIds }),
-    // credentials: "include", // decommentare se usi cookie/JWT
   });
-
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
     throw new Error(err.error || `HTTP ${response.status}`);
   }
-
   const blob = await response.blob();
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -56,12 +49,26 @@ export default function QRPrintPage() {
   const [selected, setSelected] = useState(new Set());
   const [selectMode, setSelectMode] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // JS-driven breakpoint — bypasses Next.js CSS media query issues
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 700);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  useEffect(() => {
+    if (!isMobile) setMobileMenuOpen(false);
+  }, [isMobile]);
 
   useEffect(() => {
     const fetchData = async () => {
       if (!user?.id) return;
       try {
-        const result = await fetchElements(shipId, user.id, teamId, ["El", "EI"]);
+        const result = await fetchElements(shipId, user.id, teamId, ["IU"]);
         const flat = flattenElements(result || []);
         setElements(flat);
         setLoading(false);
@@ -95,15 +102,16 @@ export default function QRPrintPage() {
   const selectAll = () => setSelected(new Set(filtered.map((el) => el.id)));
   const clearAll = () => setSelected(new Set());
 
-  const toPrint = selectMode && selected.size > 0
-    ? filtered.filter((el) => selected.has(el.id))
-    : filtered;
+  const toPrint =
+    selectMode && selected.size > 0
+      ? filtered.filter((el) => selected.has(el.id))
+      : filtered;
 
   const handleDownloadExcel = async () => {
     if (exporting) return;
     setExporting(true);
+    setMobileMenuOpen(false);
     try {
-      // ✅ CORRETTO: (toPrint, shipId) — non il filename come nella versione vecchia
       await downloadDymoExcel(toPrint, shipId);
     } catch (err) {
       console.error("Errore export Excel:", err);
@@ -121,12 +129,47 @@ export default function QRPrintPage() {
     );
   }
 
+  // ─── Action buttons — reused in both desktop toolbar and mobile menu ─────────
+  const actionButtons = (
+    <>
+      <button
+        className={`btn btn-ghost ${selectMode ? "active" : ""}`}
+        onClick={() => { setSelectMode((v) => !v); clearAll(); setMobileMenuOpen(false); }}
+      >
+        ☑ Selezione manuale
+        {selectMode && selected.size > 0 && <span className="badge">{selected.size}</span>}
+      </button>
+      {selectMode && (
+        <>
+          <button className="btn btn-ghost" onClick={() => { selectAll(); setMobileMenuOpen(false); }}>Tutti</button>
+          <button className="btn btn-danger" onClick={() => { clearAll(); setMobileMenuOpen(false); }}>Deseleziona</button>
+        </>
+      )}
+      <button
+        className="btn btn-secondary"
+        onClick={handleDownloadExcel}
+        disabled={exporting || toPrint.length === 0}
+        title="Scarica file Excel compatibile con DYMO"
+      >
+        {exporting ? "Esportando..." : `↓ DYMO Excel${selectMode && selected.size > 0 ? ` (${selected.size})` : ` (${toPrint.length})`}`}
+      </button>
+      <button
+        className="btn btn-primary"
+        onClick={() => { window.print(); setMobileMenuOpen(false); }}
+      >
+        Stampa {selectMode && selected.size > 0 ? `(${selected.size})` : `(${toPrint.length})`}
+      </button>
+    </>
+  );
+
   return (
     <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;700&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { background: #001c38; font-family: 'Rajdhani', sans-serif; color: white; }
+
+        /* ── TOOLBAR (desktop — unchanged) ── */
         .toolbar { position: sticky; top: 0; z-index: 100; background: #022a52; border-bottom: 1px solid rgba(120,159,214,0.2); padding: 14px 24px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
         .toolbar-title { font-size: 17px; font-weight: 700; letter-spacing: 0.08em; white-space: nowrap; }
         .toolbar-meta { font-family: 'Share Tech Mono', monospace; font-size: 10px; color: #789fd6; letter-spacing: 0.1em; }
@@ -136,6 +179,20 @@ export default function QRPrintPage() {
         .search-input { width: 100%; background: rgba(0,0,0,0.25); border: 1px solid rgba(120,159,214,0.25); color: white; padding: 7px 12px 7px 34px; border-radius: 4px; font-family: 'Rajdhani', sans-serif; font-size: 14px; outline: none; transition: border-color 0.2s; }
         .search-input::placeholder { color: rgba(255,255,255,0.3); }
         .search-input:focus { border-color: #789fd6; }
+        .toolbar-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+
+        /* ── MOBILE TOOLBAR ── */
+        .toolbar-mobile { position: sticky; top: 0; z-index: 100; background: #022a52; border-bottom: 1px solid rgba(120,159,214,0.2); }
+        .toolbar-mobile-top { display: flex; align-items: center; gap: 10px; padding: 12px 14px; }
+        .toolbar-mobile-search { position: relative; flex: 1; min-width: 0; }
+        .toolbar-mobile-search svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #789fd6; pointer-events: none; }
+        .toolbar-mobile-search input { width: 100%; background: rgba(0,0,0,0.25); border: 1px solid rgba(120,159,214,0.25); color: white; padding: 8px 12px 8px 34px; border-radius: 6px; font-family: 'Rajdhani', sans-serif; font-size: 14px; outline: none; -webkit-appearance: none; }
+        .toolbar-mobile-search input::placeholder { color: rgba(255,255,255,0.3); }
+        .hamburger { background: transparent; border: 1px solid rgba(120,159,214,0.4); color: #789fd6; border-radius: 6px; padding: 8px 11px; cursor: pointer; font-size: 18px; line-height: 1; flex-shrink: 0; }
+        .mobile-menu { background: #011e3a; border-top: 1px solid rgba(120,159,214,0.15); padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+        .mobile-menu .btn { width: 100%; text-align: center; padding: 12px; font-size: 15px; border-radius: 6px; }
+
+        /* ── BUTTONS ── */
         .btn { border: none; padding: 7px 16px; font-family: 'Rajdhani', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; border-radius: 4px; transition: background 0.15s; white-space: nowrap; flex-shrink: 0; }
         .btn-ghost { background: transparent; border: 1px solid rgba(120,159,214,0.35); color: #789fd6; }
         .btn-ghost:hover { background: rgba(120,159,214,0.1); }
@@ -148,10 +205,16 @@ export default function QRPrintPage() {
         .btn-danger { background: transparent; border: 1px solid rgba(248,113,113,0.4); color: #f87171; }
         .btn-danger:hover { background: rgba(248,113,113,0.1); }
         .badge { display: inline-flex; align-items: center; justify-content: center; background: #789fd6; color: white; border-radius: 999px; font-size: 11px; font-weight: 700; min-width: 20px; height: 20px; padding: 0 6px; margin-left: 6px; }
-        .toolbar-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
-        .stats-bar { padding: 8px 24px; background: rgba(0,0,0,0.2); border-bottom: 1px solid rgba(120,159,214,0.1); display: flex; align-items: center; gap: 20px; font-family: 'Share Tech Mono', monospace; font-size: 14px; color: rgba(120,159,214,0.7); letter-spacing: 0.1em; }
+
+        /* ── STATS BAR ── */
+        .stats-bar { padding: 8px 24px; background: rgba(0,0,0,0.2); border-bottom: 1px solid rgba(120,159,214,0.1); display: flex; align-items: center; gap: 20px; font-family: 'Share Tech Mono', monospace; font-size: 14px; color: rgba(120,159,214,0.7); letter-spacing: 0.1em; overflow-x: auto; white-space: nowrap; }
         .stats-bar strong { color: white; margin-left: 4px; }
+
+        /* ── GRID ── */
         .grid-wrapper { padding: 24px; display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 16px; }
+        .grid-wrapper-mobile { padding: 12px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+
+        /* ── QR CARD ── */
         .qr-card { background: white; color: #001c38; border-radius: 6px; overflow: hidden; display: flex; flex-direction: column; position: relative; transition: box-shadow 0.15s, transform 0.15s; }
         .qr-card.selectable { cursor: pointer; }
         .qr-card.selectable:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(120,159,214,0.3); }
@@ -165,85 +228,126 @@ export default function QRPrintPage() {
         .qr-card-header-label { font-family: 'Share Tech Mono', monospace; font-size: 10px; letter-spacing: 0.15em; color: #789fd6; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         .qr-card-header-eswbs { font-family: 'Share Tech Mono', monospace; font-size: 14px; color: rgba(255,255,255,0.6); }
         .qr-card-body { padding: 12px; display: flex; flex-direction: column; align-items: center; gap: 7px; flex: 1; }
+        .qr-card-body-mobile { padding: 8px; display: flex; flex-direction: column; align-items: center; gap: 5px; flex: 1; }
         .qr-img-wrapper img { width: 180px; height: 180px; display: block; }
+        .qr-img-wrapper-mobile img { width: 100%; height: auto; aspect-ratio: 1; display: block; }
         .qr-card-name { font-size: 14px; font-weight: 700; text-align: center; line-height: 1.3; color: #001c38; }
+        .qr-card-name-mobile { font-size: 11px; font-weight: 700; text-align: center; line-height: 1.3; color: #001c38; word-break: break-word; }
         .qr-card-serial { font-family: 'Share Tech Mono', monospace; font-size: 14px; color: #789fd6; text-align: center; }
+        .qr-card-serial-mobile { font-family: 'Share Tech Mono', monospace; font-size: 9px; color: #789fd6; text-align: center; word-break: break-all; }
         .qr-card-url { font-family: 'Share Tech Mono', monospace; font-size: 7px; color: #aaa; text-align: center; word-break: break-all; line-height: 1.4; }
         .empty { grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: rgba(120,159,214,0.5); font-family: 'Share Tech Mono', monospace; font-size: 13px; letter-spacing: 0.1em; }
 
         @media print {
-          .toolbar, .stats-bar { display: none !important; }
+          .toolbar, .toolbar-mobile, .stats-bar { display: none !important; }
           body { background: white !important; }
-          .grid-wrapper { padding: 6mm; gap: 5mm; grid-template-columns: repeat(4, 1fr); }
+          .grid-wrapper, .grid-wrapper-mobile { padding: 6mm; gap: 5mm; grid-template-columns: repeat(4, 1fr) !important; }
           .qr-card { break-inside: avoid; border: 1px solid #ddd; box-shadow: none !important; outline: none !important; opacity: 1 !important; transform: none !important; }
           .select-check { display: none !important; }
           .qr-card.print-hidden { display: none !important; }
+          .qr-card-name-mobile { font-size: 11px !important; }
+          .qr-img-wrapper-mobile img { width: 140px !important; height: 140px !important; }
         }
       `}</style>
 
-      <div className="toolbar">
-        <div>
-          <div className="toolbar-title">QR Code Impianti</div>
-          <div className="toolbar-meta">NAVE {shipId}</div>
-        </div>
-        <div className="divider" />
-        <div className="search-wrap">
-          <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-          </svg>
-          <input
-            className="search-input"
-            placeholder="Cerca nome, S/N, ESWBS..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-        <div className="divider" />
-        <button
-          className={`btn btn-ghost ${selectMode ? "active" : ""}`}
-          onClick={() => { setSelectMode((v) => !v); clearAll(); }}
-        >
-          ☑ Selezione manuale
-          {selectMode && selected.size > 0 && <span className="badge">{selected.size}</span>}
-        </button>
-        {selectMode && (
-          <>
-            <button className="btn btn-ghost" onClick={selectAll}>Tutti</button>
-            <button className="btn btn-danger" onClick={clearAll}>Deseleziona</button>
-          </>
-        )}
-        <div className="toolbar-right">
+      {/* ── DESKTOP TOOLBAR ── */}
+      {!isMobile && (
+        <div className="toolbar">
+          <div>
+            <div className="toolbar-title">QR Code Impianti</div>
+            <div className="toolbar-meta">NAVE {shipId}</div>
+          </div>
+          <div className="divider" />
+          <div className="search-wrap">
+            <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+            <input
+              className="search-input"
+              placeholder="Cerca nome, S/N, ESWBS..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          <div className="divider" />
           <button
-            className="btn btn-secondary"
-            onClick={handleDownloadExcel}
-            disabled={exporting || toPrint.length === 0}
-            title="Scarica file Excel compatibile con DYMO"
+            className={`btn btn-ghost ${selectMode ? "active" : ""}`}
+            onClick={() => { setSelectMode((v) => !v); clearAll(); }}
           >
-            {exporting
-              ? "Esportando..."
-              : `↓ DYMO Excel${selectMode && selected.size > 0 ? ` (${selected.size})` : ` (${toPrint.length})`}`}
+            ☑ Selezione manuale
+            {selectMode && selected.size > 0 && <span className="badge">{selected.size}</span>}
           </button>
-          <button className="btn btn-primary" onClick={() => window.print()}>
-            Stampa {selectMode && selected.size > 0 ? `(${selected.size})` : `(${toPrint.length})`}
-          </button>
+          {selectMode && (
+            <>
+              <button className="btn btn-ghost" onClick={selectAll}>Tutti</button>
+              <button className="btn btn-danger" onClick={clearAll}>Deseleziona</button>
+            </>
+          )}
+          <div className="toolbar-right">
+            <button
+              className="btn btn-secondary"
+              onClick={handleDownloadExcel}
+              disabled={exporting || toPrint.length === 0}
+            >
+              {exporting ? "Esportando..." : `↓ DYMO Excel${selectMode && selected.size > 0 ? ` (${selected.size})` : ` (${toPrint.length})`}`}
+            </button>
+            <button className="btn btn-primary" onClick={() => window.print()}>
+              Stampa {selectMode && selected.size > 0 ? `(${selected.size})` : `(${toPrint.length})`}
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
-      <div className="stats-bar">
+      {/* ── MOBILE TOOLBAR ── */}
+      {isMobile && (
+        <div className="toolbar-mobile">
+          <div className="toolbar-mobile-top">
+            <div style={{ flexShrink: 0 }}>
+              <div className="toolbar-title">QR Impianti</div>
+              <div className="toolbar-meta">NAVE {shipId}</div>
+            </div>
+            <div className="toolbar-mobile-search">
+              <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+              </svg>
+              <input
+                placeholder="Cerca..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+            <button
+              className="hamburger"
+              onClick={() => setMobileMenuOpen((v) => !v)}
+              aria-label="Menu azioni"
+            >
+              {mobileMenuOpen ? "✕" : "☰"}
+            </button>
+          </div>
+          {mobileMenuOpen && (
+            <div className="mobile-menu">
+              {actionButtons}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── STATS BAR ── */}
+      <div className="stats-bar" style={{ padding: isMobile ? "7px 14px" : undefined, fontSize: isMobile ? "11px" : undefined }}>
         <span>TOTALE <strong>{elements.length}</strong></span>
         <span>VISUALIZZATI <strong>{filtered.length}</strong></span>
         {selectMode && <span>SELEZIONATI <strong>{selected.size}</strong></span>}
         <span>DA STAMPARE <strong>{toPrint.length}</strong></span>
       </div>
 
-      <div className="grid-wrapper">
+      {/* ── GRID ── */}
+      <div className={isMobile ? "grid-wrapper-mobile" : "grid-wrapper"}>
         {filtered.length === 0 ? (
           <div className="empty">NESSUN RISULTATO PER "{search}"</div>
         ) : filtered.map((el) => {
           const isSelected = selected.has(el.id);
           const isDeselected = selectMode && selected.size > 0 && !isSelected;
           const isPrintHidden = selectMode && selected.size > 0 && !isSelected;
-
           const url = `${BASE_APP_URL}/dashboard/impianti/${el.id}`;
           const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(url)}&margin=6&color=001c38`;
 
@@ -270,17 +374,31 @@ export default function QRPrintPage() {
                 <span className="qr-card-header-label">SCIA · IMPIANTO</span>
                 <span className="qr-card-header-eswbs">{el.element_model?.ESWBS_code || el.eswbs_code}</span>
               </div>
-              <div className="qr-card-body">
-                <div className="qr-img-wrapper">
-                  <img src={qrSrc} alt={`QR ${el.name}`} />
+              {isMobile ? (
+                <div className="qr-card-body-mobile">
+                  <div className="qr-img-wrapper-mobile">
+                    <img src={qrSrc} alt={`QR ${el.name}`} loading="lazy" />
+                  </div>
+                  <div className="qr-card-name-mobile" style={{ paddingLeft: `${(el.level ?? 0) * 6}px` }}>
+                    {el.name}
+                  </div>
+                  <div className="qr-card-serial-mobile">Code: {el.code}</div>
+                  <div className="qr-card-serial-mobile">ESWBS: {el.eswbs_code}</div>
+                  <div className="qr-card-url">{url}</div>
                 </div>
-                <div className="qr-card-name" style={{ paddingLeft: `${(el.level ?? 0) * 10}px` }}>
-                  {el.name}
+              ) : (
+                <div className="qr-card-body">
+                  <div className="qr-img-wrapper">
+                    <img src={qrSrc} alt={`QR ${el.name}`} />
+                  </div>
+                  <div className="qr-card-name" style={{ paddingLeft: `${(el.level ?? 0) * 10}px` }}>
+                    {el.name}
+                  </div>
+                  <div className="qr-card-serial">Code: {el.code}</div>
+                  <div className="qr-card-serial">ESWBS: {el.eswbs_code}</div>
+                  <div className="qr-card-url">{url}</div>
                 </div>
-                <div className="qr-card-serial">Code: {el.code}</div>
-                <div className="qr-card-serial">ESWBS: {el.eswbs_code}</div>
-                <div className="qr-card-url">{url}</div>
-              </div>
+              )}
             </div>
           );
         })}
