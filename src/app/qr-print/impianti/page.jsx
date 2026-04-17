@@ -5,20 +5,47 @@ import { useUser } from "@/context/UserContext";
 import { fetchElements } from "@/api/elements";
 
 const BASE_APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://scia-frontend.vercel.app/";
+const BASE_API_URL = process.env.NEXT_PUBLIC_API_URL_DEV || "https://scia-back.onrender.com";
 
 const flattenElements = (nodes, level = 0) => {
   let result = [];
-
   nodes.forEach((node) => {
     result.push({ ...node, level });
-
     if (node.children?.length) {
       result = result.concat(flattenElements(node.children, level + 1));
     }
   });
-
   return result;
 };
+
+// splitDescription rimossa dal frontend: ora è solo nel backend.
+// L'Excel viene generato server-side da exportDymoExcel.
+
+async function downloadDymoExcel(toPrint, shipId, lcnTypes = []) {
+  const elementIds = toPrint.map((el) => el.id);
+
+  const response = await fetch(`${BASE_API_URL}/api/element/${shipId}/dymo-export`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ lcnTypes, elementIds }),
+    // credentials: "include", // decommentare se usi cookie/JWT
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.error || `HTTP ${response.status}`);
+  }
+
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `dymo_import_nave${shipId}.xlsx`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
 
 export default function QRPrintPage() {
   const { user, selectedShipId: shipId } = useUser();
@@ -28,6 +55,7 @@ export default function QRPrintPage() {
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState(new Set());
   const [selectMode, setSelectMode] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -66,11 +94,28 @@ export default function QRPrintPage() {
 
   const selectAll = () => setSelected(new Set(filtered.map((el) => el.id)));
   const clearAll = () => setSelected(new Set());
-  const toPrint = selectMode && selected.size > 0 ? filtered.filter((el) => selected.has(el.id)) : filtered;
+
+  const toPrint = selectMode && selected.size > 0
+    ? filtered.filter((el) => selected.has(el.id))
+    : filtered;
+
+  const handleDownloadExcel = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      // ✅ CORRETTO: (toPrint, shipId) — non il filename come nella versione vecchia
+      await downloadDymoExcel(toPrint, shipId);
+    } catch (err) {
+      console.error("Errore export Excel:", err);
+      alert("Errore durante l'export Excel. Riprova.");
+    } finally {
+      setExporting(false);
+    }
+  };
 
   if (loading) {
     return (
-      <div style={{ display:"flex", alignItems:"center", justifyContent:"center", minHeight:"100vh", background:"#001c38", color:"white" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: "#001c38", color: "white" }}>
         Caricamento impianti...
       </div>
     );
@@ -97,6 +142,9 @@ export default function QRPrintPage() {
         .btn-ghost.active { background: rgba(120,159,214,0.18); border-color: #789fd6; color: white; }
         .btn-primary { background: #789fd6; color: white; }
         .btn-primary:hover { background: #5a83c0; }
+        .btn-secondary { background: transparent; border: 1px solid rgba(34,197,94,0.45); color: #4ade80; }
+        .btn-secondary:hover { background: rgba(34,197,94,0.1); }
+        .btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; }
         .btn-danger { background: transparent; border: 1px solid rgba(248,113,113,0.4); color: #f87171; }
         .btn-danger:hover { background: rgba(248,113,113,0.1); }
         .badge { display: inline-flex; align-items: center; justify-content: center; background: #789fd6; color: white; border-radius: 999px; font-size: 11px; font-weight: 700; min-width: 20px; height: 20px; padding: 0 6px; margin-left: 6px; }
@@ -122,12 +170,14 @@ export default function QRPrintPage() {
         .qr-card-serial { font-family: 'Share Tech Mono', monospace; font-size: 14px; color: #789fd6; text-align: center; }
         .qr-card-url { font-family: 'Share Tech Mono', monospace; font-size: 7px; color: #aaa; text-align: center; word-break: break-all; line-height: 1.4; }
         .empty { grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: rgba(120,159,214,0.5); font-family: 'Share Tech Mono', monospace; font-size: 13px; letter-spacing: 0.1em; }
+
         @media print {
           .toolbar, .stats-bar { display: none !important; }
           body { background: white !important; }
           .grid-wrapper { padding: 6mm; gap: 5mm; grid-template-columns: repeat(4, 1fr); }
           .qr-card { break-inside: avoid; border: 1px solid #ddd; box-shadow: none !important; outline: none !important; opacity: 1 !important; transform: none !important; }
           .select-check { display: none !important; }
+          .qr-card.print-hidden { display: none !important; }
         }
       `}</style>
 
@@ -141,20 +191,40 @@ export default function QRPrintPage() {
           <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
           </svg>
-          <input className="search-input" placeholder="Cerca nome, S/N, ESWBS..." value={search} onChange={(e) => setSearch(e.target.value)} />
+          <input
+            className="search-input"
+            placeholder="Cerca nome, S/N, ESWBS..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
         </div>
         <div className="divider" />
-        <button className={`btn btn-ghost ${selectMode ? "active" : ""}`} onClick={() => { setSelectMode((v) => !v); clearAll(); }}>
+        <button
+          className={`btn btn-ghost ${selectMode ? "active" : ""}`}
+          onClick={() => { setSelectMode((v) => !v); clearAll(); }}
+        >
           ☑ Selezione manuale
           {selectMode && selected.size > 0 && <span className="badge">{selected.size}</span>}
         </button>
-        {selectMode && <>
-          <button className="btn btn-ghost" onClick={selectAll}>Tutti</button>
-          <button className="btn btn-danger" onClick={clearAll}>Deseleziona</button>
-        </>}
+        {selectMode && (
+          <>
+            <button className="btn btn-ghost" onClick={selectAll}>Tutti</button>
+            <button className="btn btn-danger" onClick={clearAll}>Deseleziona</button>
+          </>
+        )}
         <div className="toolbar-right">
+          <button
+            className="btn btn-secondary"
+            onClick={handleDownloadExcel}
+            disabled={exporting || toPrint.length === 0}
+            title="Scarica file Excel compatibile con DYMO"
+          >
+            {exporting
+              ? "Esportando..."
+              : `↓ DYMO Excel${selectMode && selected.size > 0 ? ` (${selected.size})` : ` (${toPrint.length})`}`}
+          </button>
           <button className="btn btn-primary" onClick={() => window.print()}>
-            Stampa {selectMode && selected.size > 0 ? `(${selected.size})` : ""}
+            Stampa {selectMode && selected.size > 0 ? `(${selected.size})` : `(${toPrint.length})`}
           </button>
         </div>
       </div>
@@ -172,13 +242,28 @@ export default function QRPrintPage() {
         ) : filtered.map((el) => {
           const isSelected = selected.has(el.id);
           const isDeselected = selectMode && selected.size > 0 && !isSelected;
+          const isPrintHidden = selectMode && selected.size > 0 && !isSelected;
+
           const url = `${BASE_APP_URL}/dashboard/impianti/${el.id}`;
           const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(url)}&margin=6&color=001c38`;
+
           return (
-            <div key={el.id} className={`qr-card ${selectMode ? "selectable" : ""} ${isSelected ? "is-selected" : ""} ${isDeselected ? "is-deselected" : ""}`} onClick={selectMode ? () => toggleSelect(el.id) : undefined}>
+            <div
+              key={el.id}
+              className={[
+                "qr-card",
+                selectMode ? "selectable" : "",
+                isSelected ? "is-selected" : "",
+                isDeselected ? "is-deselected" : "",
+                isPrintHidden ? "print-hidden" : "",
+              ].filter(Boolean).join(" ")}
+              onClick={selectMode ? () => toggleSelect(el.id) : undefined}
+            >
               {selectMode && (
                 <div className="select-check">
-                  <svg width="12" height="12" fill="none" stroke="white" strokeWidth="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                  <svg width="12" height="12" fill="none" stroke="white" strokeWidth="2.5" viewBox="0 0 24 24">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
                 </div>
               )}
               <div className="qr-card-header">
@@ -186,7 +271,9 @@ export default function QRPrintPage() {
                 <span className="qr-card-header-eswbs">{el.element_model?.ESWBS_code || el.eswbs_code}</span>
               </div>
               <div className="qr-card-body">
-                <div className="qr-img-wrapper"><img src={qrSrc} alt={`QR ${el.name}`} /></div>
+                <div className="qr-img-wrapper">
+                  <img src={qrSrc} alt={`QR ${el.name}`} />
+                </div>
                 <div className="qr-card-name" style={{ paddingLeft: `${(el.level ?? 0) * 10}px` }}>
                   {el.name}
                 </div>
