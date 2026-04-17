@@ -7,7 +7,7 @@ import ImpiantiList from "@/components/facilities/FacilitiesList";
 import { useUser } from "@/context/UserContext";
 
 const API = process.env.NEXT_PUBLIC_API_URL_DEV;
-const S3_BASE = process.env.NEXT_PUBLIC_S3_BASE_URL || ""; // es. "https://your-bucket.s3.amazonaws.com/"
+const S3_BASE = process.env.NEXT_PUBLIC_S3_BASE_URL || "";
 
 // ─── File fisso SG118 ─────────────────────────────────────────────────────────
 const MANUAL_SG118 = {
@@ -18,9 +18,17 @@ const MANUAL_SG118 = {
   isFixed: true,
 };
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// ─── Cartella Drive aggiuntiva (disegni) ─────────────────────────────────────
+const DRIVE_FOLDER_DISEGNI = {
+  id: "drive-folder-disegni",
+  file_name: "Disegni nave (cartella Drive)",
+  file_link: "https://drive.google.com/drive/folders/1lBk-6LniVUcAPxz737L3Bw3N0ZmY5ykL?usp=drive_link",
+  file_type: "application/vnd.google-apps.folder",
+  isFixed: true,
+  isFolder: true,
+};
 
-/** Costruisce URL completo da una S3 key o URL assoluto */
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 function resolveUrl(link) {
   if (!link) return null;
   if (link.startsWith("http")) return link;
@@ -29,6 +37,10 @@ function resolveUrl(link) {
 
 function isGDriveLink(link) {
   return link?.includes("drive.google.com");
+}
+
+function isGDriveFolder(link) {
+  return link?.includes("drive.google.com/drive/folders");
 }
 
 // ─── Modal filtro impianto ────────────────────────────────────────────────────
@@ -75,6 +87,8 @@ function ElementFilterModal({ isOpen, onClose, onSelect }) {
 // ─── FileCard ─────────────────────────────────────────────────────────────────
 function FileCard({ file, isActive, onClick }) {
   const gdrive = isGDriveLink(file.file_link);
+  const gdriveFolder = isGDriveFolder(file.file_link);
+
   return (
     <div
       onClick={onClick}
@@ -85,7 +99,12 @@ function FileCard({ file, isActive, onClick }) {
         }`}
     >
       <div className="flex-shrink-0">
-        {gdrive ? (
+        {gdriveFolder ? (
+          // Cartella Drive icon
+          <svg width="16" height="16" fill="#789fd6" viewBox="0 0 24 24">
+            <path d="M10 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V8a2 2 0 00-2-2h-8l-2-2z"/>
+          </svg>
+        ) : gdrive ? (
           <svg width="16" height="16" viewBox="0 0 87.3 78" fill="none">
             <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/>
             <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0-1.2 4.5h27.5z" fill="#00ac47"/>
@@ -103,25 +122,27 @@ function FileCard({ file, isActive, onClick }) {
       <span className={`text-xs leading-snug truncate ${isActive ? "text-white font-medium" : "text-white/70"}`}>
         {file.file_name}
       </span>
+      {gdriveFolder && (
+        <svg width="10" height="10" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2" viewBox="0 0 24 24" className="ml-auto flex-shrink-0">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+        </svg>
+      )}
     </div>
   );
 }
 
-// ─── FolderRow — riga cartella espandibile ────────────────────────────────────
+// ─── FolderRow ────────────────────────────────────────────────────────────────
 function FolderRow({ node, depth = 0, selectedFile, onSelectFile }) {
   const [open, setOpen] = useState(false);
   const hasChildren = node.children?.length > 0;
 
   return (
     <div>
-      {/* Riga cartella */}
       <div
         onClick={() => hasChildren && setOpen((o) => !o)}
-        className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition
-          hover:bg-[#ffffff08] group`}
+        className="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition hover:bg-[#ffffff08] group"
         style={{ paddingLeft: `${12 + depth * 14}px` }}
       >
-        {/* chevron */}
         <svg
           width="12" height="12"
           fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2" viewBox="0 0 24 24"
@@ -129,22 +150,16 @@ function FolderRow({ node, depth = 0, selectedFile, onSelectFile }) {
         >
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 18l6-6-6-6"/>
         </svg>
-
-        {/* icona cartella */}
         <svg width="15" height="15" fill="#789fd6" viewBox="0 0 24 24" className="flex-shrink-0 opacity-80">
           <path d="M10 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V8a2 2 0 00-2-2h-8l-2-2z"/>
         </svg>
-
         <span className="text-xs text-white/70 group-hover:text-white/90 transition truncate font-medium">
           {node.file_name}
         </span>
-
         {hasChildren && (
           <span className="ml-auto text-[10px] text-white/25 flex-shrink-0">{node.children.length}</span>
         )}
       </div>
-
-      {/* Figli */}
       {open && hasChildren && (
         <div>
           {node.children.map((child) =>
@@ -174,8 +189,8 @@ function FolderRow({ node, depth = 0, selectedFile, onSelectFile }) {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 const ManualInterface = () => {
-  const [tree, setTree] = useState([]);          // albero gerarchico
-  const [flatFiles, setFlatFiles] = useState([]); // file root (senza cartella)
+  const [tree, setTree] = useState([]);
+  const [flatFiles, setFlatFiles] = useState([]);
   const [selectedFile, setSelectedFile] = useState(MANUAL_SG118);
   const [loading, setLoading] = useState(true);
 
@@ -185,7 +200,16 @@ const ManualInterface = () => {
 
   const { user, selectedShipId: shipId } = useUser();
 
-  // Carica albero
+  // ─── FIX: ref al container del viewer per resettare scroll a 0 al cambio file
+  const viewerRef = useRef(null);
+
+  // Ogni volta che cambia il file selezionato, riporta il viewer in cima
+  useEffect(() => {
+    if (viewerRef.current) {
+      viewerRef.current.scrollTop = 0;
+    }
+  }, [selectedFile?.id]);
+
   useEffect(() => {
     if (!shipId) return;
     const load = async () => {
@@ -193,11 +217,8 @@ const ManualInterface = () => {
       try {
         const res = await fetch(`${API}/api/shipFiles/tree/${shipId}`);
         const data = await res.json();
-        // Separa cartelle root e file root (senza parent_folder_id e non cartella)
-        const rootFolders = data.filter((n) => n.is_folder);
-        const rootFiles   = data.filter((n) => !n.is_folder);
-        setTree(rootFolders);
-        setFlatFiles(rootFiles);
+        setTree(data.filter((n) => n.is_folder));
+        setFlatFiles(data.filter((n) => !n.is_folder));
       } catch (e) {
         console.error(e);
       } finally {
@@ -207,7 +228,6 @@ const ManualInterface = () => {
     load();
   }, [shipId]);
 
-  // Filtro per impianto
   const handleElementSelect = (node) => {
     setSelectedElement(node);
     const filtered = flatFiles.filter(
@@ -225,9 +245,9 @@ const ManualInterface = () => {
 
   const displayFlatFiles = filteredFiles !== null ? filteredFiles : flatFiles;
 
-  // URL del file selezionato
   const fileUrl = resolveUrl(selectedFile?.file_link);
-  const gdrive  = isGDriveLink(fileUrl);
+  const gdrive = isGDriveLink(fileUrl);
+  const gdriveFolder = isGDriveFolder(fileUrl);
 
   return (
     <div className="flex flex-col h-full gap-3 mt-4">
@@ -273,12 +293,20 @@ const ManualInterface = () => {
         </button>
       </div>
 
-      {/* ── Layout principale ── */}
-      <div className="flex gap-4 flex-1 min-h-0" style={{ height: "calc(100vh - 210px)" }}>
+      {/* ── FIX SCROLL INDIPENDENTE:
+           Il container padre ha overflow:hidden.
+           Sidebar e viewer hanno ciascuno overflow-y:auto e height:100%,
+           così il loro scroll è completamente isolato l'uno dall'altro. ── */}
+      <div
+        className="flex gap-4 flex-1 min-h-0"
+        style={{ height: "calc(100vh - 210px)", overflow: "hidden",  }}
+      >
 
-        {/* ── Sidebar ── */}
-        <div className="w-72 flex-shrink-0 flex flex-col gap-1 overflow-y-auto pr-1" style={{ scrollbarWidth: "thin" }}>
-
+        {/* ── Sidebar — scroll indipendente ── */}
+        <div
+          className="w-72 flex-shrink-0 flex flex-col gap-1 pr-1 md:h-[80vh] h-[75vh]"
+          style={{ overflowY: "auto", overflowX: "hidden", scrollbarWidth: "thin" }}
+        >
           {/* Manuale fisso */}
           <div className="mb-2">
             <p className="text-[10px] text-white/25 uppercase tracking-widest font-mono mb-1.5 px-1">Documento principale</p>
@@ -299,7 +327,6 @@ const ManualInterface = () => {
 
           {!loading && (
             <>
-              {/* Cartelle con gerarchia */}
               {tree.length > 0 && (
                 <div className="mb-2">
                   <p className="text-[10px] text-white/25 uppercase tracking-widest font-mono mb-1.5 px-1">Cartelle</p>
@@ -315,7 +342,6 @@ const ManualInterface = () => {
                 </div>
               )}
 
-              {/* File root (senza cartella) */}
               {displayFlatFiles.length > 0 && (
                 <>
                   {tree.length > 0 && <div className="border-t border-[#ffffff08] mb-2" />}
@@ -346,10 +372,33 @@ const ManualInterface = () => {
           )}
         </div>
 
-        {/* ── Viewer ── */}
-        <div className="flex-1 rounded-xl overflow-hidden bg-[#ffffff05] border border-[#ffffff10] flex flex-col min-w-0">
+        {/* ── Viewer — scroll indipendente ── */}
+        <div
+          ref={viewerRef}
+          className="flex-1 rounded-xl overflow-hidden bg-[#ffffff05] border border-[#ffffff10] flex flex-col min-w-0"
+          style={{ overflowY: "auto", height: "100%" }}
+        >
           {selectedFile ? (
-            gdrive ? (
+            gdriveFolder ? (
+              // Cartella Drive: mostra link diretto
+              <div className="flex flex-col items-center justify-center h-full gap-4 text-white/40">
+                <svg width="48" height="48" fill="#789fd6" viewBox="0 0 24 24" opacity="0.6">
+                  <path d="M10 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V8a2 2 0 00-2-2h-8l-2-2z"/>
+                </svg>
+                <p className="text-sm text-white/60">{selectedFile.file_name}</p>
+                <a
+                  href={fileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 bg-[#789fd6] hover:bg-[#6a8fc4] rounded-lg px-4 py-2.5 text-sm text-white font-semibold transition"
+                >
+                  Apri cartella in Google Drive
+                  <svg width="13" height="13" fill="none" stroke="white" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                  </svg>
+                </a>
+              </div>
+            ) : gdrive ? (
               <div className="flex flex-col h-full">
                 <div className="flex items-center gap-2 px-4 py-3 border-b border-[#ffffff10] bg-[#ffffff05] flex-shrink-0">
                   <svg width="15" height="15" viewBox="0 0 87.3 78" fill="none">
@@ -374,6 +423,7 @@ const ManualInterface = () => {
                   className="flex-1 w-full border-0"
                   allow="autoplay"
                   title={selectedFile.file_name}
+                  style={{ height: "100%" }}
                 />
               </div>
             ) : fileUrl ? (
