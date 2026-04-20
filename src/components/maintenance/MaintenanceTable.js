@@ -82,7 +82,7 @@ const MaintenanceTable = () => {
     if (!hasMore) return;
     const currentReset = resetRef.current; // 👈 cattura il valore corrente
     setIsLoading(true);
-    fetchMaintenanceJobs(selectedType?.id, shipId, user?.id, page, 10, filters).then((data) => {
+    fetchMaintenanceJobs(selectedType?.id, shipId, user?.id, page, 10, filters, eswbsFromUrl).then((data) => {
       if (resetRef.current !== currentReset) return; // 👈 se nel frattempo è arrivato un reset, ignora
       setMaintenanceData((prev) => {
         const existingIds = new Set(prev.map((item) => item.id));

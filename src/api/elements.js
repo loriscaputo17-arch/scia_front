@@ -15,6 +15,21 @@ export async function fetchElements(shipId, userId, teamId, lcnTypes = []) {
   }
 }
 
+export async function getElementsToPrint(shipId, userId, teamId, lcnTypes = []) {
+  try {
+    const res = await fetch(`${BASE_URL}/api/element/getElementsToPrint/${shipId}/${userId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ teamId, lcnTypes }),
+    });
+    if (!res.ok) throw new Error(`Errore HTTP ${res.status}`);
+    return await res.json();
+  } catch (error) {
+    console.error("Errore nel recupero elementi:", error);
+    return [];
+  }
+}
+
 export async function fetchElementData(element, ship_id) {
   try {
     const res = await fetch(`${BASE_URL}/api/element/getElement`, {

@@ -25,11 +25,13 @@ export async function fetchMaintenanceTypes(shipId) {
   }
 }
 
-export async function fetchMaintenanceJobs(typeId, shipId, userId, page = 1, limit = 30, filters = null) {
+export async function fetchMaintenanceJobs(typeId, shipId, userId, page = 1, limit = 30, filters = null, eswbsCode = null) {
   try {
     const params = new URLSearchParams({ page, limit });
     if (shipId) params.append("shipId", shipId);
     if (typeId && typeId !== "undefined") params.append("type_id", typeId);
+
+    if (eswbsCode) params.append("eswbs_code", eswbsCode);
 
     if (filters) {
       if (filters.stato) {
@@ -49,8 +51,7 @@ export async function fetchMaintenanceJobs(typeId, shipId, userId, page = 1, lim
       }
       if (filters.ricambi?.richiesti) params.append("ricambi", "richiesti");
 
-      // ✅ Un solo punto di gestione eswbs_code
-      if (filters.system?.selectedElement) {
+      if (filters.system?.selectedElement && !eswbsCode) {
         params.append("eswbs_code", filters.system.selectedElement);
       }
 

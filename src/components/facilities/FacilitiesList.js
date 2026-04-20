@@ -18,7 +18,11 @@ const iconMap = {
   9: "/icons/Ico9.svg",
 };
 
-// ⭐ Ordina ricorsivamente per eswbs_code
+const isStructuralNode = (eswbs_code) => {
+  if (!eswbs_code) return false;
+  return /0+$/.test(eswbs_code);
+};
+
 function sortTree(nodes) {
   return [...nodes]
     .sort((a, b) => (a.eswbs_code || "").localeCompare(b.eswbs_code || ""))
@@ -137,6 +141,8 @@ export default function ImpiantiList({ search, modal, eswbsCode, onSelect, close
       const icon = level === 0 ? (iconMap[firstDigit] || null) : null;
       const isSelected = node.id === selectedCode;
 
+      const isStructural = isStructuralNode(node.eswbs_code);
+
       return (
         <div key={node.id} 
           className="flex flex-col"
@@ -144,7 +150,7 @@ export default function ImpiantiList({ search, modal, eswbsCode, onSelect, close
         >
           <div
             className="flex items-center justify-between py-3 cursor-pointer border-b border-[#ffffff10] hover:bg-[#ffffff06]"
-            style={{ paddingLeft: `${8 + level * 16}px`, paddingRight: "8px" }}
+            style={{ paddingLeft: `${8 + level * 20}px`, paddingRight: "8px" }}
             onClick={() => toggleNode(node.id)}
           >
             <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -175,10 +181,20 @@ export default function ImpiantiList({ search, modal, eswbsCode, onSelect, close
                   router.push(`/dashboard/impianti/${node.id}`);
                 }}
               >
-                <span className="flex-shrink-0 text-xs font-mono text-white/50">
-                  {node.eswbs_code}
-                </span>
-                <span className={`truncate ${level === 0 ? "text-white font-semibold" : level === 1 ? "text-white/90 text-sm" : "text-white/70 text-sm"}`}>
+                <span className={`flex-shrink-0 text-xs font-mono ${
+                    isStructural ? "text-white/20" : "text-white/50"
+                  }`}>
+                    {node.eswbs_code}
+                  </span>
+                <span className={`truncate ${
+                  isStructural
+                    ? "text-white/30 italic text-xs"  // nodi strutturali: grigi e in corsivo
+                    : level === 0
+                      ? "text-white font-semibold"
+                      : level === 1
+                        ? "text-white/90 text-sm"
+                        : "text-white/70 text-sm"
+                }`}>
                   {node.name}
                 </span>
               </div>
@@ -217,7 +233,7 @@ export default function ImpiantiList({ search, modal, eswbsCode, onSelect, close
           </div>
 
           {hasChildren && isOpen && (
-            <div className="border-l border-[#ffffff15] ml-5">
+            <div className="border-l-2 border-[#789fd620] ml-6">
               {renderTree(node.children, level + 1)}
             </div>
           )}
