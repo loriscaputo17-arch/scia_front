@@ -2,54 +2,89 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { jwtDecode } from "jwt-decode";
+import Cookies from "js-cookie";
 
 export default function SelectShipPage() {
   const router = useRouter();
   const [ships, setShips] = useState([]);
   const [selected, setSelected] = useState(null);
   const [entering, setEntering] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const BASE_URL = process.env.NEXT_PUBLIC_API_URL_DEV;
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      router.replace("/login");
-      return;
-    }
-    try {
-      const decoded = jwtDecode(token);
-      if (!decoded.ships || decoded.ships.length === 0) {
+    const init = async () => {
+      const email = Cookies.get("auth_email");
+      const password = Cookies.get("auth_password");
+
+      if (!email || !password) {
         router.replace("/login");
         return;
       }
-      /*if (decoded.ships.length === 1) {
-        localStorage.setItem("selectedShipId", decoded.ships[0].shipId);
-        router.replace("/dashboard");
-        return;
-      }*/
-      setShips(decoded.ships);
-    } catch {
-      localStorage.removeItem("token");
-      router.replace("/login");
-    }
-  }, [router]);
+
+      // Prova prima da localStorage, altrimenti ri-fetcha
+      const cached = localStorage.getItem("ships");
+      if (cached) {
+        try {
+          setShips(JSON.parse(cached));
+          setLoading(false);
+          return;
+        } catch {
+          localStorage.removeItem("ships");
+        }
+      }
+
+      // Re-fetch se non c'è cache
+      try {
+        const response = await fetch(`${BASE_URL}/api/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error();
+        localStorage.setItem("ships", JSON.stringify(data.ships));
+        setShips(data.ships);
+      } catch {
+        // Credenziali scadute o errore → torna al login
+        Cookies.remove("auth_email");
+        Cookies.remove("auth_password");
+        router.replace("/login");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    init();
+  }, [router, BASE_URL]);
 
   const handleSelect = (ship) => {
     if (entering) return;
     setSelected(ship.shipId);
     setEntering(true);
     setTimeout(() => {
-      localStorage.setItem("selectedShipId", ship.shipId);
-      router.push("/dashboard");
-    }, 600);
+      // Passa al PIN con shipId come query param
+      router.push(`/login-pin?shipId=${ship.shipId}`);
+    }, 400);
   };
 
-  if (ships.length === 0) return null;
+  const handleLogout = () => {
+    Cookies.remove("auth_email");
+    Cookies.remove("auth_password");
+    localStorage.removeItem("ships");
+    router.push("/login");
+  };
+
+  if (loading) return (
+    <div className="flex items-center justify-center min-h-screen bg-[#001c38]">
+      <p className="text-white/50 text-sm">Caricamento navi...</p>
+    </div>
+  );
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-[#001c38]">
       <div className="w-full max-w-md p-8 rounded-lg">
-
         <h2 className="text-2xl font-semibold text-white text-center mb-2">
           Seleziona unità navale
         </h2>
@@ -73,19 +108,14 @@ export default function SelectShipPage() {
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-semibold text-base leading-tight">
-                    {ship.shipName}
-                  </p>
+                  <p className="font-semibold text-base leading-tight">{ship.shipName}</p>
                   <p className="text-xs mt-1 opacity-60 font-mono">
                     ID {String(ship.shipId).padStart(4, "0")}
                   </p>
                 </div>
                 <svg
                   className={`w-5 h-5 transition-opacity ${selected === ship.shipId ? "opacity-100" : "opacity-30"}`}
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
+                  fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                 </svg>
@@ -115,14 +145,10 @@ export default function SelectShipPage() {
 
         <button
           className="mt-6 w-full text-white/50 text-sm hover:text-white transition text-center cursor-pointer"
-          onClick={() => {
-            localStorage.removeItem("token");
-            router.push("/login");
-          }}
+          onClick={handleLogout}
         >
-          ← Torna al login
+          ← Esci / Cambia account
         </button>
-
       </div>
     </div>
   );
