@@ -189,20 +189,18 @@ export default function MaintenanceRow({ data }) {
       >
 
         <TitleCell 
-          jobName={data.maintenance_list?.name}
-          elementName={
-            data.Element
-              ? `${data.Element.element_model?.ESWBS_code || ""} ${data.Element.name || ""}`
-              : data.maintenance_list?.end_item_element_model
-                ? `${data.maintenance_list.end_item_element_model.ESWBS_code || ""} ${data.maintenance_list.end_item_element_model.LCN_name || ""}`
-                : null
-          }
-          eswbsCode={
-            data.Element?.element_model?.ESWBS_code 
-            || data.maintenance_list?.end_item_element_model?.ESWBS_code
-          }
-          onClick={handleRowClick}
-        />
+  jobName={data.maintenance_list?.name}
+  elementName={
+    data.Element
+      ? `${data.Element.element_model?.ESWBS_code || ""} ${data.Element.name || ""}`
+      : `${data.maintenance_list.maintenance_item_element_model?.ESWBS_code || ""} ${data.maintenance_list.maintenance_item_element_model?.LCN_name || ""}`
+  }
+  eswbsCode={
+    data.Element?.element_model?.ESWBS_code 
+    || data.maintenance_list.maintenance_item_element_model?.ESWBS_code
+  }
+  onClick={handleRowClick}
+/>
 
         <RecurrencyCell
           recurrencyLabel={recurrency || t("unknown")}
