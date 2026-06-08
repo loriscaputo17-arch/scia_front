@@ -182,13 +182,13 @@ export default function ImpiantiList({ search, modal, eswbsCode, onSelect, close
                 }}
               >
                 <span className={`flex-shrink-0 text-xs font-mono ${
-                    isStructural ? "text-white/20" : "text-white/50"
+                    isStructural ? "text-white/50" : "text-white/50"
                   }`}>
                     {node.eswbs_code}
                   </span>
                 <span className={`truncate ${
                   isStructural
-                    ? "text-white/30 italic text-xs"  // nodi strutturali: grigi e in corsivo
+                    ? "text-white/100 italic text-xs"  // nodi strutturali: grigi e in corsivo
                     : level === 0
                       ? "text-white font-semibold"
                       : level === 1
