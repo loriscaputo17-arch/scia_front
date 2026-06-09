@@ -141,7 +141,7 @@ export default function ElementPage() {
               <div
                 key={m.id}
                 className="flex items-center justify-between px-4 py-3 border-b border-white/10 hover:bg-white/5 cursor-pointer"
-                onClick={() => router.push(`/dashboard/maintenance?eswbs_code=${data.model?.ESWBS_code}`)}
+                onClick={() => router.push(`/dashboard/maintenance/${m.id}`)}
               >
                 <div className="min-w-0">
                   <p className="text-white text-sm font-medium truncate">{m.name}</p>

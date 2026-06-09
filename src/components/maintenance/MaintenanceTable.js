@@ -22,6 +22,7 @@ const MaintenanceTable = () => {
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const loaderRef = useRef(null);
+  const [totalMaintenance, setTotalMaintenance] = useState(0);
 
   const [filters, setFilters] = useState(null);
 
@@ -30,37 +31,30 @@ const MaintenanceTable = () => {
 
   const searchParams = useSearchParams();
   const eswbsFromUrl = searchParams.get("eswbs_code");
+  const elementIdFromUrl = searchParams.get("element_id");
+
   const [activeTab, setActiveTab] = useState("maintenance");
   const [conditionData, setConditionData] = useState([]);
 
-  useEffect(() => {
-    if (!eswbsFromUrl || activeTab !== "condition") return;
+  const [maintLoaded, setMaintLoaded] = useState(false);
+  const [conditionLoaded, setConditionLoaded] = useState(false);
 
+  useEffect(() => {
+    if (!eswbsFromUrl && !elementIdFromUrl) return;   
     const fetchCondition = async () => {
       try {
-        const data = await fetchMaintenanceJobsOnCondition(
-          eswbsFromUrl,
-          shipId,
-          user?.id
-        );
-
-        console.log("CONDITION:", data);
-
+        const data = await fetchMaintenanceJobsOnCondition(eswbsFromUrl, shipId, user?.id, elementIdFromUrl);
         setConditionData(data?.jobs || []);
       } catch (err) {
         console.error("Errore condition:", err);
+      } finally {
+        setConditionLoaded(true);   // ⬅️ mancava
       }
     };
-
     fetchCondition();
-  }, [activeTab, eswbsFromUrl, shipId, user]);
+  }, [eswbsFromUrl, elementIdFromUrl, shipId, user]);
 
-  useEffect(() => {
-    setMaintenanceData([]);
-    setPage(1);
-    setHasMore(true);
-    resetRef.current += 1;
-  }, [selectedType, shipId, user, filters]);
+  
 
   useEffect(() => {
     if (eswbsFromUrl) {
@@ -78,21 +72,30 @@ const MaintenanceTable = () => {
     setIsOpen(false);
   };
 
+    useEffect(() => {
+      setMaintenanceData([]); setPage(1); setHasMore(true);
+      setMaintLoaded(false);
+      resetRef.current += 1;
+    }, [selectedType, shipId, user, filters, elementIdFromUrl]);
+
   useEffect(() => {
     if (!hasMore) return;
     const currentReset = resetRef.current; // 👈 cattura il valore corrente
     setIsLoading(true);
-    fetchMaintenanceJobs(selectedType?.id, shipId, user?.id, page, 10, filters, eswbsFromUrl).then((data) => {
-      if (resetRef.current !== currentReset) return; // 👈 se nel frattempo è arrivato un reset, ignora
-      setMaintenanceData((prev) => {
-        const existingIds = new Set(prev.map((item) => item.id));
-        const newItems = (data?.jobs || []).filter((item) => !existingIds.has(item.id));
-        return [...prev, ...newItems];
+    fetchMaintenanceJobs(selectedType?.id, shipId, user?.id, page, 10, filters, eswbsFromUrl, elementIdFromUrl)
+      .then((data) => {
+        if (resetRef.current !== currentReset) return;
+        setMaintenanceData((prev) => {
+          const existingIds = new Set(prev.map((item) => item.id));
+          const newItems = (data?.jobs || []).filter((item) => !existingIds.has(item.id));
+          return [...prev, ...newItems];
+        });
+        setHasMore(data?.hasMore ?? false);
+        setTotalMaintenance(data?.total ?? 0);
+        setMaintLoaded(true);
+        setIsLoading(false);
       });
-      setHasMore(data?.hasMore ?? false);
-      setIsLoading(false);
-    });
-  }, [page, selectedType, shipId, user, filters]);
+  }, [page, selectedType, shipId, user, filters, elementIdFromUrl]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -250,6 +253,20 @@ const MaintenanceTable = () => {
       return count;
     };
 
+    const Spinner = () => (
+      <svg className="inline animate-spin h-3 w-3 ml-1" viewBox="0 0 24 24" fill="none">
+        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
+      </svg>
+    );
+    const SkeletonRow = () => (
+      <div className="animate-pulse flex gap-3 px-3 py-4 border-b border-white/10">
+        <div className="h-4 bg-white/15 rounded w-2/5"></div>
+        <div className="h-4 bg-white/10 rounded w-1/6 ml-auto"></div>
+        <div className="h-4 bg-white/10 rounded w-1/6"></div>
+      </div>
+    );
+
   const activeFilterCount = countActiveFilters();
 
   const { t, i18n } = useTranslation("maintenance");
@@ -264,7 +281,7 @@ const MaintenanceTable = () => {
   return (
     <div className="w-full mx-auto rounded-lg shadow-md">
 
-      {eswbsFromUrl && (
+      {(eswbsFromUrl || elementIdFromUrl) && (
         <div className="flex mb-4 border-b border-white/20">
           <button
             onClick={() => setActiveTab("maintenance")}
@@ -274,7 +291,8 @@ const MaintenanceTable = () => {
                 : "text-white/60"
             }`}
           >
-            Manutenzioni ({maintenancedata.length})
+            Manutenzioni {maintLoaded ? totalMaintenance : <Spinner/>}
+
           </button>
 
           <button
@@ -285,7 +303,7 @@ const MaintenanceTable = () => {
                 : "text-white/60"
             }`}
           >
-            Condizione ({conditionData.length})
+            Condizione {conditionLoaded ? conditionData.length : <Spinner/>}
           </button>
         </div>
       )}
@@ -355,9 +373,10 @@ const MaintenanceTable = () => {
       </div>
 
       {activeTab === "maintenance" && (
-        maintenancedata.map((item) => (
-          <MaintenanceRow key={item.id} data={item} />
-        ))
+        <>
+          {maintenancedata.map((item) => <MaintenanceRow key={item.id} data={item} />)}
+          {isLoading && Array.from({ length: 4 }).map((_, i) => <SkeletonRow key={`sk-${i}`} />)}
+        </>
       )}
 
       {activeTab === "condition" && (

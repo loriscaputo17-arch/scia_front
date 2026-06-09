@@ -69,23 +69,23 @@ const DetailsPanel = ({ details }) => {
       )}
 
       {/* LINK MANUTENZIONI */}
-      {model?.ESWBS_code && (
-        <div>
-          <h2 className="text-lg text-[#789fd6] mb-2">{t("maintenances")}</h2>
-          <div
-            className="flex items-center gap-3 cursor-pointer bg-[#ffffff0d] rounded-lg px-3 py-2 hover:bg-[#ffffff15]"
-            onClick={() => router.push(`/dashboard/maintenance?eswbs_code=${model.ESWBS_code}`)}
-          >
-            <p className="text-white text-sm">{t("view_maintenances")}</p>
-            {details.maintenances?.length > 0 && (
-              <span className="ml-auto text-xs bg-[#789fd6] rounded-full px-2 py-0.5">{details.maintenances.length}</span>
-            )}
-            <svg className="opacity-50" fill="white" width="12" height="12" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512">
-              <path d="M310.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L242.7 256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z"/>
-            </svg>
-          </div>
-        </div>
+      {details.element?.id && (
+  <div>
+    <h2 className="text-lg text-[#789fd6] mb-2">{t("maintenances")}</h2>
+    <div
+      className="flex items-center gap-3 cursor-pointer bg-[#ffffff0d] rounded-lg px-3 py-2 hover:bg-[#ffffff15]"
+      onClick={() => router.push(`/dashboard/maintenance?element_id=${details.element.id}`)}
+    >
+      <p className="text-white text-sm">{t("view_maintenances")}</p>
+      {details.maintenances?.length > 0 && (
+        <span className="ml-auto text-xs bg-[#789fd6] rounded-full px-2 py-0.5">{details.maintenances.length}</span>
       )}
+      <svg className="opacity-50" fill="white" width="12" height="12" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512">
+        <path d="M310.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L242.7 256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z"/>
+      </svg>
+    </div>
+  </div>
+)}
 
       {/* ULTIME LETTURE */}
       {readings.length > 0 && (
@@ -110,35 +110,31 @@ const DetailsPanel = ({ details }) => {
       )}
 
       {/* ULTIME ESECUZIONI */}
-      {jobExecutions.length > 0 && (
-        <div>
-          <h2 className="text-lg text-[#789fd6] mb-2">Ultime manutenzioni eseguite</h2>
-          <div className="flex flex-col gap-2">
-            {jobExecutions.slice(0, 3).map((j) => (
-              <div
-                key={j.id}
-                className="bg-[#ffffff0d] rounded-lg px-3 py-2 cursor-pointer hover:bg-[#ffffff15]"
-                onClick={() => router.push(`/dashboard/maintenance/${j.id}`)}
-              >
-                <div className="flex items-center justify-between">
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${
-                    j.status?.name === "completed" ? "bg-green-500/20 text-green-400" :
-                    j.status?.name === "scheduled" ? "bg-blue-500/20 text-blue-400" :
-                    "bg-white/10 text-white/50"
-                  }`}>
-                    {j.status?.name || "—"}
-                  </span>
-                  {j.execution_date && (
-                    <span className="text-white/40 text-xs">
-                      {new Date(j.execution_date).toLocaleDateString("it-IT")}
-                    </span>
-                  )}
-                </div>
-              </div>
-            ))}
+      {jobExecutions.slice(0, 3).map((j) => (
+        <div
+          key={j.id}
+          className="bg-[#ffffff0d] rounded-lg px-3 py-2 cursor-pointer hover:bg-[#ffffff15]"
+          onClick={() => router.push(`/dashboard/maintenance/${j.id}`)}
+        >
+          <p className="text-white text-sm font-medium truncate">
+            {j.maintenance_list?.name || j.job?.name || j.name || j.maintenance_name || "—"}
+          </p>
+          <div className="flex items-center justify-between mt-1">
+            <span className={`text-xs px-2 py-0.5 rounded-full ${
+              j.status?.name === "completed" ? "bg-green-500/20 text-green-400" :
+              j.status?.name === "scheduled" ? "bg-blue-500/20 text-blue-400" :
+              "bg-white/10 text-white/50"
+            }`}>
+              {j.status?.name || "—"}
+            </span>
+            {j.execution_date && (
+              <span className="text-white/40 text-xs">
+                {new Date(j.execution_date).toLocaleDateString("it-IT")}
+              </span>
+            )}
           </div>
         </div>
-      )}
+      ))}
 
       {/* ULTIMA SCANSIONE */}
       {scans.length > 0 && (

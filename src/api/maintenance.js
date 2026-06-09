@@ -25,15 +25,19 @@ export async function fetchMaintenanceTypes(shipId) {
   }
 }
 
-export async function fetchMaintenanceJobs(typeId, shipId, userId, page = 1, limit = 30, filters = null, eswbsCode = null) {
+export async function fetchMaintenanceJobs(typeId, shipId, userId, page = 1, limit = 30, filters = null, eswbsCode = null, elementId = null) {
   try {
     const params = new URLSearchParams({ page, limit });
     if (shipId) params.append("shipId", shipId);
     if (typeId && typeId !== "undefined") params.append("type_id", typeId);
-
+    
+    if (elementId) params.append("element_id", elementId);
     if (eswbsCode) params.append("eswbs_code", eswbsCode);
 
     if (filters) {
+      if (filters.system?.selectedElement && !eswbsCode && !elementId) {  
+        params.append("eswbs_code", filters.system.selectedElement);
+      }
       if (filters.stato) {
         const statiAttivi = Object.entries(filters.stato)
           .filter(([_, v]) => v).map(([k]) => k);
@@ -73,12 +77,13 @@ export async function fetchMaintenanceJobs(typeId, shipId, userId, page = 1, lim
   }
 }
 
-export async function fetchMaintenanceJobsOnCondition(eswbsCode, shipId, userId) {
+export async function fetchMaintenanceJobsOnCondition(eswbsCode, shipId, userId, elementId = null) {
   try {
     const params = new URLSearchParams();
 
     if (shipId) params.append("shipId", shipId);
     if (userId) params.append("user_id", userId);
+    if (elementId) params.append("element_id", elementId);
     if (eswbsCode) params.append("eswbs_code", eswbsCode);
 
     const res = await fetch(
