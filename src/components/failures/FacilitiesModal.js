@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import FacilitiesList from "@/components/facilities/FacilitiesList";
 import { useTranslation } from "@/app/i18n";
 
-export default function NotesModal({ isOpen, onClose2, data }) {
+export default function NotesModal({ isOpen, onClose2, onSelect, data }) {
   const [search, setSearch] = useState("");
   const { t, i18n } = useTranslation("facilities");
   if (!i18n.isInitialized) return null;
@@ -29,7 +29,7 @@ export default function NotesModal({ isOpen, onClose2, data }) {
           onChange={(e) => setSearch(e.target.value)}
         />
 
-            <FacilitiesList search={search} modal={"yes"} />
+            <FacilitiesList search={search} modal={"yes"} onSelect={onSelect} close={onClose2} />
 
         </div>
         <button

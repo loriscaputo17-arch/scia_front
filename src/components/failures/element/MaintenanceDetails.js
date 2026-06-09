@@ -30,11 +30,12 @@ const MaintenanceDetails = ({ details }) => {
           getTexts(details.id, "failure"),
         ]);
 
-          setLatestPhoto(photos.notes[0]);
+        const byDate = (arr = []) =>
+          [...arr].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-          setLatestAudio(audios.notes[0]);
-
-          setLatestText(texts.notes[0]);
+        setLatestPhoto(byDate(photos?.notes)[0] || null);
+        setLatestAudio(byDate(audios?.notes)[0] || null);
+        setLatestText(byDate(texts?.notes)[0] || null);
 
         if (photos?.length) {
           const sortedPhotos = [...photos].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));

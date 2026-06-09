@@ -29,6 +29,7 @@ export default function FailureModal({ isOpen, onClose, data }) {
   const handlePartNumberChange = (e) => setPartNumber(e.target.value);
 
   const [customFields, setCustomFields] = useState([{ name: '', value: '' }]);
+  const [selectedComponent, setSelectedComponent] = useState(null);
 
   const handleCustomFieldChange = (index, field, value,) => {
     const updatedFields = [...customFields];
@@ -46,8 +47,7 @@ export default function FailureModal({ isOpen, onClose, data }) {
     setCustomFields(updatedFields);
   };
 
-  const { user } = useUser();
-  const ship_id = 1;
+  const { user, selectedShipId: shipId } = useUser();   
 
   const handleSubmit = async () => {
     const resolvedExecutionUserType =
@@ -62,7 +62,11 @@ export default function FailureModal({ isOpen, onClose, data }) {
       userExecution: resolvedExecutionUserType,
       partNumber,
       customFields,
-      ship_id
+      ship_id: shipId,
+      element_id: selectedComponent?.id ?? null,
+      eswbs_code: selectedComponent?.eswbs_code ?? null,
+      component_name: selectedComponent?.name ?? null,
+
     };
     try {
       const response = await addFailure(payload);
@@ -106,7 +110,13 @@ export default function FailureModal({ isOpen, onClose, data }) {
                     onClick={() => setFacilitiesOpen(true)}
                     className="w-full px-4 py-2 bg-[#ffffff10] text-white focus:outline-none rounded-md flex cursor-pointer"
                   >
-                    {t("choose")} <span style={{marginLeft:'auto'}}>
+                    {selectedComponent
+                      ? (() => {
+                          const label = `${selectedComponent.eswbs_code} — ${selectedComponent.name}`;
+                          return label.length > 20 ? label.slice(0, 20) + "…" : label;
+                        })()
+                      : t("choose")}
+                    <span style={{marginLeft:'auto'}}>
                       <svg fill="white" width="18px" height="18px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/></svg>
                     </span>
                   </div>
@@ -242,7 +252,11 @@ export default function FailureModal({ isOpen, onClose, data }) {
         </button>
       </div>
 
-      <FacilitiesModal isOpen={facilitiesOpen} onClose2={() => setFacilitiesOpen(false)} />
+      <FacilitiesModal 
+        isOpen={facilitiesOpen} 
+        onClose2={() => setFacilitiesOpen(false)}
+        onSelect={(node) => setSelectedComponent(node)}
+       />
       
     </div>
   ) : null;

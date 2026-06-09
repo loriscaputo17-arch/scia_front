@@ -5,6 +5,7 @@ import Image from 'next/image';
 import SpareModal from "./SpareModal";
 import FacilitiesModal from "@/components/failures/FacilitiesModal";
 import { getProfileById, getRanks } from "@/api/profile";
+import { useRouter } from "next/navigation";
 
 const MaintenanceInfo = ({ details }) => {
   const [showFull, setShowFull] = useState(false);
@@ -13,6 +14,8 @@ const MaintenanceInfo = ({ details }) => {
   const [profile, setProfile] = useState(null);
   const [userRank, setUserRank] = useState(null);
   const [militaryRanks, setMilitaryRanks] = useState([]);
+  const router = useRouter();
+  const [profileImage, setProfileImage] = useState("/icons/profile-default.svg");
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -20,16 +23,13 @@ const MaintenanceInfo = ({ details }) => {
         const data = await getProfileById(details.userExecution);
         if (data) {
           setProfile(data);
-          setProfileImage(data.profileImage)
+          setProfileImage(data.profileImage);
         }
       }
     };
-  
     fetchProfile();
-  }, [details.userExecution]); 
+  }, [details.userExecution]);
   
-  const [profileImage, setProfileImage] = useState("/icons/profile-default.svg");
-
   useEffect(() => {
     async function fetchRanks() {
       const ranks = await getRanks();
@@ -55,6 +55,10 @@ const MaintenanceInfo = ({ details }) => {
     console.error("Errore nel parsing di customFields", error);
   }
 
+  const componentName =
+  details.element?.element_model?.LCN_name || details.component_name;
+const componentEswbs =
+  details.element?.element_model?.ESWBS_code || details.eswbs_code;
 
   return (
     <div className="p-2">
@@ -124,25 +128,30 @@ const MaintenanceInfo = ({ details }) => {
           <h2 className="text-lg text-[#789fd6]">Impianto/Componente</h2>
         </div>
       
-
-        <div className="flex items-center gap-4 cursor-pointer" onClick={() => setFacilitiesOpen(true)}>
-          <Image 
-                    src="/motor.jpg"
-                    alt="Motore"
-                    width={25} 
-                    height={25} 
-                    className=""
-                  />
-
-          <div>
-            <h2 className="text-md text-[#fff]">2.1.4 Motore centrale</h2>
-
-          </div>
-        
-          <div className="ml-auto mr-8">
-                <svg fill="white" width="16px" height="16px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path d="M310.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L242.7 256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z"/></svg>
+        {(details.eswbs_code || details.component_name) ? (
+          <div
+            onClick={() => details.element_id && router.push(`/dashboard/impianti/${details.element_id}`)}
+            className={`flex items-center gap-4 ${details.element_id ? "cursor-pointer hover:bg-[#ffffff0a] rounded-md -mx-2 px-2 py-1 transition" : ""}`}
+          >
+            <div className="min-w-0">
+              {details.eswbs_code && (
+                <p className="text-sm text-[#789fd6] font-mono">{details.eswbs_code}</p>
+              )}
+              <h2 className="text-md text-[#fff] truncate">
+                {componentName || "—"}
+              </h2>
+            </div>
+            {details.element_id && (
+              <div className="ml-auto mr-2">
+                <svg fill="white" width="16px" height="16px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512">
+                  <path d="M310.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L242.7 256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z"/>
+                </svg>
               </div>
-        </div>
+            )}
+          </div>
+        ) : (
+          <p className="text-white/40 text-sm">Nessun componente associato</p>
+        )}
 
       </div>
 
@@ -162,16 +171,15 @@ const MaintenanceInfo = ({ details }) => {
       </div>
 
       {customFields.map((field, index) => (
-  <div key={index} className="mb-6">
-    <div className="flex items-center mb-2 mt-4">
-      <h2 className="text-lg text-[#ee81e5]">{field.name}</h2>
-    </div>
-    <div className="flex items-center gap-4 cursor-pointer">
-      <p>{field.value}</p>
-    </div>
-  </div>
-))}
-
+        <div key={index} className="mb-6">
+          <div className="flex items-center mb-2 mt-4">
+            <h2 className="text-lg text-[#ee81e5]">{field.name}</h2>
+          </div>
+          <div className="flex items-center gap-4 cursor-pointer">
+            <p>{field.value}</p>
+          </div>
+        </div>
+      ))}
 
       <FacilitiesModal isOpen={facilitiesOpen} onClose2={() => setFacilitiesOpen(false)} />
       

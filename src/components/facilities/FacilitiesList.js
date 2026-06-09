@@ -177,9 +177,15 @@ export default function ImpiantiList({ search, modal, eswbsCode, onSelect, close
               <div className="flex items-center gap-2 min-w-0"
               
               onClick={(e) => {
-                  e.stopPropagation();
+                e.stopPropagation();
+                if (modal === "yes") {
+                  setSelectedCode(node.id);
+                  if (onSelect) onSelect(node);
+                  if (close) close();
+                } else {
                   router.push(`/dashboard/impianti/${node.id}`);
-                }}
+                }
+              }}
               >
                 <span className={`flex-shrink-0 text-xs font-mono ${
                     isStructural ? "text-white/50" : "text-white/50"

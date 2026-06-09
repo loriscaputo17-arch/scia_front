@@ -23,7 +23,7 @@ const StatusBadge = ({ date, gravity }) => {
   return (
     <div>
 
-      <div className={`hidden sm:block px-2 py-1 ${bgColor} ${textColor} text-center`} style={{ padding: "1rem" }}>
+      <div className={`hidden sm:block px-2 py-1 ${textColor} text-center`} style={{ padding: "1rem" }}>
         <p className="text-xl font-bold capitalize">{date}</p>
       </div>
 

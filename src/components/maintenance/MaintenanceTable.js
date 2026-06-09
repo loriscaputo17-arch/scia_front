@@ -11,6 +11,7 @@ import { useTranslation } from "@/app/i18n";
 import { useUser } from "@/context/UserContext";
 import { computeExpiryDate } from "@/utils/maintenanceDates";
 import { useSearchParams } from "next/navigation";
+import ReportModal from "./ReportModal";
 
 const MaintenanceTable = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -23,7 +24,7 @@ const MaintenanceTable = () => {
   const [isLoading, setIsLoading] = useState(false);
   const loaderRef = useRef(null);
   const [totalMaintenance, setTotalMaintenance] = useState(0);
-
+  const [reportOpen, setReportOpen] = useState(false);
   const [filters, setFilters] = useState(null);
 
   const { user, selectedShipId: shipId } = useUser();
@@ -323,8 +324,19 @@ const MaintenanceTable = () => {
           </svg>
         </button>
 
+        <button
+          type="button"
+          onClick={() => setReportOpen(true)}
+          className="rounded-md flex ml-auto items-center ml-2 bg-[#022a52] text-white font-bold py-2 px-6 transition duration-200 cursor-pointer"
+        >
+          <svg width="18px" height="18px" fill="white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+            <path d="M0 64C0 28.7 28.7 0 64 0L224 0l0 128c0 17.7 14.3 32 32 32l128 0 0 112-176 0c-35.3 0-64 28.7-64 64l0 112-80 0c-35.3 0-64-28.7-64-64L0 64zM384 128l-128 0L256 0 384 128zM176 352l32 0c30.9 0 56 25.1 56 56s-25.1 56-56 56l-16 0 0 32c0 8.8-7.2 16-16 16s-16-7.2-16-16l0-48 0-80c0-8.8 7.2-16 16-16zm32 80c13.3 0 24-10.7 24-24s-10.7-24-24-24l-16 0 0 48 16 0z"/>
+          </svg>
+          <span className="hidden sm:inline">&nbsp; Report</span>
+        </button>
+
         <button 
-          className="block sm:hidden rounded-md flex items-center ml-auto bg-[#022a52] text-white font-bold py-2 px-6 transition duration-200 cursor-pointer"
+          className="block sm:hidden rounded-md flex items-center ml-2 bg-[#022a52] text-white font-bold py-2 px-6 transition duration-200 cursor-pointer"
           onClick={() => setLegendOpen(true)}>
           <span >
             <svg fill="#fff" className=" cursor-pointer" width="18px" height="18px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM216 336l24 0 0-64-24 0c-13.3 0-24-10.7-24-24s10.7-24 24-24l48 0c13.3 0 24 10.7 24 24l0 88 8 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-80 0c-13.3 0-24-10.7-24-24s10.7-24 24-24zm40-208a32 32 0 1 1 0 64 32 32 0 1 1 0-64z"/></svg>
@@ -334,7 +346,7 @@ const MaintenanceTable = () => {
         <button
           type="submit"
           onClick={() => setFilterOpen(true)}
-          className="rounded-md flex items-center sm:ml-auto ml-2 sm:ml-inherit bg-[#022a52] text-white font-bold py-2 px-6 transition duration-200 cursor-pointer"
+          className="rounded-md flex items-center ml-2 sm:ml-inherit bg-[#022a52] text-white font-bold py-2 px-6 transition duration-200 cursor-pointer"
         >
           <svg
             width="18px"
@@ -399,7 +411,8 @@ const MaintenanceTable = () => {
       <LegendModal isOpen={legendOpen} onClose={() => setLegendOpen(false)} />
 
       <FilterModal isOpen={filterOpen} onClose={() => setFilterOpen(false)} onFiltersChange={(newFilters) => setFilters(newFilters)} initialSystem={eswbsFromUrl} />
-        
+      <ReportModal isOpen={reportOpen} onClose={() => setReportOpen(false)} shipId={shipId} />
+
     </div>
   );
 };

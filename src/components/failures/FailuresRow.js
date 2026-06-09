@@ -80,6 +80,11 @@ const MaintenanceRow = ({ data }) => {
 
   const router = useRouter();
 
+  const componentName =
+    data.element?.element_model?.LCN_name || data.component_name;
+  const componentEswbs =
+    data.element?.element_model?.ESWBS_code || data.eswbs_code;
+
   const handleRowClick = () => {
     router.push(`/dashboard/failures/${data.id}`);
   };
@@ -93,9 +98,14 @@ const MaintenanceRow = ({ data }) => {
     >
       <div onClick={handleRowClick} className="border border-[#001c38] p-3 flex flex-col justify-center min-h-[60px]" style={{ height: "-webkit-fill-available" }}>
         <p className="text-white text-[18px] font-semibold truncate">{data.title}</p>
-        <p className="text-white/60 text-[16px] text-sm truncate">
-          {data.partNumber}
-        </p>
+        {(componentEswbs || componentName) && (
+          <p className="text-[#789fd6] text-sm truncate">
+            {[componentEswbs, componentName].filter(Boolean).join(" — ")}
+          </p>
+        )}
+        {data.partNumber && (
+          <p className="text-white/60 text-sm truncate">{data.partNumber}</p>
+        )}
       </div>
       <div className="border border-[#001c38] p-3 flex items-center justify-center cursor-pointer" onClick={() => setIsOpen(true)} style={{ height: "-webkit-fill-available" }}>
         <div className="flex gap-4">
@@ -127,7 +137,13 @@ const MaintenanceRow = ({ data }) => {
 
         </div>
       
-      <div className="border border-[#001c38]" style={{ height: "-webkit-fill-available" }}>
+      <div
+        className="border border-[#001c38] flex items-center justify-center"
+        style={{
+          height: "-webkit-fill-available",
+          backgroundColor: getStatusColor(data.gravity?.toLowerCase()),
+        }}
+      >
         <StatusBadge date={data.date} gravity={data.gravity} />
       </div>
     </div>
@@ -142,7 +158,14 @@ const MaintenanceRow = ({ data }) => {
     </div>
 
     <p className="text-white text-[18px] font-semibold truncate">{data.title}</p>
-    <p className="text-white/60 text-[16px] text-sm truncate">{data.partNumber}</p>
+      {(componentEswbs || componentName) && (
+        <p className="text-[#789fd6] text-sm truncate">
+          {[componentEswbs, componentName].filter(Boolean).join(" — ")}
+        </p>
+      )}
+      {data.partNumber && (
+        <p className="text-white/60 text-[16px] text-sm truncate">{data.partNumber}</p>
+      )}
   </div>
 
   <div className="flex items-center mt-3">

@@ -59,6 +59,21 @@ export async function getFailures(filters = {}, ship_id, userId) {
   }
 }
 
+export async function getFailureById(id) {
+  try {
+    const res = await fetch(`${BASE_URL}/api/failures/getFailure/${id}`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+    if (!res.ok) throw new Error(`Errore HTTP ${res.status}`);
+    const data = await res.json();
+    return data.failure || null;
+  } catch (error) {
+    console.error("Errore nel recupero dell'avaria:", error.message);
+    return null;
+  }
+}
+
 export async function addPhotographicNote(formData) {
 
   return await fetch(`${BASE_URL}/api/uploadFiles/uploadPhoto`, {

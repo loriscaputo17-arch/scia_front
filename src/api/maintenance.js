@@ -203,6 +203,13 @@ export async function markAs(taskId, mark, shipId) {
   }
 }
 
+export async function getCompletedReport(shipId, from, to) {
+  const params = new URLSearchParams({ ship_id: shipId, ...(from && { from }), ...(to && { to }) });
+  const res = await fetch(`${BASE_URL}/api/maintenance/exportCompletedReport?${params}`);
+  if (!res.ok) throw new Error(`Errore HTTP ${res.status}`);
+  return (await res.json()).rows || [];
+}
+
 export async function markAsOk(maintenanceListId, spareData, imageFiles = [], shipId) {
   try {
     const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
