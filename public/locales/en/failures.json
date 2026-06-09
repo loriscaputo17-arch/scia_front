@@ -58,7 +58,10 @@
   "stop_recording": "Stop recording",
   "preview": "Preview",
   "upload_recording": "Upload recording",
-  "mic_error": "Error: unable to access the microphone."
+  "mic_error": "Error: unable to access the microphone.",
+  "no_component": "No component linked",    
+  "rank_not_found": "Rank not found",
+  "operator": "Operator"  
 
 }
   

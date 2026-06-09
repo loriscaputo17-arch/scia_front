@@ -58,6 +58,9 @@
   "stop_recording": "Stop registrazione",
   "preview": "Anteprima",
   "upload_recording": "Carica registrazione",
-  "mic_error": "Errore: impossibile accedere al microfono."
+  "mic_error": "Errore: impossibile accedere al microfono.",
+  "no_component": "Nessun componente associato",
+"rank_not_found": "Grado non trovato",          
+"operator": "Operatore"  
 }
   

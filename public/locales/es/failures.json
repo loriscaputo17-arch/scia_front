@@ -58,6 +58,9 @@
   "stop_recording": "Detener grabación",
   "preview": "Vista previa",
   "upload_recording": "Subir grabación",
-  "mic_error": "Error: no se puede acceder al micrófono."
+  "mic_error": "Error: no se puede acceder al micrófono.",
+  "no_component": "Ningún componente asociado",    
+  "rank_not_found": "Grado no encontrado",
+  "operator": "Operador"                         
 }
   

@@ -6,6 +6,7 @@ import SpareModal from "./SpareModal";
 import FacilitiesModal from "@/components/failures/FacilitiesModal";
 import { getProfileById, getRanks } from "@/api/profile";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "@/app/i18n";
 
 const MaintenanceInfo = ({ details }) => {
   const [showFull, setShowFull] = useState(false);
@@ -17,19 +18,21 @@ const MaintenanceInfo = ({ details }) => {
   const router = useRouter();
   const [profileImage, setProfileImage] = useState("/icons/profile-default.svg");
 
+  const { t } = useTranslation("failures");
+
   useEffect(() => {
     const fetchProfile = async () => {
       if (details.userExecution) {
         const data = await getProfileById(details.userExecution);
         if (data) {
           setProfile(data);
-          setProfileImage(data.profileImage);
+          setProfileImage(data.profileImage || "/icons/profile-default.svg");
         }
       }
     };
     fetchProfile();
   }, [details.userExecution]);
-  
+
   useEffect(() => {
     async function fetchRanks() {
       const ranks = await getRanks();
@@ -46,7 +49,6 @@ const MaintenanceInfo = ({ details }) => {
   }, [profile, militaryRanks]);
 
   let customFields = [];
-
   try {
     customFields = typeof details.customFields === "string"
       ? JSON.parse(details.customFields)
@@ -56,47 +58,45 @@ const MaintenanceInfo = ({ details }) => {
   }
 
   const componentName =
-  details.element?.element_model?.LCN_name || details.component_name;
-const componentEswbs =
-  details.element?.element_model?.ESWBS_code || details.eswbs_code;
+    details.element?.element_model?.LCN_name || details.component_name;
+  const componentEswbs =
+    details.element?.element_model?.ESWBS_code || details.eswbs_code;
 
   return (
     <div className="p-2">
 
       <div className="mb-6">
-        <h2 className="text-lg text-[#789fd6] mb-2">Utente</h2>
+        <h2 className="text-lg text-[#789fd6] mb-2">{t("user")}</h2>
 
-        <div
-      className="flex items-center gap-4 rounded-lg transition"
-    >
-      <img src={profileImage} alt="User Avatar" className="w-14 h-14 rounded-full object-cover" />
+        <div className="flex items-center gap-4 rounded-lg transition">
+          <img src={profileImage} alt="User Avatar" className="w-14 h-14 rounded-full object-cover" />
 
-      <div className="overflow-hidden">
-        {profile ? (
-          <>
-           <p className="text-sm text-[#789fd6]">
-            {userRank ? (userRank.grado.length > 25 ? userRank.grado.substring(0, 25) + '...' : userRank.grado) : "Rank not found"}
-          </p>
-            <p className="text-lg font-semibold whitespace-nowrap overflow-hidden overflow-ellipsis max-w-[150px] sm:max-w-[200px]">
-              {profile.firstName} {profile.lastName}
-            </p>
-            <p className="text-sm text-[#ffffffa6]">{profile.type}</p>
-          </>
-        ) : (
-          <p className="text-white text-sm">Caricamento...</p>
-        )}
-      </div>
-    </div>
+          <div className="overflow-hidden">
+            {profile ? (
+              <>
+                <p className="text-sm text-[#789fd6]">
+                  {userRank
+                    ? (userRank.grado.length > 25 ? userRank.grado.substring(0, 25) + '...' : userRank.grado)
+                    : t("rank_not_found")}
+                </p>
+                <p className="text-lg font-semibold whitespace-nowrap overflow-hidden overflow-ellipsis max-w-[150px] sm:max-w-[200px]">
+                  {profile.firstName} {profile.lastName}
+                </p>
+                <p className="text-sm text-[#ffffffa6]">{profile.type}</p>
+              </>
+            ) : (
+              <p className="text-white text-sm">{t("loading")}</p>
+            )}
+          </div>
+        </div>
       </div>
 
       <div className="mb-6">
-        <h2 className="text-lg text-[#789fd6] mb-2">Descrizione</h2>
+        <h2 className="text-lg text-[#789fd6] mb-2">{t("desription")}</h2>
 
         <p
           className={`text-white ${
-            showFull
-              ? ""
-              : "line-clamp-2 overflow-hidden text-ellipsis whitespace-normal"
+            showFull ? "" : "line-clamp-2 overflow-hidden text-ellipsis whitespace-normal"
           }`}
           style={{
             display: "-webkit-box",
@@ -113,33 +113,28 @@ const componentEswbs =
             className="mt-2 text-sm text-[#fff] w-fit cursor-pointer bg-[#ffffff1a] py-1 px-4 rounded mt-2"
             onClick={() => setShowFull(true)}
           >
-            Dettagli
+            {t("details")}
           </button>
         )}
       </div>
 
-      {isOpen && (
-        <SpareModal onClose={() => setIsOpen(false)}/>
-      )}
+      {isOpen && <SpareModal onClose={() => setIsOpen(false)} />}
 
       <div className="mb-6">
-
         <div className="flex items-center mb-2 mt-4">
-          <h2 className="text-lg text-[#789fd6]">Impianto/Componente</h2>
+          <h2 className="text-lg text-[#789fd6]">{t("system")}/{t("component")}</h2>
         </div>
-      
-        {(details.eswbs_code || details.component_name) ? (
+
+        {(componentEswbs || componentName) ? (
           <div
             onClick={() => details.element_id && router.push(`/dashboard/impianti/${details.element_id}`)}
             className={`flex items-center gap-4 ${details.element_id ? "cursor-pointer hover:bg-[#ffffff0a] rounded-md -mx-2 px-2 py-1 transition" : ""}`}
           >
             <div className="min-w-0">
-              {details.eswbs_code && (
-                <p className="text-sm text-[#789fd6] font-mono">{details.eswbs_code}</p>
+              {componentEswbs && (
+                <p className="text-sm text-[#789fd6] font-mono">{componentEswbs}</p>
               )}
-              <h2 className="text-md text-[#fff] truncate">
-                {componentName || "—"}
-              </h2>
+              <h2 className="text-md text-[#fff] truncate">{componentName || "—"}</h2>
             </div>
             {details.element_id && (
               <div className="ml-auto mr-2">
@@ -150,24 +145,17 @@ const componentEswbs =
             )}
           </div>
         ) : (
-          <p className="text-white/40 text-sm">Nessun componente associato</p>
+          <p className="text-white/40 text-sm">{t("no_component")}</p>
         )}
-
       </div>
 
       <div className="mb-6">
-
         <div className="flex items-center mb-2 mt-4">
-          <h2 className="text-lg text-[#789fd6]">Data di inserimento</h2>
+          <h2 className="text-lg text-[#789fd6]">{t("date_of_insertion")}</h2>
         </div>
-      
-
-        <div className="flex items-center gap-4 cursor-pointer">
-
-        <p>{details.date}</p>
-  
+        <div className="flex items-center gap-4">
+          <p>{details.date}</p>
         </div>
-
       </div>
 
       {customFields.map((field, index) => (
@@ -175,14 +163,13 @@ const componentEswbs =
           <div className="flex items-center mb-2 mt-4">
             <h2 className="text-lg text-[#ee81e5]">{field.name}</h2>
           </div>
-          <div className="flex items-center gap-4 cursor-pointer">
+          <div className="flex items-center gap-4">
             <p>{field.value}</p>
           </div>
         </div>
       ))}
 
       <FacilitiesModal isOpen={facilitiesOpen} onClose2={() => setFacilitiesOpen(false)} />
-      
     </div>
   );
 };
