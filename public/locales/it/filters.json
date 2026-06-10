@@ -56,5 +56,11 @@
   "confirm": "Conferma",
   "reset_filters": "Reset filtri",
   "active_filters": "Filtri attivi",
-  "no_filters": "Nessun filtro applicato"
+  "no_filters": "Nessun filtro applicato",
+  "operating_hours_range": "Range ore di moto",
+"from": "Da",
+"to": "A",
+"eg_100": "es. 100",
+"eg_500": "es. 500",
+"days": "giorni"
 }

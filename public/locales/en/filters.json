@@ -56,5 +56,11 @@
   "confirm": "Confirm",
   "reset_filters": "Reset Filters",
   "active_filters": "Active filters",
-  "no_filters": "No filters applied"
+  "no_filters": "No filters applied",
+  "operating_hours_range": "Operating hours range",
+"from": "From",
+"to": "To",
+"eg_100": "e.g. 100",
+"eg_500": "e.g. 500",
+"days": "days"
 }

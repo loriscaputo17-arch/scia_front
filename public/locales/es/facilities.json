@@ -21,6 +21,9 @@
   "plant_filter": "Filtro de planta",
   "confirm": "Confirmar",
   "maintenances": "Mantenimientos",
-  "view_maintenances": "Ver mantenimientos"
+  "view_maintenances": "Ver mantenimientos",
+  "search_by_facility_name": "Buscar por nombre de instalación…",
+  "no_results": "Sin resultados"
+
 }
   

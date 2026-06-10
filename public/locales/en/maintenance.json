@@ -200,7 +200,9 @@
 "report_footer": "WAKE — Naval maintenance system",
 "report_outcome_ok": "OK",
 "report_outcome_anomaly": "Anomaly",
-"operator": "Operator"  
+"operator": "Operator",
+"reset_filters": "Reset Filters",
+"scan_barcode": "Scan barcode"
 
 }
   

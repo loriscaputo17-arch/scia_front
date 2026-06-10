@@ -200,5 +200,6 @@
 "report_footer": "WAKE — Sistema di manutenzione navale",
 "report_outcome_ok": "OK",
 "report_outcome_anomaly": "Anomalia",
-"operator": "Operatore"
+"operator": "Operatore",
+"reset_filters": "Reset filtri"
 }

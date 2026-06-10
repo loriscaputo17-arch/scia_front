@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { fetchElements } from "@/api/elements";
 import { useUser } from "@/context/UserContext";
+import { useTranslation } from "@/app/i18n";
 
 const iconMap = {
   1: "/icons/Ico1.svg",
@@ -247,10 +248,12 @@ export default function ImpiantiList({ search, modal, eswbsCode, onSelect, close
       );
     });
 
+  const { t, i18n } = useTranslation("facilities");
+
   return (
     <div style={modal === "yes" ? { overflowY: "scroll", height: "45vh" } : {}}>
       {filtered.length === 0 ? (
-        <p className="text-white/40 text-sm p-4 text-center">Nessun risultato</p>
+        <p className="text-white/40 text-sm p-4 text-center">{t("no_results", { defaultValue: "Nessun risultato" })}</p>
       ) : (
         renderTree(filtered)
       )}

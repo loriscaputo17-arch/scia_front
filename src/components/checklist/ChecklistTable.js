@@ -49,13 +49,13 @@ const ChecklistTable = () => {
     setPage(1);
     setHasMore(true);
     resetRef.current += 1;
-  }, [shipId, user, filters, selectedType]);
+  }, [shipId, user, filters]);
 
   useEffect(() => {
     if (!hasMore || !shipId || !user?.id) return;
     const currentReset = resetRef.current;
     setIsLoading(true);
-    fetchTasks(shipId, user.id, page, 10, filters, selectedType?.id).then((data) => {
+      fetchTasks(shipId, user.id, page, 10, filters).then((data) => {
       if (resetRef.current !== currentReset) return;
       setTasksData((prev) => {
         const existingIds = new Set(prev.map((item) => item.id));
@@ -65,7 +65,7 @@ const ChecklistTable = () => {
       setHasMore(data?.hasMore ?? false);
       setIsLoading(false);
     });
-  }, [page, shipId, user, filters, selectedType]);
+  }, [page, shipId, user, filters]);
 
   // IntersectionObserver
   useEffect(() => {
@@ -99,6 +99,10 @@ const ChecklistTable = () => {
     (macroKeys.length > 0 ? 1 : 0) +
     (teamKeys.length > 0 ? 1 : 0);
 
+  const visibleTasks = selectedType?.tasks?.length
+  ? selectedType.tasks
+  : tasksData;
+
   return (
     <div className="w-full mx-auto rounded-lg shadow-md">
       <div className="items-center flex mb-2">
@@ -113,6 +117,19 @@ const ChecklistTable = () => {
             <path d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z" />
           </svg>
         </button>
+
+        {selectedType && (
+          <button
+            onClick={() => setSelectedType(null)}
+            className="ml-2 flex items-center gap-1 bg-[#022a52] text-white/80 hover:text-white text-sm py-1 px-3 rounded-md transition cursor-pointer"
+            title="Rimuovi filtro categoria"
+          >
+            <svg width="12" height="12" fill="white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512">
+              <path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/>
+            </svg>
+            {t("reset_filters")}
+          </button>
+        )}
 
         <button
           onClick={() => setFilterOpen(true)}
@@ -136,7 +153,7 @@ const ChecklistTable = () => {
         <p className="border border-[#022a52] p-3 text-center">{t("ok")}</p>
       </div>
 
-      {tasksData.map((task) => (
+      {visibleTasks.map((task) => (
         <CheckListRow key={task?.id} data={task} />
       ))}
 

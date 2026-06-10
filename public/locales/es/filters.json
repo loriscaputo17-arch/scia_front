@@ -56,5 +56,11 @@
   "confirm": "Confirmar",
   "reset_filters": "Restablecer filtros",
   "active_filters": "Filtros activos",
-  "no_filters": "Ningún filtro aplicado"
+  "no_filters": "Ningún filtro aplicado",
+  "operating_hours_range": "Rango horas de funcionamiento",
+"from": "Desde",
+"to": "Hasta",
+"eg_100": "ej. 100",
+"eg_500": "ej. 500",
+"days": "días"
 }

@@ -1,7 +1,6 @@
 {
   "last_scan": "Ultima scansione",
   "scans": "Scansioni",
-
   "facilities": "Struttura ESWBS",
   "cart": "Wishlist",
   "manage_warehouse": "Gestisci magazzino",
@@ -31,6 +30,17 @@
   "ordinary_marshal": "Maresciallo ordinario",
   "marshal": "Maresciallo",
   "sergeant_major": "Sergente maggiore",
-  "sergeant": "Sergente"
+  "sergeant": "Sergente",
+  "search_facility": "Cerca impianto...",
+  "element": "Elemento",
+  "operating_hours": "Ore di moto",
+  "no_scan": "Nessuna scansione",
+  "menu": "Menu",
+"command": "Comando",
+"dashboard": "Dashboard",
+"overview": "Panoramica",
+"certifications": "Certificazioni",
+"log": "Log",
+"scan_barcode": "Scan barcode"
 }
   

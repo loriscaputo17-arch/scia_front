@@ -61,6 +61,24 @@ export default function SelectModal({ isOpen, onClose, onSelect, types, defaultT
     }, {})
   );
 
+  // raggruppa per categoria = ESWBS dell'elemento
+const groupedCategories = Object.values(
+  types.reduce((acc, task) => {
+    const model = task?.Element?.element_model;
+    const key = model?.ESWBS_code || "—";
+    const label = model?.LCN_name
+      ? `${model.ESWBS_code} ${model.LCN_name}`
+      : key;
+
+    if (!acc[key]) {
+      acc[key] = { id: key, eswbs: key, title: label, count: 0, tasks: [] };
+    }
+    acc[key].count += 1;
+    acc[key].tasks.push(task);
+    return acc;
+  }, {})
+);
+
   const { t, i18n } = useTranslation("maintenance");
   const [mounted, setMounted] = useState(false);
 
@@ -96,8 +114,8 @@ export default function SelectModal({ isOpen, onClose, onSelect, types, defaultT
               </tr>
             </thead>
             <tbody> 
-              {groupedTypes.length > 0 ? (
-                groupedTypes.map((type) => (
+              {groupedCategories.length > 0 ? (
+                groupedCategories.map((type) => (
                   <tr
                     key={type.id}
                   >
@@ -139,36 +157,35 @@ export default function SelectModal({ isOpen, onClose, onSelect, types, defaultT
           </table>
 
           <div className="sm:hidden flex flex-col gap-4">
-            {types.length > 0 ? (
-                types.map((type) => (
-
-                  <label
-                  key={type.id}
-                  className={`cursor-pointer rounded-md p-4 flex items-center gap-4 border-b border-black
-`}
-                >
-                  <input
-                        type="radio"
-                        name="maintenanceType"
-                        value={type.id}
-                        onChange={() => setSelectedType(type)}
-                        checked={selectedType?.id === type.id}
-                      />
-                  <div className="flex flex-col flex-grow gap-2">
-                    <span className={`rounded-full py-1 px-3 w-[fit-content] bg-[#395575] text-[10px]`}>{type.ending_date !== "N/A" ? new Date(type.ending_date).toLocaleDateString("it-IT") : "N/A"}</span>
-                    <span className="font-semibold text-2xl text-white">{type.title}</span>
-                    <span className="text-[#9ba7b9]">Task: 12 - Ultima esec: {type.execution_date !== "N/A" ? new Date(type.execution_date).toLocaleDateString("it-IT") : "N/A"}</span>
-                  </div>
-                </label>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="5" className="p-3 text-center border border-[#022a52]">
-                    {t("no_data_available")}
-                  </td>
-                </tr>
-              )}
-          </div>
+  {groupedTypes.length > 0 ? (
+    groupedTypes.map((type) => (
+      <label
+        key={type.id}
+        className="cursor-pointer rounded-md p-4 flex items-center gap-4 border-b border-black"
+      >
+        <input
+          type="radio"
+          name="maintenanceType"
+          value={type.id}
+          onChange={() => setSelectedType(type)}
+          checked={selectedType?.id === type.id}
+        />
+        <div className="flex flex-col flex-grow gap-2">
+          <span className="rounded-full py-1 px-3 w-fit bg-[#395575] text-[10px]">
+            {type.nextDue ? new Date(type.nextDue).toLocaleDateString("it-IT") : "N/A"}
+          </span>
+          <span className="font-semibold text-2xl text-white">{type.title}</span>
+          <span className="text-[#9ba7b9]">
+            Task: {type.count} — {t("last_execution")}:{" "}
+            {type.lastExecution ? new Date(type.lastExecution).toLocaleDateString("it-IT") : "N/A"}
+          </span>
+        </div>
+      </label>
+    ))
+  ) : (
+    <p className="p-3 text-center text-white/60">{t("no_data_available")}</p>   // ← niente più <tr>
+  )}
+</div>
 
         </div>
 

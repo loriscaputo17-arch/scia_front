@@ -21,6 +21,8 @@
   "plant_filter": "Plant filter",
   "confirm": "Confirm",
   "maintenances": "Maintenances",
-   "view_maintenances": "View maintenances"
+   "view_maintenances": "View maintenances",
+   "search_by_facility_name": "Search by facility name…",
+   "no_results": "No results"
 }
   

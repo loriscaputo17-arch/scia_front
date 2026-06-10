@@ -77,12 +77,13 @@ export default function ReportModal({ isOpen, onClose, shipId }) {
     }
   };
 
-  const periodLabel = () => {
-    if (!from && !to) return t("report_all_activities");
-    if (from && to) return t("report_period_from_to", { from: fmtDate(from), to: fmtDate(to) });
-    if (from) return t("report_period_from", { from: fmtDate(from) });
-    return t("report_period_to", { to: fmtDate(to) });
-  };
+const periodLabel = () => {
+  const opts = { interpolation: { escapeValue: false } };
+  if (!from && !to) return t("report_all_activities");
+  if (from && to) return t("report_period_from_to", { from: fmtDate(from), to: fmtDate(to), ...opts });
+  if (from) return t("report_period_from", { from: fmtDate(from), ...opts });
+  return t("report_period_to", { to: fmtDate(to), ...opts });
+};
 
   // traduce l'esito grezzo (OK / Anomalia / —) arrivato dal backend
   const esitoLabel = (esito) =>
@@ -246,7 +247,7 @@ export default function ReportModal({ isOpen, onClose, shipId }) {
           <div className="flex-1 min-h-0 flex flex-col">
             <div className="flex items-center justify-between mb-2">
               <p className="text-sm text-white/70">
-                {t("report_summary", { count: rows.length, period: periodLabel() })}
+                {t("report_summary", { count: rows.length, period: "" })}
               </p>
               {rows.length > 0 && (
                 <button

@@ -72,8 +72,7 @@ export default function MoveProduct({ isOpen, onClose, data }) {
   const handleSearch = async () => {
     try {
       const response = await fetchSpareById(ean13, partNumber, eswbsSearch);
-
-      if (response.length > 0) {
+      if (Array.isArray(response) && response.length > 0) {
         setResults(response[0]);
         setShowResults(true);
       } else {
@@ -81,6 +80,7 @@ export default function MoveProduct({ isOpen, onClose, data }) {
       }
     } catch (error) {
       console.error("Errore nella ricerca:", error);
+      setAddSpare(true);
     }
   };
 
@@ -181,12 +181,31 @@ export default function MoveProduct({ isOpen, onClose, data }) {
                 placeholder="Part Number"
               />
 
-              <div
-                className="px-4 py-2 bg-[#ffffff10] text-white rounded-md cursor-pointer"
-                onClick={() => setShowEswbsPopup(true)}
-              >
-                {selectedEswbs || t("choose_eswbs")}
-              </div>
+              <div className="flex items-center gap-2 bg-[#ffffff10] rounded-md px-4 py-2">
+  <div
+    className="flex-1 text-white cursor-pointer"
+    onClick={() => setShowEswbsPopup(true)}
+  >
+    {selectedEswbs || t("choose_eswbs")}
+  </div>
+  {selectedEswbs && (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        setSelectedEswbs("");   // azzera il testo mostrato
+        setEswbsSearch("");     // azzera il codice usato per la ricerca
+      }}
+      className="text-white/70 hover:text-white cursor-pointer flex-shrink-0"
+      title="Rimuovi ESWBS"
+      aria-label="Rimuovi ESWBS"
+    >
+      <svg width="14" height="14" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512">
+        <path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/>
+      </svg>
+    </button>
+  )}
+</div>
             </div>
 
             <button
@@ -200,9 +219,9 @@ export default function MoveProduct({ isOpen, onClose, data }) {
             <FacilitiesModal
               isOpen={showEswbsPopup}
               onClose2={() => setShowEswbsPopup(false)}
-              onSelectCode={(code) => {
-                setSelectedEswbs(code);
-                setEswbsSearch(code);
+              onSelectCode={(val) => {
+                setSelectedEswbs(val ? `${val.code} — ${val.name}` : "");
+                setEswbsSearch(val?.code || "");                            
                 setShowEswbsPopup(false);
               }}
             />

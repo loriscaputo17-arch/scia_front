@@ -30,7 +30,7 @@ export default function FacilitiesModal({ isOpen, onClose2, eswbs, onSelectSyste
 
         <input
           type="text"
-          placeholder="Cerca per nome impianto…"
+          placeholder={t("search_by_facility_name")}
           className="w-full px-4 py-2 pr-10 bg-[#ffffff10] text-white rounded-md"
           value={search}
           onChange={(e) => setSearch(e.target.value)}

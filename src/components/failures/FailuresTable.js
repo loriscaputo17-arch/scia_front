@@ -14,7 +14,7 @@ const FailuresTable = () => {
   const [filterOpen, setFilterOpen] = useState(false);
   const [addFailureOpen, setAddFailureOpen] = useState(false);
   const [filters, setFilters] = useState({
-    gravitá: {
+    gravity: {
       critica: false,
       alta: false,
       media: false,
@@ -58,7 +58,7 @@ const FailuresTable = () => {
     if (!filters) return;
 
     const applyFilters = () => {
-      const activeGravities = Object.entries(filters.gravitá)
+      const activeGravities = Object.entries(filters.gravity)
         .filter(([_, isActive]) => isActive)
         .map(([gravity]) => gravity);
 
@@ -76,6 +76,11 @@ const FailuresTable = () => {
         return matchGravity && matchTeam;
       });
 
+      console.log("activeGravities:", activeGravities);
+console.log("activeTeams:", activeTeams);
+console.log("result length:", result.length);
+console.log("sample failure:", failures[0]);
+
       setFilteredFailures(result);
     };
 
@@ -87,9 +92,12 @@ const FailuresTable = () => {
   }
 
   const numFiltriAttivi = [
-  ...Object.values(filters.gravitá),
-  ...Object.values(filters.squadra),
-].filter(Boolean).length;
+    ...Object.values(filters.gravity),
+    ...Object.values(filters.squadra),
+  ].filter(Boolean).length;
+
+console.log("gravità nel DB:", failures.map(f => f.gravity));
+
 
   return (
     <div className="w-full mx-auto rounded-lg shadow-md">

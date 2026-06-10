@@ -4,18 +4,30 @@ import { useState, useEffect } from "react";
 import { useTranslation } from "@/app/i18n";
 
 export default function MoveProductTable({ data, scanning, setScanning, onDataChange, setActiveField }) {
-  const initialLocations = Array.isArray(data.locationData)
-    ? data.locationData
-    : [data.locationData];
+  const initialLocations = (
+    Array.isArray(data.locationData)
+      ? data.locationData
+      : data.locationData ? [data.locationData] : []
+  ).filter(Boolean);
 
   const quantityList = typeof data.quantity === "string"
-    ? data.quantity.split(",").map(q => parseFloat(q.trim()))
+    ? data.quantity.split(",").map((q) => parseFloat(q.trim()))
     : [data.quantity];
 
   const [locations, setLocations] = useState(() => {
+    // se non esistono ubicazioni, parti con UNA riga vuota per lo spostamento
+    if (!initialLocations.length) {
+      return [{
+        warehouse: data?.warehouse || "",
+        location: "",
+        quantity: quantityList[0] ?? 0,
+        stock: "",
+        newLocation: "",
+      }];
+    }
     return initialLocations.map((location, index) => ({
       ...location,
-      location: typeof location.location === 'object' ? location.location.location : location.location,
+      location: typeof location.location === "object" ? location.location?.location : location.location,
       quantity: quantityList[index] ?? 0,
     }));
   });

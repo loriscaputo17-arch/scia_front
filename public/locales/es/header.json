@@ -30,6 +30,17 @@
   "ordinary_marshal": "Mariscal ordinario",
   "marshal": "Mariscal",
   "sergeant_major": "Sargento mayor",
-  "sergeant": "Sargento"
+  "sergeant": "Sargento",
+  "search_facility": "Buscar instalación...",
+"element": "Elemento",
+"operating_hours": "Horas de funcionamiento",
+"no_scan": "Ningún escaneo",
+"menu": "Menú",
+"command": "Mando",
+"dashboard": "Panel",
+"overview": "Resumen",
+"certifications": "Certificaciones",
+"log": "Registro",
+"scan_barcode": "Scan barcode"
 }
   

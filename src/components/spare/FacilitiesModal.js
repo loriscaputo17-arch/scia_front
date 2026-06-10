@@ -8,6 +8,7 @@ export default function NotesModal({ isOpen, onClose2, onSelectCode, selectedCod
   
   const [search, setSearch] = useState("");
   const [selectedCode, setSelectedCode] = useState(initialCode);
+  const [selected, setSelected] = useState(null);
 
   useEffect(() => {
     setSelectedCode(initialCode);
@@ -51,15 +52,15 @@ export default function NotesModal({ isOpen, onClose2, onSelectCode, selectedCod
         <FacilitiesList
           search={search}
           modal="yes"
-          eswbsCode={selectedCode} // 👈 QUESTO
-          onSelect={(code) => setSelectedCode(code)}
+          eswbsCode={selectedCode}
+          onSelect={(val) => setSelected(val)}
         />
 
         {/* CONFIRM BUTTON */}
         <button
           className="w-full bg-[#789fd6] p-3 mt-6 text-white font-semibold rounded-md"
-          onClick={handleConfirm}
-          disabled={!selectedCode}
+          onClick={() => { onSelectCode(selected); onClose2(); }}
+          disabled={!selected}
         >
           {t("confirm")}
         </button>

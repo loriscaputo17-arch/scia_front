@@ -12,7 +12,6 @@ const CartTable = () => {
 
   const { user, selectedShipId: shipId } = useUser();
 
-
   const { t, i18n } = useTranslation("cart");
   const [mounted, setMounted] = useState(false);
 
@@ -31,7 +30,7 @@ const CartTable = () => {
   };
 
   const handleRemoveProduct = (spareId) => {
-    setCartData(prev => prev.filter(item => item.Spare.ID !== spareId));
+    setCartData(prev => prev.filter(item => (item.spare ?? item.Spare)?.ID !== spareId));
   };
 
   useEffect(() => {

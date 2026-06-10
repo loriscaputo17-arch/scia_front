@@ -51,7 +51,7 @@ export default function LastScanPopup({ onClose }) {
 
         <input
           type="text"
-          placeholder="Cerca impianto..."
+          placeholder={t("search_facility")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full p-2 bg-white text-black mb-4 rounded-md"
@@ -69,11 +69,10 @@ export default function LastScanPopup({ onClose }) {
               >
                 <div className="flex-1 min-w-0">
                   
-
                   <p className="text-xl font-semibold truncate">
                     {scan.element?.name
                       ? scan.element?.name.charAt(0).toUpperCase() + scan.element?.name.slice(1).toLowerCase()
-                      : `Elemento #${scan.element_id}`}
+                      : `${t("element")} #${scan.element_id}`}
                   </p>
                   
                   <div className="flex items-center text-[14px] mt-1 gap-2">
@@ -89,7 +88,7 @@ export default function LastScanPopup({ onClose }) {
 
                   <p className="text-[#ffffff80]">
                     {scan.element?.time_to_work && (
-                      <span>Ore di moto: {scan.element?.time_to_work}</span>
+                      <span>{t("operating_hours")}: {scan.element?.time_to_work}</span>
                     )}
                   </p>
 

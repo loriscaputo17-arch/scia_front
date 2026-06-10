@@ -30,7 +30,17 @@
   "ordinary_marshal": "Ordinary Marshal",
   "marshal": "Marshal",
   "sergeant_major": "Sergeant Major",
-  "sergeant": "Sergeant"
+  "sergeant": "Sergeant",
+  "search_facility": "Search facility...",
+"element": "Element",
+"operating_hours": "Operating hours",
+"no_scan": "No scan",
+"menu": "Menu",
+"command": "Command",
+"dashboard": "Dashboard",
+"overview": "Overview",
+"certifications": "Certifications",
+"log": "Log"
 
 }
   

@@ -61,7 +61,7 @@ export default function FilterSidebar({ isOpen, onClose, onFiltersChange, initia
         ...prev,
         system: { selectedElement: Number(initialSystem) },
       }));
-      // Opzionale: mostra il codice come nome se non hai il nome disponibile
+      
       setSelectedSystemName(initialSystem);
     }
   }, [initialSystem]);
@@ -193,13 +193,13 @@ export default function FilterSidebar({ isOpen, onClose, onFiltersChange, initia
         </div>
 
         <div className="mb-5">
-          <h3 className="text-[16px] text-[#789fd6] mb-2">Range ore di moto</h3>
+          <h3 className="text-[16px] text-[#789fd6] mb-2">{t("operating_hours_range")}</h3>
           <p className="text-white/50 text-xs mb-3">
           </p>
 
           <div className="flex gap-2">
             <div className="flex flex-col flex-1 w-20">
-              <label className="text-xs text-white/60 mb-1">Da</label>
+              <label className="text-xs text-white/60 mb-1">{t("from")}</label>
               <input
                 type="number"
                 min="0"
@@ -216,7 +216,7 @@ export default function FilterSidebar({ isOpen, onClose, onFiltersChange, initia
               {/* Mostra conversione in giorni */}
               {filters.ricorrenza_giorni.from && (
                 <span className="text-white/30 text-xs mt-1">
-                  ≈ {Math.round(Number(filters.ricorrenza_giorni.from) / 24)} giorni
+                  ≈ {Math.round(Number(filters.ricorrenza_giorni.from) / 24)} {t("days")}
                 </span>
               )}
             </div>
@@ -238,7 +238,7 @@ export default function FilterSidebar({ isOpen, onClose, onFiltersChange, initia
               />
               {filters.ricorrenza_giorni.to && (
                 <span className="text-white/30 text-xs mt-1">
-                  ≈ {Math.round(Number(filters.ricorrenza_giorni.to) / 24)} giorni
+                  ≈ {Math.round(Number(filters.ricorrenza_giorni.to) / 24)} {t("days")}
                 </span>
               )}
             </div>

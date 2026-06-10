@@ -31,8 +31,9 @@ export default function ImpiantiList({ search, modal, eswbsCode, onSelect }) {
   }, [eswbsCode]);
 
   const handleSelect = (node) => {
-    setSelectedCode(node.eswbs_code);
-    if (onSelect) onSelect(node.eswbs_code);
+    const code = node.eswbs_code || node.code;
+    setSelectedCode(code);
+    if (onSelect) onSelect({ code, name: node.name });
   };
 
   useEffect(() => {
@@ -156,16 +157,16 @@ export default function ImpiantiList({ search, modal, eswbsCode, onSelect }) {
             <div className="flex items-center space-x-4">
               <input
                 type="checkbox"
-                checked={node.eswbs_code === selectedCode}
+                checked={(node.eswbs_code || node.code) === selectedCode}
                 onChange={(e) => {
-                  e.stopPropagation(); // 👈 IMPORTANTISSIMO
-                  if (e.target.checked) {
-                    handleSelect(node);
-                  } else {
-                    setSelectedCode(null);
-                    if (onSelect) onSelect(null);
-                  }
-                }}
+                    e.stopPropagation();
+                    if (e.target.checked) {
+                      handleSelect(node);
+                    } else {
+                      setSelectedCode(null);
+                      if (onSelect) onSelect(null);   // resta null
+                    }
+                  }}
                 className="mr-2 cursor-pointer w-[20px] h-[20px] appearance-none border-2 border-[#ffffff20] bg-transparent rounded-sm transition-all duration-200 checked:bg-[#789fd6] checked:border-[#789fd6] hover:opacity-80 focus:outline-none"
               />
               <svg

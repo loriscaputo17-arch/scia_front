@@ -40,11 +40,11 @@ export default function LastScan() {
         <div className="">
           {lastScan ? (
             <>
-            <p className="text-xs text-[#789fd6]">Ultima scansione</p>
+              <p className="text-xs text-[#789fd6]">{t("last_scan")}</p>
               <p className="text-md font-semibold truncate">
                 {lastScan.element?.name
                   ? lastScan.element.name.charAt(0).toUpperCase() + lastScan.element.name.slice(1).toLowerCase()
-                  : `Elemento #${lastScan.element_id}`}
+                  : `${t("element")} #${lastScan.element_id}`}
               </p>
               <p className="text-[11px] mt-1 text-[#ffffff60] truncate">
                 {lastScan.element?.element_model?.ESWBS_code && (
@@ -55,13 +55,13 @@ export default function LastScan() {
                   <span> · {new Date(lastScan.scanned_at).toLocaleString()}</span>
                 )}
                 {lastScan.element?.time_to_work && (
-                  <span> · Ore di moto: {lastScan.element?.time_to_work}</span>
+                  <span> · {t("operating_hours")}: {lastScan.element?.time_to_work}</span>
                 )}
                 
               </p>
             </>
           ) : (
-            <p className="text-xl font-semibold text-white/40">Nessuna scansione</p>
+            <p className="text-xl font-semibold text-white/40">{t("no_scan")}</p>
           )}
         </div>
         <svg width="18px" height="18px" className="ml-auto shrink-0" fill="white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">

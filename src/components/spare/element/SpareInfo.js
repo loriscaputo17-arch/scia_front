@@ -98,20 +98,26 @@ const SpareInfo = ({ details }) => {
       {/* MANUTENZIONI COLLEGATE */}
       {spare.maintenances?.length > 0 && (
         <div>
-          <h2 className="text-lg text-[#789fd6] mb-2">Manutenzioni collegate</h2>
+          <h2 className="text-lg text-[#789fd6] mb-2">{t("linked_maintenances")}</h2>
           <div className="flex flex-col gap-2">
             {spare.maintenances.map((m) => (
               <div
                 key={m.id}
-                className="bg-[#ffffff0d] rounded-lg px-3 py-2 cursor-pointer hover:bg-[#ffffff15]"
+                onClick={() => router.push(`/dashboard/maintenance/${m.id}`)}
+                className="bg-[#ffffff0d] rounded-lg px-3 py-2 cursor-pointer hover:bg-[#ffffff15] flex items-center gap-2"
               >
-                <p className="text-white text-sm font-semibold">{m.name}</p>
-                {m.recurrency_type && (
-                  <p className="text-white/50 text-xs mt-1">{m.recurrency_type.name}</p>
-                )}
-                {m.maintenance_level && (
-                  <p className="text-white/50 text-xs">{m.maintenance_level.Industry_Level}</p>
-                )}
+                <div className="min-w-0">
+                  <p className="text-white text-sm font-semibold truncate">{m.name}</p>
+                  {m.recurrency_type && (
+                    <p className="text-white/50 text-xs mt-1">{m.recurrency_type.name}</p>
+                  )}
+                  {m.maintenance_level && (
+                    <p className="text-white/50 text-xs">{m.maintenance_level.Industry_Level}</p>
+                  )}
+                </div>
+                <svg className="ml-auto flex-shrink-0" fill="white" width="12" height="12" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512">
+                  <path d="M310.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L242.7 256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z"/>
+                </svg>
               </div>
             ))}
           </div>

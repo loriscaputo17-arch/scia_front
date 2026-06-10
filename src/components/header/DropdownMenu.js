@@ -67,9 +67,13 @@ export default function DropdownMenu({ isOpen, onClose }) {
     >
       {/* intestazione */}
       <div className="flex items-center justify-between bg-gradient-to-r from-[#022a52] to-[#0a3a6b] px-4 py-3">
-        <span className="text-xs font-semibold uppercase tracking-[0.18em] text-white/80">Menu</span>
+        <span className="text-xs font-semibold uppercase tracking-[0.18em] text-white/80">
+          {t("menu")}
+        </span>
         {user?.type === "Comando" && (
-          <span className="rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-medium text-white">Comando</span>
+          <span className="rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-medium text-white">
+            {t("command")}
+          </span>
         )}
       </div>
 
@@ -77,7 +81,7 @@ export default function DropdownMenu({ isOpen, onClose }) {
       <ul className="px-2 py-2">
         <MenuItem
           href="/dashboard"
-          label="Dashboard"
+          label={t("dashboard")}
           icon={<Image src="/icons/homeico.svg" alt="" width={15} height={15} />}
         />
         <MenuItem
@@ -103,7 +107,7 @@ export default function DropdownMenu({ isOpen, onClose }) {
         {user?.type === "Comando" && (
           <MenuItem
             href="/dashboard/overview"
-            label="Overview"
+            label={t("overview")}
             icon={
               <svg xmlns="http://www.w3.org/2000/svg" fill={NAVY} width="14" height="14" viewBox="0 0 512 512">
                 <path d="M0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zm320 96c0-26.9-16.5-49.9-40-59.3L280 88c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 204.7c-23.5 9.5-40 32.5-40 59.3c0 35.3 28.7 64 64 64s64-28.7 64-64zM144 176a32 32 0 1 0 0-64 32 32 0 1 0 0 64zm-16 80a32 32 0 1 0 -64 0 32 32 0 1 0 64 0zm288 32a32 32 0 1 0 0-64 32 32 0 1 0 0 64zM400 144a32 32 0 1 0 -64 0 32 32 0 1 0 64 0z" />
@@ -116,7 +120,7 @@ export default function DropdownMenu({ isOpen, onClose }) {
       {/* CREDITS / CERTIFICAZIONI */}
       <div className="border-t border-[#022a52]/10 bg-[#f6f8fb] px-4 py-3">
         <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#022a52]/40">
-          Certificazioni
+          {t("certifications")}
         </p>
         <div className="flex items-center justify-center gap-4">
           <div className="flex flex-col items-center gap-1">
@@ -147,7 +151,7 @@ export default function DropdownMenu({ isOpen, onClose }) {
       <div className="flex items-center justify-between border-t border-[#022a52]/10 px-4 py-2.5 text-[11px] text-[#022a52]/40">
         <span>FE 1.0.0 · BE {BEVersion.version}</span>
         <Link href="/logpage" onClick={onClose} className="transition-colors hover:text-[#789fd6]">
-          Log
+          {t("log")}
         </Link>
       </div>
     </div>

@@ -7,7 +7,7 @@ import NoteHistoryModal from "@/components/maintenance/element/NoteHistoryModal"
 import PhotoHistoryModal from "@/components/maintenance/element/PhotoHistoryModal";
 import TextHistoryModal from "@/components/maintenance/element/TextHistoryModal";
 import { useTranslation } from "@/app/i18n";
-import { markAs } from "@/api/maintenance";
+import { markAs, markAsOk } from "@/api/maintenance";
 import { useRouter } from "next/navigation";
 import { getTextsGeneral, getPhotosGeneral, getAudiosGeneral } from "@/api/shipFiles";
 import { addPhotographicNoteGeneral, addVocalNoteGeneral, addTextNoteGeneral } from "@/api/failures";
@@ -26,7 +26,7 @@ const ReadingsDetails = ({ details }) => {
   const { t, i18n } = useTranslation("maintenance");
   const [mounted, setMounted] = useState(false);
 
-  const { getNotes, clearNotes, user } = useUser();
+  const { getNotes, clearNotes, user, selectedShipId: shipId } = useUser();
 
   useEffect(() => {
     setMounted(true);
@@ -77,27 +77,23 @@ const ReadingsDetails = ({ details }) => {
   };
 
   const handleOk = async () => {
-    try {
-      await uploadNotesToDb("ok");
-
-      await markAsOk(details.id, {
-        maintenanceList_id: details.id,
-        userId: user?.id,
-        userType: "User logged in",
-        time: 0,  
-        level: null,   
-        spares: []     
-      });
-
-      clearNotes(details.id);
-
-      window.location.reload();
-
-    } catch (error) {
-      console.error("Errore in handleOk()", error);
-      alert("❌ Errore durante il completamento della manutenzione");
-    }
-  };
+  try {
+    await uploadNotesToDb("ok");
+    await markAsOk(
+      details.id,
+      { maintenanceList_id: details.id, userId: user?.id, 
+        userType: "User logged in", time: 0, level: null, 
+        spares: [] },
+      [],          
+      shipId       
+    );
+    clearNotes(details.id);
+    window.location.reload();
+  } catch (error) {
+    console.error("Errore in handleOk()", error);
+    alert("Errore durante il completamento della manutenzione");
+  }
+};
 
   const handleAnomaly = async (status) => {
     //await uploadNotesToDb(status);
@@ -226,43 +222,47 @@ const ReadingsDetails = ({ details }) => {
       <div className="mb-6">
         <div className="flex gap-4">
           {(() => {
-            const buttonsDisabled = details?.execution_state !== null;
-            return (
-              <>
-                <button
-                                  onClick={() => !buttonsDisabled && handleOk("ok")}
-                                  disabled={buttonsDisabled}
-                                  className={`cursor-pointer flex items-center justify-center w-full py-6 text-white rounded-md transition duration-300 
-                                    ${
-                                      buttonsDisabled
-                                        ? "bg-gray-600 opacity-40 cursor-not-allowed"
-                                        : details[0]?.execution_state === "1"
-                                        ? "bg-[#2db647]"
-                                        : "bg-[#15375d] hover:bg-blue-700"
-                                    }`}
-                                >
-                                  <Image src="/done.png" alt="Done" width={20} height={20} className="sm:mr-2" />
-                                  <span className="hidden sm:block">{t("ok")}</span>
-                                </button>
+  const OPEN_STATES = [null, undefined, "scheduled"];
+  const state = details?.execution_state;              // ← niente [0]
+  const buttonsDisabled = !OPEN_STATES.includes(state);
+  const isOk = String(state) === "1";
+  const isAnomaly = String(state) === "2";
+  return (
+    <>
+      {/* BOTTONE OK */}
+      <button
+        onClick={() => !buttonsDisabled && handleOk("ok")}
+        disabled={buttonsDisabled}
+        className={`cursor-pointer flex items-center justify-center w-full py-6 text-white rounded-md transition duration-300 ${
+          isOk
+            ? "bg-[#2db647]"                                  
+            : buttonsDisabled
+              ? "bg-gray-600 opacity-40 cursor-not-allowed"  
+              : "bg-[#15375d] hover:bg-blue-700"             
+        }`}
+      >
+        <Image src="/done.png" alt="Done" width={20} height={20} className="sm:mr-2" />
+        <span className="hidden sm:block">{t("ok")}</span>
+      </button>
 
-                <button
-                                  onClick={() => !buttonsDisabled && handleAnomaly("anomaly")}
-                                  disabled={buttonsDisabled}
-                                  className={`cursor-pointer flex items-center justify-center w-full py-6 text-white rounded-md transition duration-300 
-                                    ${
-                                      buttonsDisabled
-                                        ? "bg-gray-600 opacity-40 cursor-not-allowed"
-                                        : details[0]?.execution_state === "2"
-                                        ? "bg-[#d0021b]"
-                                        : "bg-[#15375d] hover:bg-blue-700"
-                                    }`}
-                                >
-                                  <Image src="/x.png" alt="X" width={20} height={20} className="sm:mr-2" />
-                                  <span className="hidden sm:block">{t("anomaly")}</span>
-                                </button>
-                </>
-              );
-            })()}
+      {/* BOTTONE ANOMALIA */}
+      <button
+        onClick={() => !buttonsDisabled && handleAnomaly("anomaly")}
+        disabled={buttonsDisabled}
+        className={`cursor-pointer flex items-center justify-center w-full py-6 text-white rounded-md transition duration-300 ${
+          isAnomaly
+            ? "bg-[#d0021b]"                                  
+            : buttonsDisabled
+              ? "bg-gray-600 opacity-40 cursor-not-allowed"
+              : "bg-[#15375d] hover:bg-blue-700"
+        }`}
+      >
+        <Image src="/x.png" alt="X" width={20} height={20} className="sm:mr-2" />
+        <span className="hidden sm:block">{t("anomaly")}</span>
+      </button>
+    </>
+  );
+})()}
         </div>
       </div>
 

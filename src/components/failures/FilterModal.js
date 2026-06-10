@@ -7,7 +7,7 @@ export default function FilterModal({ isOpen, onClose, onApply, currentFilters }
   const { t, i18n } = useTranslation("failures");
 
   const [filters, setFilters] = useState(currentFilters || {
-    gravitá: {
+    gravity: {
       critica: false,
       alta: false,
       media: false,
@@ -33,13 +33,12 @@ export default function FilterModal({ isOpen, onClose, onApply, currentFilters }
   }, [currentFilters]);
 
   const toggleFilter = (category, key) => {
-    setFilters(prev => ({
-      ...prev,
-      [category]: {
-        ...prev[category],
-        [key]: !prev[category][key],
-      },
-    }));
+    console.log("toggle:", category, key);
+    setFilters(prev => {
+      const next = { ...prev, [category]: { ...prev[category], [key]: !prev[category][key] } };
+      console.log("nuovo filters:", JSON.stringify(next));
+      return next;
+    });
   };
 
   const handleApply = () => {
@@ -78,8 +77,8 @@ export default function FilterModal({ isOpen, onClose, onApply, currentFilters }
 
               <input
                 type="checkbox"
-                checked={filters.gravitá[item.key]}
-                onChange={() => toggleFilter("gravitá", item.key)}
+                checked={filters.gravity[item.key]}
+                onChange={() => toggleFilter("gravity", item.key)}
                 className="mr-2 cursor-pointer w-[20px] h-[20px] appearance-none border-2 border-[#ffffff20] bg-transparent rounded-sm transition-all duration-200 
                 checked:bg-[#789fd6] checked:border-[#789fd6] hover:opacity-80 focus:outline-none ml-auto"
               />
