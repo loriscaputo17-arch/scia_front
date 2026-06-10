@@ -12,6 +12,7 @@ import Breadcrumbs from "@/components/dashboard/Breadcrumbs";
 import Image from 'next/image';
 import Link from "next/link";
 import { useUser } from "@/context/UserContext";
+import { useTranslation } from "@/app/i18n";
 
 const getFacilityIcon = (code) => {
   if (!code) return null;
@@ -20,7 +21,13 @@ const getFacilityIcon = (code) => {
   return `/icons/facilities/Ico${firstDigit}.svg`;
 };
 
-const TABS = ["Info", "Manutenzioni", "Ricambi", "Note", "Componenti"];
+const TABS = [
+  { key: "Info",          labelKey: "tab_info" },
+  { key: "Manutenzioni",  labelKey: "tab_maintenances" },
+  { key: "Ricambi",       labelKey: "tab_spares" },
+  { key: "Note",          labelKey: "tab_notes" },
+  { key: "Componenti",    labelKey: "tab_components" },
+];
 
 export default function ElementPage() {
   const { element } = useParams();
@@ -28,6 +35,7 @@ export default function ElementPage() {
   const [activeTab, setActiveTab] = useState("Info");
   const { user, selectedShipId: shipId } = useUser();
   const router = useRouter();
+  const { t, i18n } = useTranslation("facilities");
 
   useEffect(() => {
     const getData = async () => {
@@ -39,7 +47,7 @@ export default function ElementPage() {
     getData();
   }, [element, shipId]);
 
-  if (!data) return (
+    if (!data || !i18n.isInitialized) return (
     <div className="flex flex-col bg-[#001c38] text-white p-4 min-h-screen">
       <DashboardHeader />
     </div>
@@ -48,7 +56,7 @@ export default function ElementPage() {
   const icon = getFacilityIcon(data.model?.ESWBS_code);
 
   return (
-    <div className="flex flex-col bg-[#001c38] text-white p-4 min-h-screen">
+    <div className="flex flex-col bg-[#001c38] text-white p-4 min-h-screen">  
       <DashboardHeader />
 
       <div className="flex w-full items-center mt-4">
@@ -81,7 +89,7 @@ export default function ElementPage() {
             <Link href={data.model.ElementModel_installation_drawing_link} target="_blank">
               <button className="flex items-center gap-1 bg-[#789fd6] hover:bg-blue-500 text-white text-sm py-1 px-3 rounded-md transition">
                 <Image src="/icons/download.svg" alt="download" width={14} height={14} />
-                Downloads
+                {t("downloads")}
               </button>
             </Link>
           )}
@@ -92,22 +100,22 @@ export default function ElementPage() {
       <div className="flex gap-1 mb-4 border-b border-white/10 overflow-x-auto">
         {TABS.map(tab => (
           <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
             className={`px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors ${
-              activeTab === tab
+              activeTab === tab.key
                 ? "border-b-2 border-[#789fd6] text-white"
                 : "text-white/50 hover:text-white/80"
             }`}
           >
-            {tab}
-            {tab === "Manutenzioni" && data.maintenances?.length > 0 && (
+            {t(tab.labelKey)}
+            {tab.key === "Manutenzioni" && data.maintenances?.length > 0 && (
               <span className="ml-1 text-xs bg-[#789fd6] rounded-full px-1.5">{data.maintenances.length}</span>
             )}
-            {tab === "Ricambi" && data.spares?.length > 0 && (
+            {tab.key === "Ricambi" && data.spares?.length > 0 && (
               <span className="ml-1 text-xs bg-[#789fd6] rounded-full px-1.5">{data.spares.length}</span>
             )}
-            {tab === "Componenti" && data.children?.length > 0 && (
+            {tab.key === "Componenti" && data.children?.length > 0 && (
               <span className="ml-1 text-xs bg-[#789fd6] rounded-full px-1.5">{data.children.length}</span>
             )}
           </button>
@@ -163,7 +171,7 @@ export default function ElementPage() {
               </div>
             ))
           ) : (
-            <p className="text-white/40 text-sm p-6 text-center">Nessuna manutenzione collegata</p>
+            <p className="text-white/40 text-sm p-6 text-center">{t("no_linked_maintenance")}</p>
           )}
         </div>
       )}
@@ -195,7 +203,7 @@ export default function ElementPage() {
               </div>
             ))
           ) : (
-            <p className="text-white/40 text-sm p-6 text-center">Nessun ricambio collegato</p>
+            <p className="text-white/40 text-sm p-6 text-center">{t("no_linked_spare")}</p>
           )}
         </div>
       )}
@@ -205,7 +213,7 @@ export default function ElementPage() {
           {/* Foto */}
           {data.notes?.photos?.length > 0 && (
             <div>
-              <h3 className="text-[#789fd6] text-sm font-semibold mb-3">Note fotografiche ({data.notes.photos.length})</h3>
+              <h3 className="text-[#789fd6] text-sm font-semibold mb-3">{t("photo_notes")} ({data.notes.photos.length})</h3>
               <div className="flex gap-3 overflow-x-auto pb-2">
                 {data.notes.photos.map((p) => (
                   <Image key={p.id} src={p.image_url} alt="note" width={80} height={80}
@@ -221,7 +229,7 @@ export default function ElementPage() {
           {/* Testo */}
           {data.notes?.text?.length > 0 && (
             <div>
-              <h3 className="text-[#789fd6] text-sm font-semibold mb-3">Note testuali ({data.notes.text.length})</h3>
+              <h3 className="text-[#789fd6] text-sm font-semibold mb-3">{t("text_notes")} ({data.notes.text.length})</h3>
               <div className="flex flex-col gap-2">
                 {data.notes.text.map((n) => (
                   <div key={n.id} className="bg-[#00000030] p-3 rounded-md">
@@ -237,7 +245,7 @@ export default function ElementPage() {
           )}
 
           {!data.notes?.photos?.length && !data.notes?.text?.length && !data.notes?.vocal?.length && (
-            <p className="text-white/40 text-sm text-center">Nessuna nota disponibile</p>
+            <p className="text-white/40 text-sm text-center">{t("no_notes_available")}</p>
           )}
         </div>
       )}
@@ -264,7 +272,7 @@ export default function ElementPage() {
               </div>
             ))
           ) : (
-            <p className="text-white/40 text-sm p-6 text-center">Nessun componente figlio</p>
+            <p className="text-white/40 text-sm p-6 text-center">{t("no_child_component")}</p>
           )}
         </div>
       )}
