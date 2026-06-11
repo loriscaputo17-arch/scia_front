@@ -9,7 +9,6 @@ import { useUser } from "@/context/UserContext";
 const API = process.env.NEXT_PUBLIC_API_URL_DEV;
 const S3_BASE = process.env.NEXT_PUBLIC_S3_BASE_URL || "";
 
-// ─── File fisso SG118 ─────────────────────────────────────────────────────────
 const MANUAL_SG118 = {
   id: "sg118-manual",
   file_name: "Manuale Nave SG_118 digital",
@@ -18,7 +17,6 @@ const MANUAL_SG118 = {
   isFixed: true,
 };
 
-// ─── Cartella Drive aggiuntiva (disegni) ─────────────────────────────────────
 const DRIVE_FOLDER_DISEGNI = {
   id: "drive-folder-disegni",
   file_name: "Disegni nave (cartella Drive)",

@@ -98,7 +98,7 @@ const SpareInfo = ({ details }) => {
       {/* MANUTENZIONI COLLEGATE */}
       {spare.maintenances?.length > 0 && (
         <div>
-          <h2 className="text-lg text-[#789fd6] mb-2">{t("linked_maintenances")}</h2>
+          <h2 className="text-lg text-[#789fd6] mb-2">{t("view_maintenances")}</h2>
           <div className="flex flex-col gap-2">
             {spare.maintenances.map((m) => (
               <div

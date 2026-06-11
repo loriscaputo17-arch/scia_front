@@ -33,6 +33,7 @@ const MaintenanceTable = () => {
   const searchParams = useSearchParams();
   const eswbsFromUrl = searchParams.get("eswbs_code");
   const elementIdFromUrl = searchParams.get("element_id");
+  const systemNameFromUrl = searchParams.get("system_name");
 
   const [activeTab, setActiveTab] = useState("maintenance");
   const [conditionData, setConditionData] = useState([]);
@@ -54,8 +55,6 @@ const MaintenanceTable = () => {
     };
     fetchCondition();
   }, [eswbsFromUrl, elementIdFromUrl, shipId, user]);
-
-  
 
   useEffect(() => {
     if (eswbsFromUrl) {
@@ -410,7 +409,7 @@ const MaintenanceTable = () => {
 
       <LegendModal isOpen={legendOpen} onClose={() => setLegendOpen(false)} />
 
-      <FilterModal isOpen={filterOpen} onClose={() => setFilterOpen(false)} onFiltersChange={(newFilters) => setFilters(newFilters)} initialSystem={eswbsFromUrl} />
+      <FilterModal isOpen={filterOpen} onClose={() => setFilterOpen(false)} onFiltersChange={(newFilters) => setFilters(newFilters)} initialSystem={eswbsFromUrl} initialSystemName={systemNameFromUrl} />
       <ReportModal isOpen={reportOpen} onClose={() => setReportOpen(false)} shipId={shipId} />
 
     </div>

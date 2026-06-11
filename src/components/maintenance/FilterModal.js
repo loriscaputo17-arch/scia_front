@@ -5,7 +5,7 @@ import Image from 'next/image';
 import FacilitiesModal from "./FacilitiesModal";
 import { useTranslation } from "@/app/i18n";
 
-export default function FilterSidebar({ isOpen, onClose, onFiltersChange, initialSystem }) {
+export default function FilterSidebar({ isOpen, onClose, onFiltersChange, initialSystem, initialSystemName }) {
   const [filters, setFilters] = useState({
     stato: {
       scaduta: false,
@@ -57,14 +57,10 @@ export default function FilterSidebar({ isOpen, onClose, onFiltersChange, initia
 
   useEffect(() => {
     if (initialSystem) {
-      setFilters(prev => ({
-        ...prev,
-        system: { selectedElement: Number(initialSystem) },
-      }));
-      
-      setSelectedSystemName(initialSystem);
+      setFilters(prev => ({ ...prev, system: { selectedElement: Number(initialSystem) } }));
+      setSelectedSystemName(initialSystemName || initialSystem);
     }
-  }, [initialSystem]);
+  }, [initialSystem, initialSystemName]);
 
   const toggleFilter = (category, key) => {
     setFilters((prev) => ({
@@ -123,11 +119,15 @@ export default function FilterSidebar({ isOpen, onClose, onFiltersChange, initia
           <h3 className="text-[16px] text-[#789fd6] mb-2">{t("system")}</h3>
           
           <div className="flex items-center cursor-pointer" onClick={() => setFacilitiesOpen(true)}>
-            <p className={selectedSystemName ? "text-white" : "text-white/60"}>
-              {selectedSystemName || t("select_systems")}
+            <p className={selectedSystemName ? "text-white text-sm" : "text-white/60"}>
+              {selectedSystemName
+                ? (filters.system.selectedElement
+                    ? `${filters.system.selectedElement} — ${selectedSystemName}`
+                    : selectedSystemName)
+                : t("select_systems")}
             </p>
 
-            <div className="ml-auto flex gap-4 items-center">
+            <div className="ml-auto flex gap-2 items-center">
             {selectedSystemName && (
               <button
                 className="mr-0 text-white/40 hover:text-white"

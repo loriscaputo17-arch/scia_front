@@ -68,13 +68,19 @@ const DetailsPanel = ({ details }) => {
         </div>
       )}
 
-      {/* LINK MANUTENZIONI */}
-      {details.element?.id && (
+{/* LINK MANUTENZIONI */}
+{details.element?.id && (
   <div>
     <h2 className="text-lg text-[#789fd6] mb-2">{t("maintenances")}</h2>
     <div
       className="flex items-center gap-3 cursor-pointer bg-[#ffffff0d] rounded-lg px-3 py-2 hover:bg-[#ffffff15]"
-      onClick={() => router.push(`/dashboard/maintenance?element_id=${details.element.id}`)}
+      onClick={() => {
+        const params = new URLSearchParams({ element_id: String(details.element.id) });
+        if (details.model?.ESWBS_code) params.set("eswbs_code", String(details.model.ESWBS_code));
+        const nm = details.element?.name || details.model?.LCN_name;
+        if (nm) params.set("system_name", nm);          // ← nome leggibile
+        router.push(`/dashboard/maintenance?${params.toString()}`);
+      }}
     >
       <p className="text-white text-sm">{t("view_maintenances")}</p>
       {details.maintenances?.length > 0 && (

@@ -27,7 +27,45 @@ const isStructuralNode = (eswbs_code) => {
 function sortTree(nodes) {
   return [...nodes]
     .sort((a, b) => (a.eswbs_code || "").localeCompare(b.eswbs_code || ""))
-    .map(n => ({ ...n, children: sortTree(n.children || []) }));
+    .map((n) => ({ ...n, children: sortTree(n.children || []) }));
+}
+
+// ─── Macrogruppi sintetici (1000/2000/...) ──────────────────────────────────
+// Il backend NON restituisce i nodi-radice di macrogruppo: li creiamo lato client
+// raggruppando i nodi top-level per prima cifra dell'ESWBS.
+const MACRO_LABELS = {
+  1: "SCAFO",
+  2: "APP. MOTRICE / PROPULSIONE",
+  3: "IMPIANTO ELETTRICO",
+  4: "COMANDO E SORVEGLIANZA",
+  5: "IMPIANTI AUSILIARI",
+  6: "ALLESTIMENTO E SISTEMAZIONI",
+  7: "ARMAMENTO",
+  8: "VARIE / INTEGRAZIONE",
+  9: "ALTRO",
+};
+
+function groupByMacro(nodes) {
+  const groups = {};
+  const order = [];
+  for (const node of nodes) {
+    const digit = String(node.eswbs_code || "").trim().charAt(0);
+    const key = /^[1-9]$/.test(digit) ? digit : "9";
+    if (!groups[key]) {
+      groups[key] = {
+        id: `macro-${key}`,
+        eswbs_code: `${key}000`,
+        name: MACRO_LABELS[key] || "ALTRO",
+        isMacro: true,
+        children: [],
+      };
+      order.push(key);
+    }
+    groups[key].children.push(node);
+  }
+  return order
+    .sort((a, b) => a.localeCompare(b))
+    .map((k) => groups[k]);
 }
 
 export default function ImpiantiList({ search, modal, eswbsCode, onSelect, close }) {
@@ -56,7 +94,7 @@ export default function ImpiantiList({ search, modal, eswbsCode, onSelect, close
     if (selectedCode && selectedRef.current) {
       setTimeout(() => {
         selectedRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
-      }, 150); 
+      }, 150);
     }
   }, [selectedCode]);
 
@@ -65,7 +103,7 @@ export default function ImpiantiList({ search, modal, eswbsCode, onSelect, close
       if (!user?.id) return;
       try {
         const result = await fetchElements(shipId, user.id, teamId);
-        const sorted = sortTree(result);
+        const sorted = groupByMacro(sortTree(result));
         setImpiantiData(sorted);
 
         if (eswbsCode) {
@@ -138,19 +176,22 @@ export default function ImpiantiList({ search, modal, eswbsCode, onSelect, close
     nodes.map((node) => {
       const hasChildren = node.children?.length > 0;
       const isOpen = openNodes[node.id];
+      const isMacro = !!node.isMacro;
       const firstDigit = node.eswbs_code?.charAt(0);
-      const icon = level === 0 ? (iconMap[firstDigit] || null) : null;
+      const icon = level === 0 || isMacro ? iconMap[firstDigit] || null : null;
       const isSelected = node.id === selectedCode;
 
       const isStructural = isStructuralNode(node.eswbs_code);
 
       return (
-        <div key={node.id} 
+        <div key={node.id}
           className="flex flex-col"
           ref={isSelected ? selectedRef : null}
         >
           <div
-            className="flex items-center justify-between py-3 cursor-pointer border-b border-[#ffffff10] hover:bg-[#ffffff06]"
+            className={`flex items-center justify-between py-3 cursor-pointer border-b border-[#ffffff10] hover:bg-[#ffffff06] ${
+              isMacro ? "bg-[#789fd610]" : ""
+            }`}
             style={{ paddingLeft: `${8 + level * 20}px`, paddingRight: "8px" }}
             onClick={() => toggleNode(node.id)}
           >
@@ -176,67 +217,72 @@ export default function ImpiantiList({ search, modal, eswbsCode, onSelect, close
               )}
 
               <div className="flex items-center gap-2 min-w-0"
-              
-              onClick={(e) => {
-                e.stopPropagation();
-                if (modal === "yes") {
-                  setSelectedCode(node.id);
-                  if (onSelect) onSelect(node);
-                  if (close) close();
-                } else {
-                  router.push(`/dashboard/impianti/${node.id}`);
-                }
-              }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (isMacro) {
+                    toggleNode(node.id);
+                    return;
+                  }
+                  if (modal === "yes") {
+                    setSelectedCode(node.id);
+                    if (onSelect) onSelect(node);
+                    if (close) close();
+                  } else {
+                    router.push(`/dashboard/impianti/${node.id}`);
+                  }
+                }}
               >
-                <span className={`flex-shrink-0 text-xs font-mono ${
-                    isStructural ? "text-white/50" : "text-white/50"
-                  }`}>
-                    {node.eswbs_code}
-                  </span>
+                <span className="flex-shrink-0 text-xs font-mono text-white/50">
+                  {node.eswbs_code}
+                </span>
                 <span className={`truncate ${
-                  isStructural
-                    ? "text-white/100 italic text-xs"  // nodi strutturali: grigi e in corsivo
-                    : level === 0
-                      ? "text-white font-semibold"
-                      : level === 1
-                        ? "text-white/90 text-sm"
-                        : "text-white/70 text-sm"
+                  isMacro
+                    ? "text-[#789fd6] font-bold"
+                    : isStructural
+                      ? "text-white/100 italic text-xs"
+                      : level === 0
+                        ? "text-white font-semibold"
+                        : level === 1
+                          ? "text-white/90 text-sm"
+                          : "text-white/70 text-sm"
                 }`}>
                   {node.name}
                 </span>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 flex-shrink-0">
-              <input
-                type="checkbox"
-                checked={node.id === selectedCode}
-                onChange={(e) => {
-                  e.stopPropagation();
-                  if (e.target.checked) {
-                    setSelectedCode(node.id);
-                    if (onSelect) onSelect(node);
-                    if (close) close();
-                  } else {
-                    setSelectedCode(null);
-                    if (onSelect) onSelect(null);
-                  }
-                }}
-                className="cursor-pointer w-5 h-5 appearance-none border-2 border-[#ffffff20] bg-transparent rounded-sm checked:bg-[#789fd6] checked:border-[#789fd6]"
-              />
+            {!isMacro && (
+              <div className="flex items-center gap-3 flex-shrink-0">
+                <input
+                  type="checkbox"
+                  checked={node.id === selectedCode}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    if (e.target.checked) {
+                      setSelectedCode(node.id);
+                      if (onSelect) onSelect(node);
+                      if (close) close();
+                    } else {
+                      setSelectedCode(null);
+                      if (onSelect) onSelect(null);
+                    }
+                  }}
+                  className="cursor-pointer w-5 h-5 appearance-none border-2 border-[#ffffff20] bg-transparent rounded-sm checked:bg-[#789fd6] checked:border-[#789fd6]"
+                />
 
-              <svg
-                onClick={(e) => {
-                  e.stopPropagation();
-                  router.push(`/dashboard/impianti/${node.id}`);
-                }}
-                className="cursor-pointer opacity-50 hover:opacity-100"
-                width="14" height="14" fill="white"
-                xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"
-              >
-                <path d="M310.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L242.7 256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z" />
-              </svg>
-            </div>
+                <svg
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    router.push(`/dashboard/impianti/${node.id}`);
+                  }}
+                  className="cursor-pointer opacity-50 hover:opacity-100"
+                  width="14" height="14" fill="white"
+                  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"
+                >
+                  <path d="M310.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L242.7 256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z" />
+                </svg>
+              </div>
+            )}
           </div>
 
           {hasChildren && isOpen && (
