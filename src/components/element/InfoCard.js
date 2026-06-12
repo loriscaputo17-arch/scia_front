@@ -39,6 +39,10 @@ const InfoCard = ({ data }) => {
   const supplier = data.supplier;
   const parent = data.parent;
 
+  const imageUrl   = model?.image_url   || element?.image_url   || null;
+  const model3dUrl = model?.model_3d_url || element?.model_3d_url || null;
+
+
   const Field = ({ label, value }) => {
     if (!value) return null;
     return (
@@ -104,16 +108,18 @@ const InfoCard = ({ data }) => {
 
           <Field label="Dimensioni (LxWxH)" value={model?.Dimensions_LxWxH} />
 
-          <div className="mb-4">
-            <h2 className="text-sm text-[#789fd6] mb-2">{t("image")}</h2>
-            <Image
-              src="/motor.jpg"
-              alt="image"
-              width={80}
-              height={80}
-              className="rounded-lg"
-            />
-          </div>
+          {imageUrl && (
+            <div className="mb-4">
+              <h2 className="text-sm text-[#789fd6] mb-2">{t("image")}</h2>
+              <Image
+                src={imageUrl}
+                alt="image"
+                width={80}
+                height={80}
+                className="rounded-lg"
+              />
+            </div>
+          )}
         </div>
 
         {/* COLONNA DESTRA */}
@@ -173,16 +179,18 @@ const InfoCard = ({ data }) => {
 
           <Field label="Codice sostituibilità" value={model?.Replaceability_Code_CS} />
 
-          <div className="mb-4">
-            <h2 className="text-sm text-[#789fd6] mb-2">{t("3D_model")}</h2>
-            <Image
-              src="/motor.jpg"
-              alt="3D model"
-              width={80}
-              height={80}
-              className="rounded-lg"
-            />
-          </div>
+          {model3dUrl && (
+            <div className="mb-4">
+              <h2 className="text-sm text-[#789fd6] mb-2">{t("3D_model")}</h2>
+              <Image
+                src={model3dUrl}
+                alt="3D model"
+                width={80}
+                height={80}
+                className="rounded-lg"
+              />
+            </div>
+          )}
         </div>
       </div>
 

@@ -62,16 +62,16 @@ const SpareRow = ({ data }) => {
           className="border border-[#001c38] p-3 flex flex-col justify-center min-h-[60px]"
           style={{ height: "-webkit-fill-available" }}
         >
-          <p className="text-white text-[18px] font-semibold truncate">
+          <p className="text-white text-[18px] font-semibold truncate break-words whitespace-normal">
             {data?.Part_name
               ? data.Part_name.length > 30
                 ? data.Part_name
                 : data.Part_name
               : "N/A"}
           </p>
-          <p className="text-white/60 text-[16px] truncate">
+          <p className="text-white/60 text-[16px] break-words whitespace-normal">
             {data?.elementModel?.ESWBS_code && <ElementIcon elementId={data.elementModel.ESWBS_code} />}{" "}
-            {data?.elementModel?.ESWBS_code ?? ""} {data?.elementModel?.LCN_name.slice(0, 100) ?? ""}
+            {data?.elementModel?.ESWBS_code ?? ""} {data?.elementModel?.LCN_name ?? ""}
           </p>
         </div>
 

@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslation } from "@/app/i18n";
 import { jwtDecode } from "jwt-decode";
 
-const PIN_LENGTH = 4;
+const PIN_LENGTH = 8;
 
 function PINLoginContent() {
   const [pin, setPin] = useState("");
@@ -112,11 +112,13 @@ function PINLoginContent() {
         <p className="text-white/50">{t("loading") || "Verifica in corso..."}</p>
       ) : (
         <div className="grid grid-cols-3 gap-2">
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9, ".", 0, "delete"].map((value, index) => (
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9, "", 0, "delete"].map((value, index) => (
             <button
               key={index}
-              className="w-24 h-14 flex items-center justify-center text-lg font-semibold rounded-lg bg-[#022a52] hover:bg-blue-500 transition"
-              onClick={() => handleButtonClick(value)}
+              disabled={value === ""}
+              className={`w-24 h-14 flex items-center justify-center text-lg font-semibold rounded-lg transition
+                ${value === "" ? "invisible" : "bg-[#022a52] hover:bg-blue-500"}`}
+              onClick={() => value !== "" && handleButtonClick(value)}
             >
               {value === "delete" ? "⌫" : value}
             </button>

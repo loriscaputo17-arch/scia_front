@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { getUserSecuritySettings, updateUserSecuritySettings } from "@/api/user";
 import { useTranslation } from "@/app/i18n";
+import { validatePin } from "@/utils/validatePin";
 
 export default function PasswordModal({ userId, onClose }) {
   const [oldPassword, setOldPassword] = useState("");
@@ -33,37 +34,25 @@ export default function PasswordModal({ userId, onClose }) {
   }, []);
 
   async function handleSave() {
-
     if (newPassword !== confirmPassword) {
       alert("Le password non coincidono!");
       return;
     }
 
-    if (pinJustEnabled && (!pin || pin !== confirmPin)) {
-      alert("Il PIN non coincide!");
-      return;
+    if (pinJustEnabled || pin) {
+      if (pin !== confirmPin) { alert("Il PIN non coincide!"); return; }
+      const check = validatePin(pin);
+      if (!check.valid) { alert(check.error); return; }
     }
 
     await saveSettings();
   }
 
   async function saveSettings() {
-    const updatedData = {
-      oldPassword,
-      userId,
-      newPassword,
-      pin: pin || null,
-      useQuickPin,
-      useBiometric,
-      passwordForPin: passwordForPin || null,
-    };
-
+    const updatedData = { oldPassword, userId, newPassword, pin: pin || null, useQuickPin, useBiometric, passwordForPin: passwordForPin || null };
     const response = await updateUserSecuritySettings(updatedData);
-    if (response) {
-      onClose();
-    } else {
-      console.error("Errore nell'aggiornamento delle impostazioni");
-    }
+    if (response) onClose();
+    else alert("Errore nell'aggiornamento. Verifica il PIN (8 cifre, non banale) o riprova.");
   }
 
   function handleTogglePin() {
@@ -139,7 +128,7 @@ export default function PasswordModal({ userId, onClose }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
           <div>
             <label className="text-[#789FD6] text-sm">{t("add_pin")}</label>
-            <input type="password" placeholder="PIN" value={pin} onChange={(e) => setPin(e.target.value)} className="w-full px-4 py-2 bg-[#ffffff10] text-white focus:outline-none mt-2" />
+            <input type="password" inputMode="numeric" maxLength={8} placeholder="PIN" value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))} className="w-full px-4 py-2 bg-[#ffffff10] text-white focus:outline-none mt-2" />
           </div>
           <div>
             <label className="text-[#789FD6] text-sm">{t("confirm_pin")}</label>

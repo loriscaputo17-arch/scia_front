@@ -1,13 +1,27 @@
 {
-  "name": "Name",
   "phone": "Phone",
-    "role": "Ruolo",
     "rank": "Rank",
-    "ship": "Ship",
     "leader": "Leader",
-    "add_plant": "Add system",
-    "save":"Save",
-    "system": "System",
-    "team_members": "Team"
+  "team_members": "Team members",
+  "name": "Name",
+  "role": "Role",
+  "ship": "Ship",
+  "system": "Systems",
+  "actions": "Actions",
+  "add_plant": "Add system",
+  "save": "Save",
+  "create_user": "Create user",
+  "first_name": "First name",
+  "last_name": "Last name",
+  "create": "Create user",
+  "close": "Close",
+  "roles": {
+    "machine_maintainer": "Machine Maintainer",
+    "chief_engineer": "Chief Engineer",
+    "comand": "Comand",
+    "admin": "Admin",
+    "owner": "Owner"
+  }
+
 }
   

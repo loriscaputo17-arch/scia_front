@@ -104,7 +104,7 @@ export default function DropdownMenu({ isOpen, onClose }) {
           label={t("settings")}
           icon={<Image src="/icons/settingsico.svg" alt="" width={15} height={15} />}
         />
-        {user?.type === "Comando" && (
+        {user?.type === "admin" && (
           <MenuItem
             href="/dashboard/overview"
             label={t("overview")}

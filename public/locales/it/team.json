@@ -1,13 +1,26 @@
 {
-  "name": "Nome",
   "phone": "Telefono",
-  "role": "Ruolo",
   "rank": "Grado",
-  "ship": "Nave",
   "leader": "Caposquadra",
+  "team_members": "Membri del team",
+  "name": "Nome",
+  "role": "Ruolo",
+  "ship": "Nave",
+  "system": "Impianti",
+  "actions": "Azioni",
   "add_plant": "Aggiungi impianto",
   "save": "Salva",
-  "system": "Impianto",
-  "team_members": "Squadras"
+  "create_user": "Crea utente",
+  "first_name": "Nome",
+  "last_name": "Cognome",
+  "create": "Crea utente",
+  "close": "Chiudi",
+  "roles": {
+    "machine_maintainer": "Manutentore di macchina",
+    "chief_engineer": "Direttore di macchina",
+    "comand": "Comando",
+    "admin": "Amministratore",
+    "owner": "Proprietario"
+  }
 }
   

@@ -1,14 +1,27 @@
 {
-  "name": "Nombre",
   "phone": "Teléfono",
-  "role": "Rol",
   "rank": "Rango",
-  "ship": "Barco",
   "leader": "Líder",
-  "add_plant": "Agregar sistema",
+  "team_members": "Miembros del equipo",
+  "name": "Nombre",
+  "role": "Rol",
+  "ship": "Buque",
+  "system": "Sistemas",
+  "actions": "Acciones",
+  "add_plant": "Añadir sistema",
   "save": "Guardar",
-  "system": "Planta",
-  "team_members": "Equipo"
+  "create_user": "Crear usuario",
+  "first_name": "Nombre",
+  "last_name": "Apellido",
+  "create": "Crear usuario",
+  "close": "Cerrar",
+  "roles": {
+    "machine_maintainer": "Mantenedor de máquina",
+    "chief_engineer": "Jefe de máquinas",
+    "comand": "Mando",
+    "admin": "Administrador",
+    "owner": "Propietario"
+  }
   
 }
   
