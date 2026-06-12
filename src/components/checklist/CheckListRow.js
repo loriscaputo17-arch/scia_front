@@ -184,7 +184,7 @@ const CheckListRow = ({ data }) => {
        <div onClick={handleRowClick} className="border border-[#001c38] p-3 flex flex-col justify-center min-h-[60px]" style={{ height: "-webkit-fill-available" }}> 
           <p className="text-white text-[18px] font-semibold">
             {data.maintenance_list.name.length > 45 
-              ? data.maintenance_list.name.substring(0, 45) + "..." 
+              ? data.maintenance_list.name
               : data.maintenance_list.name}
           </p>
           <p className="text-white/60 text-[16px] text-sm truncate flex items-center gap-2">

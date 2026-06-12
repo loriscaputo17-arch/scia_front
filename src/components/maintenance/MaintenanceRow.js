@@ -121,17 +121,17 @@ const TitleCell = ({ jobName, elementName, onClick, eswbsCode }) => {
     <div onClick={onClick} className="border border-[#001c38] p-3 flex flex-col justify-center min-h-[60px]" style={{ height: "-webkit-fill-available" }}>
       <div className="flex items-center gap-2">
 
-        <p className="text-white text-[18px] font-semibold">
-          {jobName ? truncate(jobName, 28) : ""}
+        <p className="text-white text-[16px] font-semibold">
+          {jobName ? truncate(jobName, 100) : ""}
         </p>
 
       </div> 
 
-      <p className="text-white/60 text-[16px] text-sm truncate flex items-center gap-2">
+      <p className="text-white/60 text-[14px] text-sm truncate flex items-center gap-2">
         {icon && (
           <Image src={icon} alt="facility icon" width={16} height={16} />
         )}
-        {elementName ? truncate(elementName.charAt(0).toUpperCase() + elementName.slice(1), 28) : ""}
+        {elementName ? truncate(elementName.charAt(0).toUpperCase() + elementName.slice(1), 100) : ""}
       </p>
     </div>
   );

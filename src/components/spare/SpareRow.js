@@ -65,13 +65,13 @@ const SpareRow = ({ data }) => {
           <p className="text-white text-[18px] font-semibold truncate">
             {data?.Part_name
               ? data.Part_name.length > 30
-                ? data.Part_name.slice(0, 28) + "..."
+                ? data.Part_name
                 : data.Part_name
               : "N/A"}
           </p>
           <p className="text-white/60 text-[16px] truncate">
             {data?.elementModel?.ESWBS_code && <ElementIcon elementId={data.elementModel.ESWBS_code} />}{" "}
-            {data?.elementModel?.ESWBS_code ?? ""} {data?.elementModel?.LCN_name.slice(0, 28) ?? ""}
+            {data?.elementModel?.ESWBS_code ?? ""} {data?.elementModel?.LCN_name.slice(0, 100) ?? ""}
           </p>
         </div>
 

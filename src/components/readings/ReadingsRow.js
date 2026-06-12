@@ -78,7 +78,7 @@ const ReadingsRow = ({ data }) => {
         <div onClick={handleRowClick} className="border border-[#001c38] p-3 flex flex-col justify-center min-h-[60px] cursor-pointer">
           <div className="flex items-center gap-2">
             <p className="text-white text-[18px] font-semibold">
-              {truncate(data?.element?.name || data?.task_name, 28)}
+              {data?.task_name}
             </p>
             <div className="flex items-center gap-1 flex-wrap ml-auto">
               {tags.map((tag, index) => (
@@ -92,7 +92,7 @@ const ReadingsRow = ({ data }) => {
           <p className="text-white/60 text-sm truncate flex items-center gap-1 mt-1">
             {facilityIcon && <Image src={facilityIcon} alt="" width={14} height={14} />}
             {eswbsCode && <span className="text-white/40 font-mono text-xs">{eswbsCode}</span>}
-            {truncate(data?.element?.name, 28)}
+            {data?.element?.name}
           </p>
         </div>
 
